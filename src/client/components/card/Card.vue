@@ -43,7 +43,9 @@ import {getPreferences} from '@/client/utils/PreferencesManager';
 import {CardResource} from '@/common/CardResource';
 import {getCardOrThrow} from '@/client/cards/ClientCardManifest';
 import {CardName} from '@/common/cards/CardName';
-import * as HTML_DATA from '@/genfiles/cards-html-cn.json';
+// import * as HTML_DATA from '@/genfiles/cards-html-cn.json';
+import * as HTML_DATA from '@/genfiles/cards.json';
+
 
 const names = [
   CardName.BOTANICAL_EXPERIENCE,
