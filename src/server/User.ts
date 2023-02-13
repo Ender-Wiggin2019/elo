@@ -10,6 +10,7 @@ export class User {
   public accessDate : string = '2021-01-01';
   public showhandcards : boolean = false;
   public donateNum : number = 0;
+  public rankValue : number = 100; // 天梯
 
   constructor(
         public name: string,
@@ -68,6 +69,11 @@ export class User {
       return 1;
     }
     return 0;
+  }
+
+  // 天梯，返回排位分数
+  public getRankValue(): number {
+    return this.rankValue;
   }
 }
 

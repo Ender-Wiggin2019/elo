@@ -171,6 +171,13 @@
                                 <span v-i18n>Starting Corporations</span>
                             </label>
 
+                          <!--天梯选项-->
+                          <!--TODO add a css class-->
+                          <input type="checkbox" v-model="rankOption" id="rank-checkbox">
+                          <label for="rank-checkbox" style="background-color: goldenrod">
+                            <span v-i18n>Rank Mode</span>&nbsp;
+                          </label>
+
                             <input type="checkbox" v-model="solarPhaseOption" id="WGT-checkbox">
                             <label for="WGT-checkbox">
                                 <span v-i18n>World Government Terraforming</span>&nbsp;
@@ -506,6 +513,7 @@ export interface CreateGameModel {
     moonExpansion: boolean;
     pathfindersExpansion: boolean;
     undoOption: boolean;
+    rankOption: boolean; // 天梯
     showTimers: boolean;
     fastModeOption: boolean;
     removeNegativeGlobalEventsOption: boolean;
@@ -626,6 +634,7 @@ export default (Vue as WithRefs<Refs>).extend({
       moonExpansion: false,
       pathfindersExpansion: false,
       undoOption: true,
+      rankOption: false, // 天梯
       showTimers: true,
       fastModeOption: true,
       removeNegativeGlobalEventsOption: false,
@@ -1013,6 +1022,7 @@ export default (Vue as WithRefs<Refs>).extend({
       const moonExpansion = component.moonExpansion;
       const pathfindersExpansion = component.pathfindersExpansion;
       const undoOption = component.undoOption;
+      const rankOption = component.rankOption; // 天梯
       const showTimers = component.showTimers;
       const fastModeOption = component.fastModeOption;
       const removeNegativeGlobalEventsOption = this.removeNegativeGlobalEventsOption;
@@ -1144,6 +1154,7 @@ export default (Vue as WithRefs<Refs>).extend({
         'moonExpansion': moonExpansion,
         'pathfindersExpansion': pathfindersExpansion,
         undoOption,
+        rankOption,
         showTimers,
         fastModeOption,
         removeNegativeGlobalEventsOption,

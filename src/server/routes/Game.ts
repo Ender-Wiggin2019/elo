@@ -134,6 +134,7 @@ export class GameHandler extends Handler {
             twoCorpsVariant: gameReq.twoCorpsVariant,
             leadersExtension: gameReq.leadersExtension,
             customLeaders: gameReq.customLeaders,
+            rankOption: gameReq.rankOption, // 天梯
           };
           const userId = gameReq.userId;
           let isvip = false;

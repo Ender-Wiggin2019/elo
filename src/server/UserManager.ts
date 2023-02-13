@@ -404,3 +404,34 @@ export function sitDown(req: http.IncomingMessage, res: http.ServerResponse): vo
   });
 }
 
+// 天梯 TODO
+export function getRankValue(req: http.IncomingMessage, res: http.ServerResponse, ctx: Context): void {
+  const userId = ctx.url.searchParams.get('userId');
+  if (userId === undefined || userId === '' || userId === null) {
+    console.warn('didn\'t find user id');
+    notFound(req, res);
+    return;
+  }
+
+  const user = GameLoader.getInstance().userIdMap.get(userId);
+  if (user === undefined ) {
+    console.warn('didn\'t find user ');
+    notFound(req, res);
+    return;
+  }
+  user.accessDate = getDate();
+  try {
+    res.setHeader('Content-Type', 'application/json');
+    if ( user.getRankValue() ) {
+      res.write('success');
+    } else {
+      res.write('error');
+    }
+    res.end();
+  } catch (err) {
+    console.warn('error execute', err);
+    res.writeHead(500);
+    res.write('Unable to execute');
+    res.end();
+  }
+}

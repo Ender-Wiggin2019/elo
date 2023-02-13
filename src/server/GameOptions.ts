@@ -12,6 +12,7 @@ export type GameOptions = {
 
   // Configuration
   undoOption: boolean;
+  rankOption: boolean; // 天梯
   showTimers: boolean;
   fastModeOption: boolean;
   showOtherPlayersVP: boolean;
@@ -114,4 +115,5 @@ export const DEFAULT_GAME_OPTIONS: GameOptions = {
   doubleCorp: false,
   initialCorpDraftVariant: true,
   twoCorpsVariant: false,
+  rankOption: false, // 天梯
 };

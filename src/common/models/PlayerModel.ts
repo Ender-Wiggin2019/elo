@@ -71,6 +71,7 @@ export type PublicPlayerModel = {
   waitingFor: {} | undefined;
   exited: boolean;
   isvip: number;
+  rankValue: number; // 天梯
 }
 
 /** A player's view of the game, including their secret information. */
@@ -90,11 +91,12 @@ export interface PlayerViewModel extends ViewModel {
   canExit?: boolean;
   userName: string;
   isme: boolean;
-  isvip:number ;
+  isvip: number;
   waitingFor: PlayerInputModel | undefined;
   exited?: boolean;
   block: boolean;
   thisPlayer: PublicPlayerModel;
+  rankValue: number; // 天梯
 }
 
 export interface PlayerBlockModel {

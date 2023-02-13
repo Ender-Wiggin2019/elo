@@ -54,6 +54,7 @@ export class GameLoader implements IGameLoader {
 
   public static getUserByPlayer(player: Player): User | undefined {
     let user = undefined;
+    console.log('test', player.userId); // 天梯
     if (player.userId !== undefined) {
       user = GameLoader.getInstance().userIdMap.get(player.userId);
     }

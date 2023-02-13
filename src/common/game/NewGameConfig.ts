@@ -35,6 +35,7 @@ export interface NewGameConfig {
 
   // Configuration
   undoOption: boolean;
+  rankOption: boolean; // 天梯
   showTimers: boolean;
   fastModeOption: boolean;
   showOtherPlayersVP: boolean;

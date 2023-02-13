@@ -152,6 +152,10 @@ export class Server {
         exited: player.exited,
         isme: isme,
         isvip: GameLoader.getUserByPlayer(player)?.isvip() || 0,
+
+        // 天梯
+        rankValue: GameLoader.getUserByPlayer(player)?.getRankValue() || -1, // 天梯 TODO 是否需要？
+
       };
     } catch (err) {
       console.warn('error get player', err);
@@ -545,6 +549,7 @@ export class Server {
 
       exited: player.exited,
       isvip: GameLoader.getUserByPlayer(player)?.isvip() || 0,
+      rankValue: GameLoader.getUserByPlayer(player)?.getRankValue() || -1, // 天梯 TODO
     } as any as PublicPlayerModel;
   }
 
