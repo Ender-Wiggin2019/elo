@@ -167,4 +167,7 @@ export interface IDatabase {
 
     storeParticipants(entry: GameIdLedger): Promise<void>;
     getParticipants(): Promise<Array<GameIdLedger>>;
+
+    // 天梯
+    addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void ;
 }

@@ -115,6 +115,8 @@ export function processRequest(
       UserManager.sitDown(req, res);
     } else if (req.url.indexOf('/api/gameback') === 0) {
       UserManager.apiGameBack(req, res);
+    } else if (req.url.indexOf('/api/activateRank') === 0) {
+      UserManager.activateRank(req, res);
     }
     break;
   case 'PUT':

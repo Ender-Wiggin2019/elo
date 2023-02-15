@@ -405,6 +405,35 @@ export function sitDown(req: http.IncomingMessage, res: http.ServerResponse): vo
 }
 
 // 天梯 TODO
+export function activateRank(req: http.IncomingMessage, res: http.ServerResponse): void {
+  let body = '';
+  req.on('data', function(data) {
+    body += data.toString();
+  });
+  req.once('end', function() {
+    try {
+      const userReq = JSON.parse(body);
+      const userId = userReq.userId;
+      const rankValue = userReq.rankValue;
+      const mu = userReq.mu;
+      const sigma = userReq.sigma;
+      const activate = userReq.activate;
+      Database.getInstance().addUserRank(userId, rankValue, mu, sigma, activate);
+      console.log('add');
+      // const user: User = new User(userName, password, userId);
+      // user.createtime = getDay();
+      res.setHeader('Content-Type', 'application/json');
+      res.write('success');
+    } catch (err) {
+      console.warn('error activate', err);
+      res.writeHead(500);
+      const message = err instanceof Error ? err.message : String(err);
+      res.write( message);
+    }
+    res.end();
+  });
+}
+
 export function getRankValue(req: http.IncomingMessage, res: http.ServerResponse, ctx: Context): void {
   const userId = ctx.url.searchParams.get('userId');
   if (userId === undefined || userId === '' || userId === null) {

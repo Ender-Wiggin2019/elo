@@ -34,6 +34,9 @@ export class SQLite implements IDatabase {
     await this.asyncRun('CREATE TABLE IF NOT EXISTS participants(game_id varchar, participant varchar, PRIMARY KEY (game_id, participant))');
     await this.asyncRun('CREATE TABLE IF NOT EXISTS \'users\'(\'id\'  varchar NOT NULL,\'name\'  varchar NOT NULL,\'password\'  varchar NOT NULL,\'prop\' varchar,\'createtime\'  timestamp DEFAULT (datetime(CURRENT_TIMESTAMP,\'localtime\')),PRIMARY KEY (\'id\'))');
     await this.asyncRun('CREATE TABLE IF NOT EXISTS game_results(game_id varchar not null, seed_game_id varchar, players integer, generations integer, game_options text, scores text,createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), PRIMARY KEY (game_id))');
+
+    // 天梯 新增表，当第一次加入天梯游戏时插入
+    await this.asyncRun('CREATE TABLE IF NOT EXISTS user_rank (id varchar not null, rank_value integer default 0, mu double, sigma double, activate integer default 1, PRIMARY KEY (id))');
   }
 
   public async getPlayerCount(gameId: GameId): Promise<number> {
@@ -355,5 +358,16 @@ export class SQLite implements IDatabase {
         throw err;
       }
     }
+  }
+
+  // 天梯，?是否需要async
+  addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void {
+    // add rank TODO 去重的判断
+    console.log('db:addUserRank', id, rank_value, mu, sigma, activate);
+    this.db.run('INSERT INTO user_rank(id, rank_value, mu, sigma, activate) VALUES(?, ?, ?, ?, ?)', [id, rank_value, mu, sigma, activate], function(err: { message: any; }) {
+      if (err) {
+        return console.error(err);
+      }
+    });
   }
 }

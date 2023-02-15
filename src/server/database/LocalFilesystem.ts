@@ -163,4 +163,7 @@ export class LocalFilesystem implements IDatabase {
   getParticipants(): Promise<Array<GameIdLedger>> {
     throw new Error('Method not implemented.');
   }
+  addUserRank(_id: string, _rankValue: number, _mu: number, _sigma: number, _activate: number): void {
+    throw new Error('Method not implemented.');
+  }
 }

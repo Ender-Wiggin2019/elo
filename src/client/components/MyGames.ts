@@ -4,6 +4,7 @@ import axios from 'axios';
 import {Phase} from '@/common/Phase';
 import {getPreferences, PreferencesManager} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
+import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '@/server/RankManager';
 
 export const MyGames = Vue.component('my-games', {
   data: function() {
@@ -93,6 +94,26 @@ export const MyGames = Vue.component('my-games', {
         alert(error);
       });
     },
+
+    // 天梯，在`user_rank`表中创建对应数据
+    activateRank: function() {
+      const userId = PreferencesManager.load('userId');
+      if ( userId === undefined || userId === '') {
+        return;
+      }
+      console.log('activateRank');
+      axios.post('/api/activateRank', {
+        userId: userId,
+        rankValue: DEFAULT_RANK_VALUE,
+        mu: DEFAULT_MU,
+        sigma: DEFAULT_SIGMA,
+        activate: 1,
+      }).then(function(response) {
+        console.log(response);
+      }).catch(function(error) {
+        alert(error);
+      });
+    },
   },
   created() {
     if (window.localStorage) {
@@ -106,6 +127,7 @@ export const MyGames = Vue.component('my-games', {
                 <span v-if="this.vipDate"><img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;" />{{vipDate}}<img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;" /></span> 
                 <button class="btn btn-lg btn-success" style="margin-bottom: 7px;min-width: 80px;" v-on:click="changeLogin" v-i18n><span v-if="userName">LoginOut</span><span v-else>Login/Register</span></button>
             </h1>
+            <button class="btn btn-lg btn-success" style="margin-bottom: 7px;min-width: 80px;" v-on:click="activateRank" v-i18n><span v-if="userName">Start Rank</span><span v-else>Login/Register</span></button>
             <confirm-dialog message="开启后其他玩家可以通过你的游戏链接查看你的手牌，但不能帮你操作" ref="showHand"   v-on:accept="confimUpdate" v-on:dismiss="cancelUpdate" />
             <label class="form-switch" style="margin-left: 20px;display: inline-block;">
               <input type="checkbox" name="enable_sounds" v-model="enable_sounds" v-on:change="updateTips" >

@@ -345,6 +345,16 @@ export class PostgreSQL implements IDatabase {
   refresh(): void {
 
   }
+
+  // 天梯，?是否需要async
+  addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void {
+    // Insert user
+    this.client.query('INSERT INTO user_rank(id, rank_value, mu, sigma, activate) VALUES(?, ?, ?, ?, ?)', [id, rank_value, mu, sigma, activate], function(err: { message: any; }) {
+      if (err) {
+        return console.error(err);
+      }
+    });
+  }
 }
 
 function logForUndo(_gameId: string, ..._message: any[]) {
