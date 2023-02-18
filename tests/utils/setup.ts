@@ -4,6 +4,7 @@ import {SerializedGame} from '../../src/server/SerializedGame';
 import {GameLoader} from '../../src/server/database/GameLoader';
 import {registerBehaviorExecutor} from '../../src/server/behavior/BehaviorExecutor';
 import {Executor} from '../../src/server/behavior/Executor';
+import {UserRank} from '../../src/server//RankManager';
 
 registerBehaviorExecutor(new Executor());
 
@@ -30,6 +31,10 @@ const FAKE_DATABASE: IDatabase = {
   loadCloneableGame: () => Promise.resolve({} as SerializedGame),
   storeParticipants: () => Promise.resolve(),
   getParticipants: () => Promise.resolve([]),
+
+  // 天梯
+  addUserRank: () => Promise.resolve(),
+  getUserRanks: () => Promise.resolve({} as UserRank),
 };
 
 let databaseUnderTest: IDatabase = FAKE_DATABASE;

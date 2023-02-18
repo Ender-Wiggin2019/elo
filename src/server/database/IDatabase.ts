@@ -5,6 +5,8 @@ import {SerializedPlayer} from '../SerializedPlayer';
 import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {Phase} from '../../common/Phase';
 import {User} from '../User';
+import {UserRank} from '../RankManager';
+
 export interface IShortData {
     id:string,
     phase : Phase,
@@ -170,4 +172,5 @@ export interface IDatabase {
 
     // 天梯
     addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void ;
+    getUserRanks(): Promise<Array<UserRank>>;
 }

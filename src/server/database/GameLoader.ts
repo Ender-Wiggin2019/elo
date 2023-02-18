@@ -7,6 +7,7 @@ import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {User} from '../User';
 import {IGameLoader, State} from './IGameLoader';
 import {GameIdLedger, IGameShortData} from './IDatabase';
+import {UserRank} from '../RankManager';
 
 type LoadCallback = (game: Game | undefined) => void;
 
@@ -20,6 +21,9 @@ export class GameLoader implements IGameLoader {
   public readonly userIdMap: Map<string, User> = new Map<string, User>();
   public readonly userNameMap: Map<string, User> = new Map<string, User>();
   public readonly usersToGames: Map<string, Set<string>> = new Map<string, Set<string>>();
+
+  // 天梯，id到排名的映射表
+  public readonly userRankMap: Map<string, UserRank> = new Map<string, UserRank>();
   // 以前的game没存shortData, 通过allGameIds读取全部数据
   public allGameIds: Array<GameId> = [];
 
@@ -54,7 +58,6 @@ export class GameLoader implements IGameLoader {
 
   public static getUserByPlayer(player: Player): User | undefined {
     let user = undefined;
-    console.log('test', player.userId); // 天梯
     if (player.userId !== undefined) {
       user = GameLoader.getInstance().userIdMap.get(player.userId);
     }
@@ -249,6 +252,26 @@ export class GameLoader implements IGameLoader {
         $this.userNameMap.set(user.name.trim().toLowerCase(), user);
         $this.usersToGames.set(user.id, new Set());
       });
+    });
+
+    // 天梯
+    Database.getInstance().getUserRanks().then( (allUserRanks:Array<UserRank> ) => {
+      if (allUserRanks.length === 0) {
+        // this.onAllGamesLoaded(); // TODO check
+        cb();
+        return;
+      }
+      console.log(`loading all ranks ${allUserRanks.length}`);
+
+      allUserRanks.forEach((userRank) => {
+        $this.userRankMap.set(userRank.userId, userRank); // TODO 是否要加一个检查是否是用户的判断？
+      });
+      console.log($this.userRankMap);
+    }).catch((err) => {
+      console.error('error loading all games', err);
+      this.onAllGamesLoaded();
+      cb();
+      return;
     });
 
     Database.getInstance().getGames().then( (allGames:Array<IGameShortData> ) => {

@@ -8,6 +8,8 @@ import {Timer} from '../../common/Timer';
 import {Pool, ClientConfig} from 'pg';
 import {daysAgoToSeconds} from './utils.ts';
 import {GameIdLedger} from './IDatabase';
+import {UserRank} from '../RankManager';
+// import {Rating} from 'ts-trueskill';
 
 export class PostgreSQL implements IDatabase {
   protected client: Pool;
@@ -354,6 +356,39 @@ export class PostgreSQL implements IDatabase {
         return console.error(err);
       }
     });
+  }
+
+  // 天梯，根据User返回UserRank
+  // public async getUserRanks(user: User): Promise<UserRank> {
+  //   const res = await this.client.query('SELECT id, rank_value, mu, sigma FROM user_rank where id = $1 limit 1', [user.id]);
+  //   if (res.rows.length === 0 || res.rows[0] === undefined) {
+  //     throw new Error(`Rank of user id ${user.id} not found`);
+  //   }
+  //   const {Rating} = await import('ts-trueskill');
+  //   const rating = new Rating(res.rows[0].mu, res.rows[0].sigma);
+  //   const userRank = new UserRank(user, res.rows[0].rank_value, rating);
+  //   return userRank;
+  //   // return import('ts-trueskill')
+  //   //   .then(({Rating}) => {
+  //   //     const rating = new Rating(res.rows[0].mu, res.rows[0].sigma);
+  //   //     const userRank = new UserRank(user, res.rows[0].rank_value, rating);
+  //   //     return userRank;
+  //   //   });
+  //   // const rating = new Rating(res.rows[0].mu, res.rows[0].sigma);
+  //   // const userRank = new UserRank(user, res.rows[0].rank_value, rating);
+  //   // return userRank;
+  // }
+
+  public async getUserRanks(): Promise<Array<UserRank>> {
+    const allUserRanks : Array<UserRank> = [];
+    const res = await this.client.query('SELECT id, rank_value, mu, sigma FROM user_rank order by rank_value desc');
+    res.rows.forEach((row) => {
+      const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma);
+      allUserRanks.push(userRank);
+    });
+    // const {Rating} = await import('ts-trueskill');
+    // const rating = new Rating(row.mu, row.sigma);
+    return allUserRanks;
   }
 }
 

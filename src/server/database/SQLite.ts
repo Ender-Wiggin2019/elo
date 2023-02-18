@@ -9,6 +9,9 @@ import {RunResult} from 'sqlite3';
 import {User} from '../User';
 import {Timer} from '../../common/Timer';
 import {MultiMap} from 'mnemonist';
+import {UserRank} from '../RankManager';
+// import {Rating} from 'ts-trueskill';
+
 const path = require('path');
 const fs = require('fs');
 const dbFolder = path.resolve(process.cwd(), './db');
@@ -362,7 +365,6 @@ export class SQLite implements IDatabase {
 
   // 天梯，?是否需要async
   addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void {
-    // add rank TODO 去重的判断
     console.log('db:addUserRank', id, rank_value, mu, sigma, activate);
     this.db.run('INSERT INTO user_rank(id, rank_value, mu, sigma, activate) VALUES(?, ?, ?, ?, ?)', [id, rank_value, mu, sigma, activate], function(err: { message: any; }) {
       if (err) {
@@ -370,4 +372,37 @@ export class SQLite implements IDatabase {
       }
     });
   }
+
+  // 天梯，返回所有UserRank
+  public async getUserRanks(): Promise<Array<UserRank>> {
+    const allUserRanks : Array<UserRank> = [];
+    const rows = await this.asyncAll('SELECT id, rank_value, mu, sigma FROM user_rank order by rank_value desc');
+    rows.forEach((row) => {
+      const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma);
+      allUserRanks.push(userRank);
+    });
+    // const {Rating} = await import('ts-trueskill');
+    // const rating = new Rating(row.mu, row.sigma);
+    return allUserRanks;
+  }
+
+  // getUsers(cb:(err: any, allUsers:Array<User>)=> void): void {
+  //   const allUsers:Array<User> = [];
+  //   const sql: string = 'SELECT distinct id, name, password, prop, createtime FROM users ';
+  //   this.db.all(sql, [], (err, rows) => {
+  //     if (rows) {
+  //       rows.forEach((row) => {
+  //         const user = Object.assign(new User('', '', ''), {id: row.id, name: row.name, password: row.password, createtime: row.createtime}, JSON.parse(row.prop) );
+  //         if (user.donateNum === 0 && user.isvip() > 0) {
+  //           user.donateNum = 1;
+  //         }
+  //         allUsers.push(user );
+  //       });
+  //       return cb(err, allUsers);
+  //     }
+  //     if (err) {
+  //       return console.warn(err.message);
+  //     }
+  //   });
+  // }
 }

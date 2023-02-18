@@ -4,6 +4,7 @@ import {GameOptions} from '../GameOptions';
 import {GameId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
 import {Dirent} from 'fs';
+import {UserRank} from '../RankManager';
 
 const path = require('path');
 const fs = require('fs');
@@ -164,6 +165,9 @@ export class LocalFilesystem implements IDatabase {
     throw new Error('Method not implemented.');
   }
   addUserRank(_id: string, _rankValue: number, _mu: number, _sigma: number, _activate: number): void {
+    throw new Error('Method not implemented.');
+  }
+  getUserRanks(): Promise<Array<UserRank>> {
     throw new Error('Method not implemented.');
   }
 }
