@@ -75,12 +75,12 @@ export class User {
   }
 
   // 天梯，返回排位分数
-  public getRankValue(): number {
-    return this.rankValue;
-  }
-
-  public setRankValue(value: number) {
-    this.rankValue = value;
-  }
+  // public getRankValue(): number {
+  //   return this.rankValue;
+  // }
+  //
+  // public setRankValue(value: number) {
+  //   this.rankValue = value;
+  // }
 }
 

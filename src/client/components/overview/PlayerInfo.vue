@@ -83,9 +83,7 @@ export default Vue.extend({
       return isPinned(this.$root, this.playerIndex) ? 'hide' : 'show';
     },
     togglePlayerDetails() {
-      // 天梯test
-      console.log('test', this.player?.name,this.player?.isvip, this.player?.rankValue);
-
+      console.log(this.player?.rankTier);
       // for the player viewing this page => scroll to cards UI
       if (this.player.color === this.playerView.thisPlayer?.color) {
         const el = document.getElementsByClassName(
@@ -129,7 +127,7 @@ export default Vue.extend({
         <div class="player-status-and-res">
         <div class="player-status">
           <div class="player-info-details">
-            <div class="player-info-name"  @click="togglePlayerDetails">{{ player.name }} <em title="vip" v-if="player.isvip" :class="'icon_vip'+player.isvip" /> <span v-if="!player.isvip && player.rankValue > 0">{{ player.rankValue }}</span></div> <!--天梯，TODO传入player.rankValue-->
+            <div class="player-info-name"  @click="togglePlayerDetails">{{ player.name }} <em title="vip" v-if="player.isvip" :class="'icon_vip'+player.isvip" /> <span v-if="player.rankTier !== undefined">{{ player.rankTier.name + player.rankTier.stars }}</span></div> <!--天梯，TODO传入player.rankValue-->
             <div class="icon-first-player" v-if="firstForGen && playerView.players.length > 1" v-i18n>1st</div>
             <div class="player-info-corp" @click="togglePlayerDetails" v-if="corporationCardName() !== undefined" :title="$t(corporationCardName())"><span v-i18n>{{ corporationCardName() }}</span></div>
           </div>

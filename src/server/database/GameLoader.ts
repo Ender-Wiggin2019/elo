@@ -335,4 +335,14 @@ export class GameLoader implements IGameLoader {
     await Promise.resolve();
     return Promise.resolve([]);
   }
+
+  // 天梯
+  public static getUserRankByPlayer(player: Player): UserRank | undefined {
+    const user = this.getUserByPlayer(player);
+    let userRank = undefined;
+    if (user !== undefined) {
+      userRank = GameLoader.getInstance().userRankMap.get(user.id);
+    }
+    return userRank;
+  }
 }

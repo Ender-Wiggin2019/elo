@@ -442,25 +442,30 @@ export function getRankValue(req: http.IncomingMessage, res: http.ServerResponse
     return;
   }
 
-  const user = GameLoader.getInstance().userIdMap.get(userId);
-  if (user === undefined ) {
-    console.warn('didn\'t find user ');
+  // const user = GameLoader.getInstance().userIdMap.get(userId);
+  const userRank = GameLoader.getInstance().userRankMap.get(userId);
+  if (userRank === undefined ) {
+    console.warn('didn\'t find user rank ');
     notFound(req, res);
     return;
   }
-  user.accessDate = getDate();
-  try {
-    res.setHeader('Content-Type', 'application/json');
-    if ( user.getRankValue() ) {
-      res.write('success');
-    } else {
-      res.write('error');
-    }
-    res.end();
-  } catch (err) {
-    console.warn('error execute', err);
-    res.writeHead(500);
-    res.write('Unable to execute');
-    res.end();
-  }
+  const data = {userId: userRank.userId, rankValue: userRank.rankValue, mu: userRank.mu, sigma: userRank.sigma};
+
+  res.setHeader('Content-Type', 'application/json');
+  res.write(JSON.stringify(data));
+  res.end();
+  // try {
+  //   res.setHeader('Content-Type', 'application/json');
+  //   if ( user.getRankValue() ) {
+  //     res.write('success');
+  //   } else {
+  //     res.write('error');
+  //   }
+  //   res.end();
+  // } catch (err) {
+  //   console.warn('error execute', err);
+  //   res.writeHead(500);
+  //   res.write('Unable to execute');
+  //   res.end();
+  // }
 }

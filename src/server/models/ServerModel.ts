@@ -154,7 +154,7 @@ export class Server {
         isvip: GameLoader.getUserByPlayer(player)?.isvip() || 0,
 
         // 天梯
-        rankValue: GameLoader.getUserByPlayer(player)?.getRankValue() || -1, // 天梯 TODO 是否需要？
+        // rankValue: GameLoader.getUserRankByPlayer(player)?.getRankValue() || -1, // 天梯 TODO 是否需要？
 
       };
     } catch (err) {
@@ -549,7 +549,8 @@ export class Server {
 
       exited: player.exited,
       isvip: GameLoader.getUserByPlayer(player)?.isvip() || 0,
-      rankValue: GameLoader.getUserByPlayer(player)?.getRankValue() || -1, // 天梯 TODO
+      rankValue: GameLoader.getUserRankByPlayer(player)?.getRankValue() || -10, // 天梯 TODO 目前这个是传入playerInfo的数据
+      rankTier: GameLoader.getUserRankByPlayer(player)?.getTier() || undefined,
     } as any as PublicPlayerModel;
   }
 

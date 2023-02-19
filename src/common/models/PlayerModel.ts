@@ -8,6 +8,7 @@ import {GameModel} from './GameModel';
 import {PlayerId, SpectatorId} from '../Types';
 import {CardName} from '../cards/CardName';
 import {Resources} from '../Resources';
+import {RankTier} from '../../server/RankManager';
 
 export interface ViewModel {
   game: GameModel;
@@ -72,6 +73,7 @@ export type PublicPlayerModel = {
   exited: boolean;
   isvip: number;
   rankValue: number; // 天梯
+  rankTier: RankTier; // 天梯
 }
 
 /** A player's view of the game, including their secret information. */
@@ -96,7 +98,7 @@ export interface PlayerViewModel extends ViewModel {
   exited?: boolean;
   block: boolean;
   thisPlayer: PublicPlayerModel;
-  rankValue: number; // 天梯
+  // rankValue: number; // 天梯
 }
 
 export interface PlayerBlockModel {
