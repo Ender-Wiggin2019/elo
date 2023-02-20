@@ -1,9 +1,10 @@
 <template>
-      <div class="player-status">
+      <div class="player-status" v-on:click="changeDisplay">
         <div class="player-status-bottom">
           <div :class="getLabelAndTimerClasses()">
             <div :class="getActionStatusClasses()"><span v-i18n>{{ actionLabel }}</span></div>
-            <div class="player-status-timer" v-if="showTimers"><player-timer :timer="timer"/></div>
+            <div class="player-status-timer" v-if="showTimers && display==='timer'"><player-timer :timer="timer"/></div>
+            <RankTier :rankTier="rankTier" v-if="display==='tier'"/>
           </div>
         </div>
       </div>
@@ -15,6 +16,7 @@ import Vue from 'vue';
 import {ActionLabel} from '@/client/components/overview/ActionLabel';
 import PlayerTimer from '@/client/components/overview/PlayerTimer.vue';
 import {TimerModel} from '@/common/models/TimerModel';
+import RankTier from '@/client/components/RankTier.vue';
 
 export default Vue.extend({
   name: 'player-status',
@@ -28,9 +30,18 @@ export default Vue.extend({
     showTimers: {
       type: Boolean,
     },
+    rankTier: {
+      type: Object as () => RankTier,
+    },
+  },
+  data() {
+    return {
+      display: 'timer',
+    };
   },
   components: {
     PlayerTimer,
+    RankTier,
   },
   methods: {
     getLabelAndTimerClasses(): string {
@@ -53,6 +64,11 @@ export default Vue.extend({
         classes.push('visibility-hidden');
       }
       return classes.join(' ');
+    },
+    changeDisplay(): void {
+      if (this.display==='timer' && this.rankTier!==undefined) this.display = 'tier';
+      else this.display = 'timer';
+      console.log(this.rankTier);
     },
   },
 });

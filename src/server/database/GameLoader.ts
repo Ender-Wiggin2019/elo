@@ -7,7 +7,7 @@ import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {User} from '../User';
 import {IGameLoader, State} from './IGameLoader';
 import {GameIdLedger, IGameShortData} from './IDatabase';
-import {UserRank} from '../RankManager';
+import {UserRank} from '../../common/RankManager';
 
 type LoadCallback = (game: Game | undefined) => void;
 

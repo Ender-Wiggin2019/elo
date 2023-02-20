@@ -9,7 +9,7 @@ import {RunResult} from 'sqlite3';
 import {User} from '../User';
 import {Timer} from '../../common/Timer';
 import {MultiMap} from 'mnemonist';
-import {UserRank} from '../RankManager';
+import {UserRank} from '../../common/RankManager';
 // import {Rating} from 'ts-trueskill';
 
 const path = require('path');

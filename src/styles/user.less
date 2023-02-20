@@ -62,7 +62,7 @@
         opacity: 0.6;
         text-shadow: none;
     }
-    
+
     .player_name_cont.player_exited {
         .player_number {
             text-shadow:none;
@@ -227,6 +227,58 @@ game home 玩家名字
     }
 }
 
+.tier-container {
+    display: flex;
+    justify-content: center;
+    //align-items: center;
+    height: 53px;
+    //border-width: 2px;
+    //border-color: #0bda0b;
+}
+.tier-type {
+    display: block;
+    background-image: url(assets/rank/rank-division.png);
+    background-repeat: no-repeat;
+    //background-position: 0px 0px;
+    background-position-x: -45px;
+
+    width: 45px;
+    height: 53px;
+    background-size: auto 53px;
+    //transform: scale(0.8);
+}
+
+.tier-Iron { background-position-x: 0px; }
+.tier-Bronze { background-position-x: -45px; }
+.tier-Silver { background-position-x: -90px; }
+.tier-Gold { background-position-x: -135px; }
+.tier-Platinum { background-position-x: -180px; }
+.tier-Diamond { background-position-x: -225px; }
+.tier-Master { background-position-x: -270px; }
+.tier-Grandmaster { background-position-x: -315px; }
+.tier-Challenger { background-position-x: right; }
+
+.stars-container {
+
+    font-size: 0px;
+    margin-top: 20px;
+    .tier-star {
+        display: inline-block;
+        background-repeat: no-repeat;
+        width: 15px;
+        height: 15px;
+        background-size: 100% 100%;
+    }
+
+    .star-light {background-image: url(assets/rank/star-rate.png);}
+    .star-dark {background-image: url(assets/rank/star-black.png);}
+}
+
+.rank-value-container {
+    font-size: 30px;
+    color: #48d8ff;
+    text-shadow: 0 0 1px #0a2a50, 0 2px 2px #23a0ff;
+}
 
 
 

@@ -77,7 +77,7 @@ import {SerializedPlayer, SerializedPlayerId} from './SerializedPlayer';
 import {CardManifest} from './cards/ModuleManifest';
 import {ColoniesHandler} from './colonies/ColoniesHandler';
 import {Dealer} from './Dealer';
-import {getNewSkills, UserRank} from './RankManager';
+import {getNewSkills, UserRank} from '../common/RankManager';
 
 export enum LoadState {
   HALFLOADED = 'halfloaded',

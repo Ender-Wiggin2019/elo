@@ -8,7 +8,7 @@ import {Timer} from '../../common/Timer';
 import {Pool, ClientConfig} from 'pg';
 import {daysAgoToSeconds} from './utils.ts';
 import {GameIdLedger} from './IDatabase';
-import {UserRank} from '../RankManager';
+import {UserRank} from '../../common/RankManager';
 // import {Rating} from 'ts-trueskill';
 
 export class PostgreSQL implements IDatabase {

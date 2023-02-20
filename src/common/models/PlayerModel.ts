@@ -8,7 +8,7 @@ import {GameModel} from './GameModel';
 import {PlayerId, SpectatorId} from '../Types';
 import {CardName} from '../cards/CardName';
 import {Resources} from '../Resources';
-import {RankTier} from '../../server/RankManager';
+import {RankTier} from '../RankManager';
 
 export interface ViewModel {
   game: GameModel;

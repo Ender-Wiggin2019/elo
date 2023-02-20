@@ -5,7 +5,7 @@ import {SerializedPlayer} from '../SerializedPlayer';
 import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {Phase} from '../../common/Phase';
 import {User} from '../User';
-import {UserRank} from '../RankManager';
+import {UserRank} from '../../common/RankManager';
 
 export interface IShortData {
     id:string,

@@ -4,7 +4,7 @@ import axios from 'axios';
 import {Phase} from '@/common/Phase';
 import {getPreferences, PreferencesManager} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../server/RankManager';
+import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../common/RankManager';
 
 export const MyGames = Vue.component('my-games', {
   data: function() {

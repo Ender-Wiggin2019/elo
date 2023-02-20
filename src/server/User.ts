@@ -1,6 +1,6 @@
 
 import {getDay, myId} from './UserUtil';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from './RankManager';
+import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../common/RankManager';
 
 export class User {
   public createtime: string = '';

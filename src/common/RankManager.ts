@@ -79,9 +79,21 @@ export class UserRank {
   }
 }
 
+export enum TierName {
+  IRON = 'Iron',
+  BRONZE = 'Bronze',
+  SILVER = 'Silver',
+  GOLD = 'Gold',
+  PLATINUM = 'Platinum',
+  DIAMOND = 'Diamond',
+  MASTER = 'Master',
+  GRANDMASTER = 'Grandmaster',
+  CHALLENGER = 'Challenger',
+}
+
 export class RankTier {
   constructor(
-      public name: string,
+      public name: TierName,
       public measurement: 'star' | 'value', // 展示方式为星星或者数字
       public maxStars: number,
       public stars: number = 0,
@@ -89,15 +101,19 @@ export class RankTier {
   ) {}
 }
 
+
 export const RankTiers = [
-  new RankTier('Bronze', 'star', 3),
-  new RankTier('Silver', 'star', 3),
-  new RankTier('Gold', 'star', 5),
-  new RankTier('Platinum', 'star', 5),
-  new RankTier('Diamond', 'star', 5),
-  new RankTier('Master', 'star', 5),
-  new RankTier('Grandmaster', 'value', Infinity),
+  new RankTier(TierName.IRON, 'star', 3),
+  new RankTier(TierName.BRONZE, 'star', 3),
+  new RankTier(TierName.SILVER, 'star', 3),
+  new RankTier(TierName.GOLD, 'star', 5),
+  new RankTier(TierName.PLATINUM, 'star', 5),
+  new RankTier(TierName.DIAMOND, 'star', 5),
+  new RankTier(TierName.MASTER, 'star', 5),
+  new RankTier(TierName.GRANDMASTER, 'star', 5),
+  new RankTier(TierName.CHALLENGER, 'value', Infinity),
 ];
+
 
 // 天梯 根据原始排位，给出更新后的排位
 export async function getNewSkills(userRanks: Array<UserRank>): Promise<Array<UserRank>> {

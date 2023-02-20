@@ -10,7 +10,7 @@ import {PlayerBlockModel} from '../common/models/PlayerModel';
 import {Context} from './routes/IHandler';
 import {UnexpectedInput} from './routes/UnexpectedInput';
 import * as crypto from 'crypto';
-import {UserRank} from './RankManager';
+import {UserRank} from '../common/RankManager';
 const colorNames = ['blue', 'red', 'yellow', 'green', 'black', 'purple', 'you', '红色', '绿色', '黄色', '蓝色', '黑色', '紫色'];
 function notFound(req: http.IncomingMessage, res: http.ServerResponse): void {
   if ( ! process.argv.includes('hide-not-found-warnings')) {
