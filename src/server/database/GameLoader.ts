@@ -345,4 +345,9 @@ export class GameLoader implements IGameLoader {
     }
     return userRank;
   }
+
+  // 天梯，新增UserRank到GameLoader
+  public addOrUpdateUserRank(userRank: UserRank): void {
+    this.userRankMap.set(userRank.userId, userRank);
+  }
 }

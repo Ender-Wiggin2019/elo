@@ -170,4 +170,7 @@ export class LocalFilesystem implements IDatabase {
   getUserRanks(): Promise<Array<UserRank>> {
     throw new Error('Method not implemented.');
   }
+  updateUserRank(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 }

@@ -390,6 +390,10 @@ export class PostgreSQL implements IDatabase {
     // const rating = new Rating(row.mu, row.sigma);
     return allUserRanks;
   }
+
+  public async updateUserRank(userRank:UserRank): Promise<void> {
+    await this.client.query('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.userId]);
+  }
 }
 
 function logForUndo(_gameId: string, ..._message: any[]) {

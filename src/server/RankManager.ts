@@ -14,24 +14,16 @@
 // import {Rating} from 'ts-trueskill';
 // import {rate} from 'ts-trueskill';
 
-export interface RankLevel {
-  levelName: LevelName;
-  starNumber: number;
-  description: string;
-  // canClaim: (player: Player) => boolean;
-  // getScore: (player: Player) => number;
-}
-
-export enum LevelName {
-  LEVEL_1 = 'Mars lander',
-  LEVEL_2 = 'loading',
-  LEVEL_3 = 'loaded',
-}
-
 export const DEFAULT_RANK_VALUE = 3;
 export const DEFAULT_MU = 25.000;
 export const DEFAULT_SIGMA = 8.333;
 
+const rankValueChangeRules = [
+  [1, -1], // 2p
+  [1, 0, -1],
+  [2, 1, 0, -1],
+  [2, 1, 0, -1, -2], // 5p
+];
 // export class RankSystem {
 //   public getNewSkill(userResult: Array<UserRank>): Array<UserRank> {
 //     const updatedRanks = [];
@@ -56,14 +48,21 @@ export class UserRank {
   ) {}
 
   public getRankValue() {
-    console.log('getRankValue', this.rankValue);
-    // return 15;
     return this.rankValue;
   }
 
+  // 根据玩家人数更新玩家的分数，@param playerNumber: 玩家人数；@param playerPosition 结束游戏时的排位，从0开始
+  public getRankValueDeltaByPosition(playerNumber: number, playerPosition: number): number {
+    const p = Math.max(playerNumber - 2, 0); // 避免小于0
+    const pos = Math.min(playerPosition, rankValueChangeRules[p].length);
+    return rankValueChangeRules[p][pos]; // 返回增加/减少的对应分数
+  }
+
+  public setRankValueDeltaByPosition(playerNumber: number, playerPosition: number): void {
+    this.rankValue += this.getRankValueDeltaByPosition(playerNumber, playerPosition);
+  }
+
   public getTier() {
-    console.log('getRankValue', this.rankValue);
-    // return 15;
     let rankValue = this.rankValue;
     for (const rank of RankTiers) {
       if (rank.measurement === 'value') {
@@ -99,3 +98,20 @@ export const RankTiers = [
   new RankTier('Master', 'star', 5),
   new RankTier('Grandmaster', 'value', Infinity),
 ];
+
+// 天梯 根据原始排位，给出更新后的排位
+export async function getNewSkills(userRanks: Array<UserRank>): Promise<Array<UserRank>> {
+  const {Rating, rate} = await import('ts-trueskill');
+  const playerNumber = userRanks.length;
+  const updatedRanks: Array<UserRank> = [];
+  const ratings = userRanks.map((userRank) => [new Rating(userRank.mu, userRank.sigma)]); // Rating[][]
+  const updatedRatings = rate(ratings);
+  for (let i = 0; i < playerNumber; i++) {
+    const userRank = userRanks[i];
+    userRank.setRankValueDeltaByPosition(playerNumber, i);
+    userRank.mu = updatedRatings[i][0].mu;
+    userRank.sigma = updatedRatings[i][0].sigma;
+    updatedRanks.push(userRank);
+  }
+  return updatedRanks;
+}

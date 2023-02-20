@@ -10,6 +10,7 @@ import {PlayerBlockModel} from '../common/models/PlayerModel';
 import {Context} from './routes/IHandler';
 import {UnexpectedInput} from './routes/UnexpectedInput';
 import * as crypto from 'crypto';
+import {UserRank} from './RankManager';
 const colorNames = ['blue', 'red', 'yellow', 'green', 'black', 'purple', 'you', '红色', '绿色', '黄色', '蓝色', '黑色', '紫色'];
 function notFound(req: http.IncomingMessage, res: http.ServerResponse): void {
   if ( ! process.argv.includes('hide-not-found-warnings')) {
@@ -418,7 +419,9 @@ export function activateRank(req: http.IncomingMessage, res: http.ServerResponse
       const mu = userReq.mu;
       const sigma = userReq.sigma;
       const activate = userReq.activate;
-      Database.getInstance().addUserRank(userId, rankValue, mu, sigma, activate);
+      const userRank = new UserRank(userId, rankValue, mu, sigma);
+      Database.getInstance().addUserRank(userId, rankValue, mu, sigma, activate); // TODO 更新parameter为UserRank
+      GameLoader.getInstance().addOrUpdateUserRank(userRank);
       console.log('add');
       // const user: User = new User(userName, password, userId);
       // user.createtime = getDay();

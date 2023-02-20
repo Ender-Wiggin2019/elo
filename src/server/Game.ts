@@ -77,6 +77,7 @@ import {SerializedPlayer, SerializedPlayerId} from './SerializedPlayer';
 import {CardManifest} from './cards/ModuleManifest';
 import {ColoniesHandler} from './colonies/ColoniesHandler';
 import {Dealer} from './Dealer';
+import {getNewSkills, UserRank} from './RankManager';
 
 export enum LoadState {
   HALFLOADED = 'halfloaded',
@@ -559,31 +560,33 @@ export class Game implements Logger {
   }
 
   public marsIsTerraformed(): boolean {
-    const oxygenMaxed = this.oxygenLevel >= constants.MAX_OXYGEN_LEVEL;
-    const temperatureMaxed = this.temperature >= constants.MAX_TEMPERATURE;
-    const oceansMaxed = !this.canAddOcean();
-    let globalParametersMaxed = oxygenMaxed && temperatureMaxed && oceansMaxed;
-    const venusMaxed = this.getVenusScaleLevel() === constants.MAX_VENUS_SCALE;
-
-    MoonExpansion.ifMoon(this, (moonData) => {
-      if (this.gameOptions.requiresMoonTrackCompletion) {
-        const moonMaxed =
-          moonData.colonyRate === constants.MAXIMUM_HABITAT_RATE &&
-          moonData.miningRate === constants.MAXIMUM_MINING_RATE &&
-          moonData.logisticRate === constants.MAXIMUM_LOGISTICS_RATE;
-        globalParametersMaxed = globalParametersMaxed && moonMaxed;
-      }
-    });
-
-    // Solo games with Venus needs Venus maxed to end the game.
-    if (this.isSoloMode() && this.gameOptions.venusNextExtension) {
-      return globalParametersMaxed && venusMaxed;
-    }
-    // new option "requiresVenusTrackCompletion" also makes maximizing Venus a game-end requirement
-    if (this.gameOptions.venusNextExtension && this.gameOptions.requiresVenusTrackCompletion) {
-      return globalParametersMaxed && venusMaxed;
-    }
-    return globalParametersMaxed;
+    // TODO  天梯
+    return true;
+    // const oxygenMaxed = this.oxygenLevel >= constants.MAX_OXYGEN_LEVEL;
+    // const temperatureMaxed = this.temperature >= constants.MAX_TEMPERATURE;
+    // const oceansMaxed = !this.canAddOcean();
+    // let globalParametersMaxed = oxygenMaxed && temperatureMaxed && oceansMaxed;
+    // const venusMaxed = this.getVenusScaleLevel() === constants.MAX_VENUS_SCALE;
+    //
+    // MoonExpansion.ifMoon(this, (moonData) => {
+    //   if (this.gameOptions.requiresMoonTrackCompletion) {
+    //     const moonMaxed =
+    //       moonData.colonyRate === constants.MAXIMUM_HABITAT_RATE &&
+    //       moonData.miningRate === constants.MAXIMUM_MINING_RATE &&
+    //       moonData.logisticRate === constants.MAXIMUM_LOGISTICS_RATE;
+    //     globalParametersMaxed = globalParametersMaxed && moonMaxed;
+    //   }
+    // });
+    //
+    // // Solo games with Venus needs Venus maxed to end the game.
+    // if (this.isSoloMode() && this.gameOptions.venusNextExtension) {
+    //   return globalParametersMaxed && venusMaxed;
+    // }
+    // // new option "requiresVenusTrackCompletion" also makes maximizing Venus a game-end requirement
+    // if (this.gameOptions.venusNextExtension && this.gameOptions.requiresVenusTrackCompletion) {
+    //   return globalParametersMaxed && venusMaxed;
+    // }
+    // return globalParametersMaxed;
   }
 
   public lastSoloGeneration(): number {
@@ -1218,7 +1221,45 @@ export class Game implements Logger {
     if (this.players.length > 1) {
       Database.getInstance().saveGameResults(this.id, players.length, this.generation, this.gameOptions, scores);
     }
+
+    // 天梯 TODO
+    if (this.isRankMode() && this.players.length > 1) {
+      const sortedPlayers = this.getSortedPlayers();
+      const userRanks: Array<UserRank> = [];
+      const rankedPlayers: Array<Player> = [];
+      sortedPlayers.forEach((player) => {
+        const userRank = player.getUserRank();
+        if (userRank !== undefined) {
+          userRanks.push(userRank);
+          rankedPlayers.push(player);
+        }
+      });
+
+      console.log('userRank', userRanks);
+      // 更新
+      await getNewSkills(userRanks).then((userRanks) => {
+        // 如果成功获取更新后的UserRank：1. 写回UserRankMap 2. 将更新值传入数据库
+        for (let i = 0; i < userRanks.length; i ++ ) {
+          rankedPlayers[i].addOrUpdateUserRank(userRanks[i]);
+          Database.getInstance().updateUserRank(userRanks[i]);
+          console.log(userRanks[i]);
+        }
+      });
+    }
     return;
+  }
+
+  // 天梯 获取玩家终局排名
+  public getSortedPlayers() {
+    const players = this.getAllPlayers();
+    players.sort(function(a:Player, b:Player) {
+      if (a.getVictoryPoints().total < b.getVictoryPoints().total) return -1;
+      if (a.getVictoryPoints().total > b.getVictoryPoints().total) return 1;
+      if (a.megaCredits < b.megaCredits) return -1;
+      if (a.megaCredits > b.megaCredits) return 1;
+      return 0;
+    });
+    return players.reverse();
   }
 
   // Part of final greenery placement.
@@ -2155,5 +2196,10 @@ export class Game implements Logger {
       metadata: metadata,
     };
     console.warn('Illegal state: ' + description, JSON.stringify(gameMetadata, null, ' '));
+  }
+
+  // 天梯
+  public isRankMode(): boolean {
+    return this.gameOptions.rankOption;
   }
 }

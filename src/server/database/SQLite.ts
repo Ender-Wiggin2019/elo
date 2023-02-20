@@ -386,6 +386,10 @@ export class SQLite implements IDatabase {
     return allUserRanks;
   }
 
+  public async updateUserRank(userRank:UserRank): Promise<void> {
+    await this.asyncRun('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.userId]);
+  }
+
   // getUsers(cb:(err: any, allUsers:Array<User>)=> void): void {
   //   const allUsers:Array<User> = [];
   //   const sql: string = 'SELECT distinct id, name, password, prop, createtime FROM users ';

@@ -173,4 +173,5 @@ export interface IDatabase {
     // 天梯
     addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void ;
     getUserRanks(): Promise<Array<UserRank>>;
+    updateUserRank(userRank: UserRank): Promise<void>;
 }

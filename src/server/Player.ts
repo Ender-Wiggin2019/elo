@@ -70,6 +70,7 @@ import {GameLoader} from './database/GameLoader';
 import {getBehaviorExecutor} from './behavior/BehaviorExecutor';
 import {SelectAmount} from './inputs/SelectAmount';
 import {UnexpectedInput} from './routes/UnexpectedInput';
+import {UserRank} from './RankManager';
 
 /**
  * Behavior when playing a card:
@@ -2307,6 +2308,15 @@ export class Player {
     if (input === undefined) return;
     const action = new SimpleDeferredAction(this, () => input, priority);
     this.game.defer(action);
+  }
+
+  // 天梯
+  public getUserRank(): UserRank | undefined {
+    return GameLoader.getUserRankByPlayer(this);
+  }
+
+  public addOrUpdateUserRank(userRank: UserRank): void {
+    if (this.getUserRank()?.userId === userRank.userId) GameLoader.getInstance().addOrUpdateUserRank(userRank); // 如果是对应player，则更新玩家排名
   }
 }
 
