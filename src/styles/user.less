@@ -230,7 +230,7 @@ game home 玩家名字
 .tier-container {
     display: flex;
     justify-content: center;
-    //align-items: center;
+    align-items: flex-start;
     height: 53px;
     //border-width: 2px;
     //border-color: #0bda0b;
@@ -252,10 +252,10 @@ game home 玩家名字
 .tier-Bronze { background-position-x: -45px; }
 .tier-Silver { background-position-x: -90px; }
 .tier-Gold { background-position-x: -135px; }
-.tier-Platinum { background-position-x: -180px; }
-.tier-Diamond { background-position-x: -225px; }
-.tier-Master { background-position-x: -270px; }
-.tier-Grandmaster { background-position-x: -315px; }
+.tier-Platinum { background-position-x: -182px; }
+.tier-Diamond { background-position-x: -228px; }
+.tier-Master { background-position-x: -273px; }
+.tier-Grandmaster { background-position-x: -320px; }
 .tier-Challenger { background-position-x: right; }
 
 .stars-container {
@@ -275,9 +275,25 @@ game home 玩家名字
 }
 
 .rank-value-container {
+    margin-left: 5px;
+    margin-top: 10px;
+    text-align: center;
+    align-items: center;
+    font-family: Prototype;
     font-size: 30px;
     color: #48d8ff;
     text-shadow: 0 0 1px #0a2a50, 0 2px 2px #23a0ff;
+}
+
+.star-value-container {
+    margin-left: 5px;
+    margin-top: 10px;
+    text-align: center;
+    align-items: center;
+    font-family: Prototype;
+    font-size: 30px;
+    color: white;
+    text-shadow: 0 0 1px gray, 0 2px 2px black;
 }
 
 

@@ -4,7 +4,8 @@ import axios from 'axios';
 import {Phase} from '@/common/Phase';
 import {getPreferences, PreferencesManager} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../common/RankManager';
+import RankTier from '@/client/components/RankTier.vue';
+import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA, UserRank} from '../../common/RankManager';
 
 export const MyGames = Vue.component('my-games', {
   data: function() {
@@ -15,16 +16,20 @@ export const MyGames = Vue.component('my-games', {
       vipDate: '',
       enable_sounds: false,
       showhandcards: false,
+      // 天梯
+      userRank: new UserRank('', DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA),
     };
   },
   components: {
     'confirm-dialog': ConfirmDialog,
+    RankTier,
   },
   mounted: function() {
     this.userId = PreferencesManager.load('userId');
     this.userName = PreferencesManager.load('userName');
     if (this.userId.length > 0) {
       this.getGames();
+      this.getUserRank();
     }
   },
   methods: {
@@ -52,6 +57,27 @@ export const MyGames = Vue.component('my-games', {
       };
       xhr.responseType = 'json';
       xhr.send();
+    },
+    getUserRank: function() {
+      if (this.userId === '') return;
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/userrank?userId='+this.userId);
+      xhr.onerror = function() {
+        alert('Error getting user rank data');
+      };
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          const result = xhr.response;
+          if (result && result.rankValue >= 0) {
+            this.userRank = new UserRank(this.userId, result.rankValue, result.mu, result.sigma); // 更新userRank的值
+          }
+        }
+      };
+      xhr.responseType = 'json';
+      xhr.send();
+    },
+    getTier() {
+      return this.userRank.getTier();
     },
     isGameRunning: function(gamePhase: string): boolean {
       return (gamePhase === Phase.END) ? false : true;
@@ -108,8 +134,8 @@ export const MyGames = Vue.component('my-games', {
         mu: DEFAULT_MU,
         sigma: DEFAULT_SIGMA,
         activate: 1,
-      }).then(function(response) {
-        console.log(response);
+      }).then(function() {
+        window.location.reload();
       }).catch(function(error) {
         alert(error);
       });
@@ -122,40 +148,48 @@ export const MyGames = Vue.component('my-games', {
     }
   },
   template: `
-        <div id="games-overview">
-            <h1><a href="/"  v-i18n>Terraforming Mars</a> — <span v-i18n>My Games</span> 
-                <span v-if="this.vipDate"><img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;" />{{vipDate}}<img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;" /></span> 
-                <button class="btn btn-lg btn-success" style="margin-bottom: 7px;min-width: 80px;" v-on:click="changeLogin" v-i18n><span v-if="userName">LoginOut</span><span v-else>Login/Register</span></button>
-            </h1>
-            <button class="btn btn-lg btn-success" style="margin-bottom: 7px;min-width: 80px;" v-on:click="activateRank" v-i18n><span v-if="userName">Start Rank</span><span v-else>Login/Register</span></button>
-            <confirm-dialog message="开启后其他玩家可以通过你的游戏链接查看你的手牌，但不能帮你操作" ref="showHand"   v-on:accept="confimUpdate" v-on:dismiss="cancelUpdate" />
-            <label class="form-switch" style="margin-left: 20px;display: inline-block;">
-              <input type="checkbox" name="enable_sounds" v-model="enable_sounds" v-on:change="updateTips" >
-              <i class="form-icon"></i> <span v-i18n>Soundtip</span>
-            </label>
-            <label  class="form-switch" style="margin-left: 20px;display: inline-block;">
-              <input type="checkbox" name="showhandcards" v-model="showhandcards" v-on:change="updateShowHandCards" >
-              <i class="form-icon"></i> <span v-i18n>Show cards in hand to others</span>
-            </label>
-            <br>
-            <div v-if="userName">
-                <p>Hello <span class="user-name">{{userName}}</span>,the following games are related with you:</p>
-            </div>
-            <ul>
-                <li v-for="game in games">
-                    <a v-bind:href="'/game?id='+game.id" target="_blank" >{{game.id}}</a> 
-                    <span>{{game.createtime.slice(5, 16)}}  {{game.updatetime.slice(5, 16)}}  </span>
-                    age: {{game.gameAge}} 
-                    with {{game.players.length}} player(s) : 
-                    <span class="player_home_block nofloat" >
-                        <span v-for="player in game.players" class="player_name" :class="'player_bg_color_'+ player.color">
-                            <a :href="'/player?id=' + player.id">{{player.name}}</a>
+    <div id="games-overview">
+    <h1><a href="/" v-i18n>Terraforming Mars</a> — <span v-i18n>My Games</span>
+      <span v-if="this.vipDate"><img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;"/>
+        {{ vipDate }}<img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;"/></span>
+      <button class="btn btn-lg btn-success" style="margin-bottom: 7px;min-width: 80px;" v-on:click="changeLogin"
+              v-i18n><span v-if="userName">LoginOut</span><span v-else>Login/Register</span></button>
+    </h1>
+    <confirm-dialog message="开启后其他玩家可以通过你的游戏链接查看你的手牌，但不能帮你操作" ref="showHand"
+                    v-on:accept="confimUpdate" v-on:dismiss="cancelUpdate"/>
+    <label class="form-switch" style="margin-left: 20px;display: inline-block;">
+      <input type="checkbox" name="enable_sounds" v-model="enable_sounds" v-on:change="updateTips">
+      <i class="form-icon"></i> <span v-i18n>Soundtip</span>
+    </label>
+    <label class="form-switch" style="margin-left: 20px;display: inline-block;">
+      <input type="checkbox" name="showhandcards" v-model="showhandcards" v-on:change="updateShowHandCards">
+      <i class="form-icon"></i> <span v-i18n>Show cards in hand to others</span>
+    </label>
+    <br>
+    <div v-if="userName">
+      <button v-if="this.userRank.userId===''" class="btn btn-lg btn-success" style="margin-bottom: 7px;min-width: 80px;"
+              v-on:click="activateRank" v-i18n>Start Rank
+      </button>
+      <div v-if="this.userRank.userId!==''">
+        <RankTier :rankTier="getTier()"/>
+      </div>
+      <p>Hello <span class="user-name">{{ userName }}</span>,the following games are related with you:</p>
+    </div>
+    <ul>
+      <li v-for="game in games">
+        <a v-bind:href="'/game?id='+game.id" target="_blank">{{ game.id }}</a>
+        <span>{{ game.createtime.slice(5, 16) }}  {{ game.updatetime.slice(5, 16) }}  </span>
+        age: {{ game.gameAge }}
+        with {{ game.players.length }} player(s) :
+        <span class="player_home_block nofloat">
+                        <span v-for="player in game.players" class="player_name"
+                              :class="'player_bg_color_'+ player.color">
+                            <a :href="'/player?id=' + player.id">{{ player.name }}</a>
                         </span>
                         <span v-if="isGameRunning(game.phase)">is running</span><span v-else>has ended</span>
                     </span>
-                </li>
-            </ul>
-        </div>
-    `,
+      </li>
+    </ul>
+    </div>`,
 });
 

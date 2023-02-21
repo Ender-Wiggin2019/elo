@@ -171,13 +171,6 @@
                                 <span v-i18n>Starting Corporations</span>
                             </label>
 
-                          <!--天梯选项-->
-                          <!--TODO add a css class-->
-                          <input type="checkbox" v-model="rankOption" id="rank-checkbox">
-                          <label for="rank-checkbox" style="background-color: goldenrod">
-                            <span v-i18n>Rank Mode</span>&nbsp;
-                          </label>
-
                             <input type="checkbox" v-model="solarPhaseOption" id="WGT-checkbox">
                             <label for="WGT-checkbox">
                                 <span v-i18n>World Government Terraforming</span>&nbsp;
@@ -288,6 +281,14 @@
                                 </label>
                                 </div>
                             </div>
+
+                          <!--天梯选项-->
+                          <!--TODO add a css class-->
+                          <input type="checkbox" v-model="rankOption" id="rank-checkbox">
+                          <label for="rank-checkbox">
+                            <div class="create-game-expansion-icon expansion-icon-rank"></div>
+                            <span v-i18n>Rank Mode</span>&nbsp;
+                          </label>
 
                             <div v-if="initialDraft && doubleCorp" >
                               <input type="checkbox" name="initialCorpDraftVariant" v-model="initialCorpDraftVariant" id="initialCorpDraftVariant-checkbox">

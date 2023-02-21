@@ -50,6 +50,7 @@
                   <thead>
                       <tr v-i18n>
                           <th><div class="card-delegate"></div></th>
+                          <th v-if="game.gameOptions.rankOption"><div class="rank-icon tooltip tooltip-top" :data-tooltip="$t('Rank Mode')"></div></th>
                           <th><div class="tr"></div></th>
                           <th><div class="m-and-a tooltip tooltip-top" :data-tooltip="$t('Milestones points')">M</div></th>
                           <th><div class="m-and-a tooltip tooltip-top" :data-tooltip="$t('Awards points')">A</div></th>
@@ -73,6 +74,7 @@
                                   <div class="column-corporation">{{ p.corporationCard === undefined ? "" : p.corporationCard.name }}</div>
                                   <div class="column-corporation" v-if="p.corporationCard2 !== undefined">{{ p.corporationCard2.name }}</div>
                           </td>
+                          <td v-if="game.gameOptions.rankOption"><RankTier :rank-tier="p.rankTier" :show-number="true"/></td>
                           <td>{{ p.victoryPointsBreakdown.terraformRating }}</td>
                           <td>{{ p.victoryPointsBreakdown.milestones }}</td>
                           <td>{{ p.victoryPointsBreakdown.awards }}</td>
@@ -181,6 +183,7 @@ import {Timer} from '@/common/Timer';
 import {SpectatorModel} from '@/common/models/SpectatorModel';
 import {Color} from '@/common/Color';
 import {CardType} from '@/common/cards/CardType';
+import RankTier from '@/client/components/RankTier.vue';
 
 function getViewModel(playerView: ViewModel | undefined, spectator: ViewModel | undefined): ViewModel {
   if (playerView !== undefined) return playerView;
@@ -227,6 +230,7 @@ export default Vue.extend({
     };
   },
   components: {
+    RankTier,
     'board': Board,
     'log-panel': LogPanel,
     Button,
