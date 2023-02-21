@@ -350,4 +350,13 @@ export class GameLoader implements IGameLoader {
   public addOrUpdateUserRank(userRank: UserRank): void {
     this.userRankMap.set(userRank.userId, userRank);
   }
+
+  public static getUserRankByUserName(userName: string): UserRank | undefined {
+    const user = GameLoader.getInstance().userNameMap.get(userName);
+    let userRank = undefined;
+    if (user !== undefined) {
+      userRank = GameLoader.getInstance().userRankMap.get(user.id);
+    }
+    return userRank;
+  }
 }

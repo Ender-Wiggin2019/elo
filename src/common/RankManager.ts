@@ -14,7 +14,7 @@
 // import {Rating} from 'ts-trueskill';
 // import {rate} from 'ts-trueskill';
 
-export const DEFAULT_RANK_VALUE = 3;
+export const DEFAULT_RANK_VALUE = 0;
 export const DEFAULT_MU = 25.000;
 export const DEFAULT_SIGMA = 8.333;
 
@@ -59,7 +59,8 @@ export class UserRank {
   }
 
   public setRankValueDeltaByPosition(playerNumber: number, playerPosition: number): void {
-    this.rankValue += this.getRankValueDeltaByPosition(playerNumber, playerPosition);
+    const delta = this.getRankValueDeltaByPosition(playerNumber, playerPosition);
+    if (this.rankValue + delta >= 0) this.rankValue += delta; // 不低于0
   }
 
   public getTier() {

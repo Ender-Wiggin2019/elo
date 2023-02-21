@@ -31,7 +31,7 @@ export default Vue.extend({
       type: Boolean,
     },
     rankTier: {
-      type: Object as () => RankTier,
+      type: Object,
     },
   },
   data() {

@@ -471,6 +471,7 @@ import {QrCode} from '../QrCode';
 import {mainAppSettings} from '../App';
 import {BoardNameType, NewGameConfig, NewPlayerModel} from '@/common/game/NewGameConfig';
 import {GameId} from '../../../common/Types';
+import * as HTTPResponseCode from '@/client/utils/HTTPResponseCode';
 
 const REVISED_COUNT_ALGORITHM = false;
 
@@ -1188,6 +1189,19 @@ export default (Vue as WithRefs<Refs>).extend({
       };
       return JSON.stringify(dataToSend, undefined, 4);
     },
+    async checkUsersForRankMode(): Promise<boolean> {
+      // 天梯 判断创建合法性
+      const players = this.players.slice(0, this.playersCount);
+      for (const player of players) {
+        if (player.name === '') {
+          return false;
+        }
+        const result = await fetch('/api/userrank?playerName=' + player.name)
+          .then((response) => response.status);
+        if (result !== HTTPResponseCode.OK) return false;
+      }
+      return true;
+    },
     async createGame() {
       const lastcreated = Number(PreferencesManager.load('lastcreated')) || 0;
       const nowtime = new Date().getTime();
@@ -1195,6 +1209,16 @@ export default (Vue as WithRefs<Refs>).extend({
         alert('请不要频繁创建游戏');
         return;
       }
+
+      // 天梯 判断创建合法性
+      if (this.rankOption === true) {
+        const vaildForCreate = await this.checkUsersForRankMode();
+        if (!vaildForCreate) {
+          alert('存在玩家不符合天梯规则，请检查');
+          return;
+        }
+      }
+
       const root = this.$root as unknown as typeof mainAppSettings.data;
       root.isServerSideRequestInProgress = true;
       PreferencesManager.INSTANCE.set('lastcreated', nowtime.toString());

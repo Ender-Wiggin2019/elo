@@ -437,16 +437,20 @@ export function activateRank(req: http.IncomingMessage, res: http.ServerResponse
   });
 }
 
-export function getRankValue(req: http.IncomingMessage, res: http.ServerResponse, ctx: Context): void {
+export function getUserRank(req: http.IncomingMessage, res: http.ServerResponse, ctx: Context): void {
+  let userRank: UserRank | undefined;
   const userId = ctx.url.searchParams.get('userId');
-  if (userId === undefined || userId === '' || userId === null) {
-    console.warn('didn\'t find user id');
+  const playerName = ctx.url.searchParams.get('playerName');
+  if (userId !== undefined && userId !== '' && userId !== null) {
+    userRank = GameLoader.getInstance().userRankMap.get(userId);
+  } else if (playerName !== undefined && playerName !== '' && playerName !== null) {
+    userRank = GameLoader.getUserRankByUserName(playerName);
+  } else {
+    console.warn('didn\'t find user id or player name');
     notFound(req, res);
     return;
   }
 
-  // const user = GameLoader.getInstance().userIdMap.get(userId);
-  const userRank = GameLoader.getInstance().userRankMap.get(userId);
   if (userRank === undefined ) {
     console.warn('didn\'t find user rank ');
     notFound(req, res);
@@ -457,18 +461,4 @@ export function getRankValue(req: http.IncomingMessage, res: http.ServerResponse
   res.setHeader('Content-Type', 'application/json');
   res.write(JSON.stringify(data));
   res.end();
-  // try {
-  //   res.setHeader('Content-Type', 'application/json');
-  //   if ( user.getRankValue() ) {
-  //     res.write('success');
-  //   } else {
-  //     res.write('error');
-  //   }
-  //   res.end();
-  // } catch (err) {
-  //   console.warn('error execute', err);
-  //   res.writeHead(500);
-  //   res.write('Unable to execute');
-  //   res.end();
-  // }
 }

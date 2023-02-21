@@ -96,6 +96,9 @@ export function processRequest(
     case '/api/isvip':
       UserManager.isvip(req, res, ctx);
       break;
+    case '/api/userrank':
+      UserManager.getUserRank(req, res, ctx);
+      break;
     default:
       if (url.pathname.startsWith('/assets/')) {
         ServeAsset.INSTANCE.get(req, res, ctx);
