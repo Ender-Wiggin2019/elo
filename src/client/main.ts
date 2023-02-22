@@ -5,6 +5,8 @@ import {mainAppSettings} from '@/client/components/App';
 import {getPreferences} from '@/client/utils/PreferencesManager';
 import i18nPlugin from '@/client/plugins/i18n.plugin';
 
+import '../styles/tailwindcss.css';
+
 declare global {
   interface Window {
     _translations: { [key: string]: string } | undefined;

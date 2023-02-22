@@ -52,6 +52,8 @@ const handlers: Map<string, IHandler> = new Map(
     [paths.PLAYER_INPUT, PlayerInput.INSTANCE],
     [paths.SPECTATOR, ServeApp.INSTANCE],
     ['/styles.css', ServeAsset.INSTANCE],
+    // TODO 天梯
+    ['/tailwindcss.css', ServeAsset.INSTANCE],
     ['/sw.js', ServeAsset.INSTANCE],
     [paths.THE_END, ServeApp.INSTANCE],
 

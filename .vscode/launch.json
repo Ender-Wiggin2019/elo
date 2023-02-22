@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/build/src/server.js" 
+            "program": "${workspaceFolder}/build/src/server.js"
         } ,
         {
             "type": "node",
@@ -32,9 +32,9 @@
             "type": "node",
             "request": "launch",
             "name": "make_static_json",
-            "program": "${workspaceFolder}/make_static_json.js" 
+            "program": "${workspaceFolder}/make_static_json.js"
         } ,
-       
-    
+
+
     ]
 }

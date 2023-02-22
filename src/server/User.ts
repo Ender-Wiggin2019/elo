@@ -71,7 +71,9 @@ export class User {
     } else if (this.vipDate >= getDay()) {
       return 1;
     }
-    return 0;
+    // return 0;
+    // TODO 天梯
+    return 2;
   }
 
   // 天梯，返回排位分数

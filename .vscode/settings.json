@@ -36,7 +36,7 @@
     "eslint.options": {
       "extensions": [".js",".ts"]
     },
-      
+
     "eslint.validate": [
       "javascript",
       "typescript",
@@ -54,6 +54,7 @@
     "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
     "explorer.confirmDelete": false,
     "git.autofetch": true,
+    "npm-scripts.showStartNotification": false,
 
-    
+
   }

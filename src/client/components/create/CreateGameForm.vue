@@ -287,7 +287,7 @@
                           <input type="checkbox" v-model="rankOption" id="rank-checkbox">
                           <label for="rank-checkbox">
                             <div class="create-game-expansion-icon expansion-icon-rank"></div>
-                            <span v-i18n>Rank Mode</span>&nbsp;
+                            <span class="text-yellow-600" v-i18n>Rank Mode</span>&nbsp;
                           </label>
 
                             <div v-if="initialDraft && doubleCorp" >
