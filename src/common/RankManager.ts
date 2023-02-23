@@ -14,6 +14,7 @@
 // import {Rating} from 'ts-trueskill';
 // import {rate} from 'ts-trueskill';
 
+
 export const DEFAULT_RANK_VALUE = 0;
 export const DEFAULT_MU = 25.000;
 export const DEFAULT_SIGMA = 8.333;
@@ -60,6 +61,8 @@ export class UserRank {
 
   public setRankValueDeltaByPosition(playerNumber: number, playerPosition: number): void {
     const delta = this.getRankValueDeltaByPosition(playerNumber, playerPosition);
+    const tier = this.getTier();
+    if (tier.maxStars === 3 && delta < 0) return; // 暂时hardcode, 前面的段位（maxStars为3）不降星
     if (this.rankValue + delta >= 0) this.rankValue += delta; // 不低于0
   }
 
@@ -115,6 +118,12 @@ export const RankTiers = [
   new RankTier(TierName.CHALLENGER, 'value', Infinity),
 ];
 
+// 返回CHALLENGER需要的星星数量
+export function getChallengerValue(): number {
+  let res = 1; // 晋级需要+1
+  RankTiers.filter((rankTier) => rankTier.name !== TierName.CHALLENGER).forEach((rankTier) => res += rankTier.maxStars);
+  return res;
+}
 
 // 天梯 根据原始排位，给出更新后的排位
 export async function getNewSkills(userRanks: Array<UserRank>): Promise<Array<UserRank>> {

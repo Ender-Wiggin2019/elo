@@ -9,7 +9,7 @@ import {RunResult} from 'sqlite3';
 import {User} from '../User';
 import {Timer} from '../../common/Timer';
 import {MultiMap} from 'mnemonist';
-import {UserRank} from '../../common/RankManager';
+import {getChallengerValue, UserRank} from '../../common/RankManager';
 // import {Rating} from 'ts-trueskill';
 
 const path = require('path');
@@ -38,8 +38,10 @@ export class SQLite implements IDatabase {
     await this.asyncRun('CREATE TABLE IF NOT EXISTS \'users\'(\'id\'  varchar NOT NULL,\'name\'  varchar NOT NULL,\'password\'  varchar NOT NULL,\'prop\' varchar,\'createtime\'  timestamp DEFAULT (datetime(CURRENT_TIMESTAMP,\'localtime\')),PRIMARY KEY (\'id\'))');
     await this.asyncRun('CREATE TABLE IF NOT EXISTS game_results(game_id varchar not null, seed_game_id varchar, players integer, generations integer, game_options text, scores text,createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), PRIMARY KEY (game_id))');
 
-    // 天梯 新增表，当第一次加入天梯游戏时插入
+    // 天梯 新增实时表，当第一次加入天梯游戏时插入
     await this.asyncRun('CREATE TABLE IF NOT EXISTS user_rank (id varchar not null, rank_value integer default 0, mu double, sigma double, activate integer default 1, PRIMARY KEY (id))');
+    // 天梯 玩家数据表，用于保存段位的历史记录，和未来的数据分析 TODO 将这两张表在PG中也加上
+    await this.asyncRun('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), corporation text, position integer, player_score integer, rank_value integer, mu double, sigma double, is_rank integer, PRIMARY KEY (user_id, game_id))');
   }
 
   public async getPlayerCount(gameId: GameId): Promise<number> {
@@ -374,9 +376,12 @@ export class SQLite implements IDatabase {
   }
 
   // 天梯，返回所有UserRank
-  public async getUserRanks(): Promise<Array<UserRank>> {
+  public async getUserRanks(limit:number | undefined = 0): Promise<Array<UserRank>> {
+    const concatLimit: string = limit === 0 ? '' : ' limit ' + limit.toString();
+    const ChallengerValue: number = getChallengerValue();
+    const sql: string = 'select * from(SELECT id, rank_value, mu, sigma FROM user_rank where rank_value >= $1 order by mu-3*sigma desc) union all select * from (SELECT id, rank_value, mu, sigma FROM user_rank where rank_value < $1 order by rank_value desc)' + concatLimit;
     const allUserRanks : Array<UserRank> = [];
-    const rows = await this.asyncAll('SELECT id, rank_value, mu, sigma FROM user_rank order by rank_value desc');
+    const rows = await this.asyncAll(sql, [ChallengerValue]);
     rows.forEach((row) => {
       const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma);
       allUserRanks.push(userRank);
@@ -390,23 +395,20 @@ export class SQLite implements IDatabase {
     await this.asyncRun('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.userId]);
   }
 
-  // getUsers(cb:(err: any, allUsers:Array<User>)=> void): void {
-  //   const allUsers:Array<User> = [];
-  //   const sql: string = 'SELECT distinct id, name, password, prop, createtime FROM users ';
-  //   this.db.all(sql, [], (err, rows) => {
-  //     if (rows) {
-  //       rows.forEach((row) => {
-  //         const user = Object.assign(new User('', '', ''), {id: row.id, name: row.name, password: row.password, createtime: row.createtime}, JSON.parse(row.prop) );
-  //         if (user.donateNum === 0 && user.isvip() > 0) {
-  //           user.donateNum = 1;
-  //         }
-  //         allUsers.push(user );
-  //       });
-  //       return cb(err, allUsers);
-  //     }
-  //     if (err) {
-  //       return console.warn(err.message);
-  //     }
-  //   });
-  // }
+  // @param position: 这局游戏第几名
+  saveUserGameResult(user_id: string, game_id: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void {
+    const sql: string = user_rank !== undefined ?
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma, is_rank) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)' :
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const params: any = user_rank !== undefined ?
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, is_rank] :
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank];
+
+    this.db.run(sql, params, (err) => {
+      if (err) {
+        console.error('SQlite:saveUserGameResult', err.message);
+        throw err;
+      }
+    });
+  }
 }

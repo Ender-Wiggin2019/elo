@@ -8,7 +8,7 @@ import {Timer} from '../../common/Timer';
 import {Pool, ClientConfig} from 'pg';
 import {daysAgoToSeconds} from './utils.ts';
 import {GameIdLedger} from './IDatabase';
-import {UserRank} from '../../common/RankManager';
+import {getChallengerValue, UserRank} from '../../common/RankManager';
 // import {Rating} from 'ts-trueskill';
 
 export class PostgreSQL implements IDatabase {
@@ -379,9 +379,13 @@ export class PostgreSQL implements IDatabase {
   //   // return userRank;
   // }
 
-  public async getUserRanks(): Promise<Array<UserRank>> {
+  // 天梯 TODO 同步更新下
+  public async getUserRanks(limit:number | undefined = 0): Promise<Array<UserRank>> {
+    const concatLimit: string = limit === 0 ? '' : ' limit ' + limit.toString();
+    const ChallengerValue: number = getChallengerValue();
+    const sql: string = 'select * from(SELECT id, rank_value, mu, sigma FROM user_rank where rank_value >= $1 order by mu-3*sigma desc) union all select * from (SELECT id, rank_value, mu, sigma FROM user_rank where rank_value < $1 order by rank_value desc)' + concatLimit;
     const allUserRanks : Array<UserRank> = [];
-    const res = await this.client.query('SELECT id, rank_value, mu, sigma FROM user_rank order by rank_value desc');
+    const res = await this.client.query(sql, [ChallengerValue]);
     res.rows.forEach((row) => {
       const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma);
       allUserRanks.push(userRank);
@@ -393,6 +397,23 @@ export class PostgreSQL implements IDatabase {
 
   public async updateUserRank(userRank:UserRank): Promise<void> {
     await this.client.query('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.userId]);
+  }
+
+  // @param position: 这局游戏第几名
+  saveUserGameResult(user_id: string, game_id: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void {
+    const sql: string = user_rank !== undefined ?
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma, is_rank) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, )' :
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, )';
+    const params: any = user_rank !== undefined ?
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, is_rank] :
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank];
+
+    this.client.query(sql, params, (err) => {
+      if (err) {
+        console.error('SQlite:saveUserGameResult', err.message);
+        throw err;
+      }
+    });
   }
 }
 

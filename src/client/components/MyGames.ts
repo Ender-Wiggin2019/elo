@@ -195,9 +195,9 @@ export const MyGames = Vue.component('my-games', {
                   {{ vipDate }}
 <!--                    <img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle; margin-top: 2px"/>-->
                   </div>
-                <div class="rounded-md bg-gray-500 w-64 h-24 my-4 text-center text-md" v-i18n>
+                <div class="rounded-md bg-gray-500 w-64 h-24 my-4 text-center text-md align-middle" v-i18n>
                   <div class="text-gray-700 font-bold">User Rank</div>
-                  <div v-if="this.userRank.userId!==''" class="scale-125 mt-2">
+                  <div v-if="this.userRank.userId!==''" class="scale-125 mt-2 align-middle">
                     <RankTier :rankTier="getTier()"/>
                   </div>
                   <div v-else>
@@ -279,15 +279,15 @@ export const MyGames = Vue.component('my-games', {
     </div>
   </div>
 
-    <div class="container mx-auto rounded-md border-solid border-4   border-orange-500 bg-opacity-10">
-    <div class="text-xl text-blue-300"> User Information </div>
-      <div class="column-2 gap-3 my-3">
-        <div>
-        <div class="text-sm text-gray-400 underline decoration-blue-300" v-i18n>User Name</div>
-          <div class="text-lg text-gray-100">{{ userName }}</div>
-        </div>
-      </div>
-    </div>
+<!--    <div class="container mx-auto rounded-md border-solid border-4   border-orange-500 bg-opacity-10">-->
+<!--    <div class="text-xl text-blue-300"> User Information </div>-->
+<!--      <div class="column-2 gap-3 my-3">-->
+<!--        <div>-->
+<!--        <div class="text-sm text-gray-400 underline decoration-blue-300" v-i18n>User Name</div>-->
+<!--          <div class="text-lg text-gray-100">{{ userName }}</div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
 
 <!--      <span v-if="this.vipDate"><img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;"/>-->
 <!--        {{ vipDate }}<img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle;"/></span>-->
@@ -304,7 +304,7 @@ export const MyGames = Vue.component('my-games', {
 <!--      <input type="checkbox" name="showhandcards" v-model="showhandcards" v-on:change="updateShowHandCards">-->
 <!--      <i class="form-icon"></i> <span v-i18n>Show cards in hand to others</span>-->
 <!--    </label>-->
-    <br>
-    </div>`,
+<!--    <br>-->
+<!--    </div>-->`,
 });
 

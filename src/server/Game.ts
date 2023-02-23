@@ -1223,8 +1223,8 @@ export class Game implements Logger {
     }
 
     // 天梯 TODO
+    const sortedPlayers = this.getSortedPlayers();
     if (this.isRankMode() && this.players.length > 1) {
-      const sortedPlayers = this.getSortedPlayers();
       const userRanks: Array<UserRank> = [];
       const rankedPlayers: Array<Player> = [];
       sortedPlayers.forEach((player) => {
@@ -1235,7 +1235,6 @@ export class Game implements Logger {
         }
       });
 
-      console.log('userRank', userRanks);
       // 更新
       await getNewSkills(userRanks).then((userRanks) => {
         // 如果成功获取更新后的UserRank：1. 写回UserRankMap 2. 将更新值传入数据库
@@ -1246,6 +1245,18 @@ export class Game implements Logger {
         }
       });
     }
+
+    // 天梯 + MyGames 存储历史数据
+    // 1. 获取天梯排名的历史数据，用于显示变化以及在未来赛季重置时获取备份 @param position是玩家名次，写入数据库时+1
+    // 2. 在用户信息界面可以提供一定信息
+    sortedPlayers.forEach((player, position) => {
+      console.log('player: ', player.userId);
+      const newUserRank = player.getUserRank();
+      if (player.userId === undefined) return; // table user_game_results pk: user_id + game_id
+      const playerIndex = players.indexOf(player);
+      Database.getInstance().saveUserGameResult(player.userId, this.id, scores[playerIndex], players.length, this.generation, this.createtime, position+1, this.isRankMode(), newUserRank);
+    });
+
     return;
   }
 

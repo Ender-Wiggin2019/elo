@@ -10,7 +10,7 @@ import {PlayerBlockModel} from '../common/models/PlayerModel';
 import {Context} from './routes/IHandler';
 import {UnexpectedInput} from './routes/UnexpectedInput';
 import * as crypto from 'crypto';
-import {UserRank} from '../common/RankManager';
+import {RankTier, UserRank} from '../common/RankManager';
 const colorNames = ['blue', 'red', 'yellow', 'green', 'black', 'purple', 'you', '红色', '绿色', '黄色', '蓝色', '黑色', '紫色'];
 function notFound(req: http.IncomingMessage, res: http.ServerResponse): void {
   if ( ! process.argv.includes('hide-not-found-warnings')) {
@@ -461,4 +461,51 @@ export function getUserRank(req: http.IncomingMessage, res: http.ServerResponse,
   res.setHeader('Content-Type', 'application/json');
   res.write(JSON.stringify(data));
   res.end();
+}
+
+// TODO 增加catch
+export function getUserRanks(req: http.IncomingMessage, res: http.ServerResponse, ctx: Context): void {
+  const limit = Number(ctx.url.searchParams.get('limit'));
+  Database.getInstance().getUserRanks(limit).then( (allUserRanks:Array<UserRank> ) => {
+    const resRanks: Array<{userName: String, userRank: UserRank, userTier: RankTier}> = [];
+    allUserRanks.forEach((userRank) => {
+      const user = GameLoader.getInstance().userIdMap.get(userRank.userId);
+      if (user !== undefined) {
+        resRanks.push({userName: user.name, userRank: userRank, userTier: userRank.getTier()});
+      }
+    });
+    if (resRanks.length === 0) {
+      notFound(req, res);
+      return;
+    }
+    const data = {allUserRanks: resRanks};
+    res.setHeader('Content-Type', 'application/json');
+    res.write(JSON.stringify(data));
+    res.end();
+  });
+
+  // Database.getInstance().getUserRanks(limit).then( (allUserRanks:Array<UserRank> ) => {
+  //   const resRanks: Array<{userName: String, userRank: UserRank}> = [];
+  //   allUserRanks.forEach((userRank) => {
+  //     const user = GameLoader.getInstance().userIdMap.get(userRank.userId);
+  //     if (user !== undefined) {
+  //       resRanks.push({userName: user.name, userRank: userRank});
+  //     }
+  //   });
+  //   if (resRanks.length === 0) {
+  //     notFound(req, res);
+  //     return;
+  //   }
+  //   const data = {allUserRanks: resRanks};
+  //   console.log(data);
+  //   res.setHeader('Content-Type', 'application/json');
+  //   res.write(JSON.stringify(data));
+  // }).catch((err) => {
+  //   console.warn('error activate', err);
+  //   res.writeHead(500);
+  //   const message = err instanceof Error ? err.message : String(err);
+  //   res.write( message);
+  // });
+
+  // res.end();
 }

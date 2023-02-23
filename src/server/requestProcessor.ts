@@ -64,6 +64,7 @@ const handlers: Map<string, IHandler> = new Map(
     ['/mygames', ServeApp.INSTANCE],
     ['/donate', ServeApp.INSTANCE],
     ['/users', ServeApp.INSTANCE],
+    ['/ranks', ServeApp.INSTANCE], // 天梯排行榜
   ],
 );
 
@@ -100,6 +101,9 @@ export function processRequest(
       break;
     case '/api/userrank':
       UserManager.getUserRank(req, res, ctx);
+      break;
+    case '/api/userranks':
+      UserManager.getUserRanks(req, res, ctx);
       break;
     default:
       if (url.pathname.startsWith('/assets/')) {

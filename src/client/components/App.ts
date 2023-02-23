@@ -31,6 +31,7 @@ import {Register} from './Register';
 import {MyGames} from './MyGames';
 import {Donate} from './Donate';
 import {PreferencesManager} from '../utils/PreferencesManager';
+import {Ranks} from './Ranks';
 
 function getDay() {
   return new Date(new Date().getTime()+8*60*60*1000).toISOString().slice(0, 10).replace('T', ' ');
@@ -100,6 +101,7 @@ export const mainAppSettings = {
     'register': Register,
     'my-games': MyGames,
     'donate': Donate,
+    'ranks': Ranks, // 天梯 TODO 增加排行榜
     // 这里引入是为了统一编译进去，渲染 card 并在card_HTML.spec.ts中获取html 保存到json中
     'cardHTML': CardHTML,
   },
@@ -326,6 +328,8 @@ export const mainAppSettings = {
       app.screen = 'my-games';
     } else if (currentPathname === '/donate') {
       app.screen = 'donate';
+    } else if (currentPathname === '/ranks') {
+      app.screen = 'ranks';
     } else {
       app.screen = 'start-screen';
     }

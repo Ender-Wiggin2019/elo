@@ -268,8 +268,7 @@ export class GameLoader implements IGameLoader {
       });
       console.log($this.userRankMap);
     }).catch((err) => {
-      console.error('error loading all games', err);
-      this.onAllGamesLoaded();
+      console.error('error loading all user ranks', err);
       cb();
       return;
     });
