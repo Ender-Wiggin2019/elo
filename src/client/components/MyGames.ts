@@ -195,9 +195,9 @@ export const MyGames = Vue.component('my-games', {
                   {{ vipDate }}
 <!--                    <img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle; margin-top: 2px"/>-->
                   </div>
-                <div class="rounded-md bg-gray-500 w-64 h-24 my-4 text-center text-md align-middle" v-i18n>
+                <div class="rounded-md bg-gray-500 w-64 h-24 my-4 text-center text-md " v-i18n>
                   <div class="text-gray-700 font-bold">User Rank</div>
-                  <div v-if="this.userRank.userId!==''" class="scale-125 mt-2 align-middle">
+                  <div v-if="this.userRank.userId!==''" class="scale-125 mt-2">
                     <RankTier :rankTier="getTier()"/>
                   </div>
                   <div v-else>

@@ -288,6 +288,7 @@
                           <label for="rank-checkbox">
                             <div class="create-game-expansion-icon expansion-icon-rank"></div>
                             <span class="text-yellow-600" v-i18n>Rank Mode</span>&nbsp;
+                            <a href="https://github.com/terraforming-mars/terraforming-mars/wiki/Variants#promo-cards" class="tooltip text-yellow-600" :data-tooltip="$t('go to ranking')" target="_blank">&#9432;</a>
                           </label>
 
                             <div v-if="initialDraft && doubleCorp" >
