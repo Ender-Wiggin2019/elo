@@ -160,17 +160,17 @@ export const MyGames = Vue.component('my-games', {
     <div class="w-full mr-8">
       <ul class="flex mb-0 list-none flex-wrap pt-3 pb-4 flex-row">
         <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
-          <div class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal" v-on:click="toggleTabs(1)" v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 1, 'text-white bg-blue-300': openTab === 1}">
+          <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal" v-on:click="toggleTabs(1)" v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 1, 'text-white bg-blue-300': openTab === 1}">
             <span v-i18n>User Information</span>
           </div>
         </li>
         <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
-          <div class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal" v-on:click="toggleTabs(2)" v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 2, 'text-white bg-blue-300': openTab === 2}">
+          <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal" v-on:click="toggleTabs(2)" v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 2, 'text-white bg-blue-300': openTab === 2}">
             <span v-i18n>User Setting</span>
           </div>
         </li>
         <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
-          <div class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal" v-on:click="toggleTabs(3)" v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 3, 'text-white bg-blue-300': openTab === 3}">
+          <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal" v-on:click="toggleTabs(3)" v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 3, 'text-white bg-blue-300': openTab === 3}">
             <span v-i18n>User Games</span>
           </div>
         </li>
@@ -179,32 +179,42 @@ export const MyGames = Vue.component('my-games', {
         <div class="px-4 py-5 flex-auto">
           <div class="tab-content tab-space">
             <div v-bind:class="{'hidden': openTab !== 1, 'block': openTab === 1}">
-              <button class="rounded-md bg-blue-500 hover:bg-blue-300 w-auto p-2 text-md align-center" 
+              <button class="rounded-md bg-blue-500 hover:bg-blue-300 w-24 p-2 text-md align-center" 
                       v-on:click="changeLogin" v-i18n>
                 <span v-if="userName">LoginOut</span>
                 <span v-else>Login/Register</span>
               </button>
               
-              <div v-if="userName" class="flex flex-col item-center">
+              <div v-if="userName" class="flex flex-col items-center justify-center">
                 <div class="rounded-md bg-gray-500 w-64 my-4 text-center text-md" v-i18n>
-                  <div class="text-gray-700 font-bold">{{$t('User Name')}}</div>
+                  <div class="text-lg text-gray-700 font-bold">{{$t('User Name')}}</div>
                   {{ userName }}
                 </div>
-                <div v-if="this.vipDate" class="align-center rounded-md bg-gray-500 w-64 my-4 text-center text-md" v-i18n>
-                  <div class="text-gray-700 font-bold">{{$t('Potato Date')}}</div>
-                  {{ vipDate }}
+                <div class="align-center rounded-md bg-gray-500 w-64 my-4 text-center text-md" v-i18n>
+                  <div class="text-lg text-gray-700 font-bold">{{$t('Potato Date')}}</div>
+                  <div v-if="this.vipDate">{{ vipDate }}</div>
+                  <div v-else>
+                    <div class="rounded-md bg-yellow-500 hover:bg-yellow-600 w-auto p-2"><a href="/donate" class="text-black text-md align-center" v-i18n>
+                      Get Potato
+                    </a></div>
+                  </div>
 <!--                    <img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle; margin-top: 2px"/>-->
                   </div>
-                <div class="rounded-md bg-gray-500 w-64 h-24 my-4 text-center text-md " v-i18n>
-                  <div class="text-gray-700 font-bold">User Rank</div>
-                  <div v-if="this.userRank.userId!==''" class="scale-125 mt-2">
+                
+                <div class="flex flex-col items-center justify-center rounded-md bg-gray-500 w-64 h-32 my-4 pb-2 text-center text-md " v-i18n>
+                  <div class="text-lg text-gray-700 font-bold">User Rank</div>
+                  <div v-if="this.userRank.userId!==''" class=" scale-125 ml-10 mb-2">
                     <RankTier :rankTier="getTier()"/>
                   </div>
                   <div v-else>
-                    <button class="rounded-md bg-yellow-500 hover:bg-yellow-600 w-auto p-2 text-md align-center" v-on:click="activateRank" v-i18n>
+                    <button class="rounded-md bg-yellow-500 hover:bg-yellow-600 w-auto p-2 text-md align-center mb-2" v-on:click="activateRank" v-i18n>
                       Start Rank
                     </button>
                   </div>
+                  <div class="rounded-md bg-yellow-500 hover:bg-yellow-600 w-auto p-2">
+                    <a href="/ranks" class="text-black text-md align-center" v-i18n>
+                      Go To Ranking
+                    </a></div>
                   <!--      <p>Hello <span class="user-name">{{ userName }}</span>,the following games are related with you:</p>-->
                 </div>
                 </div>

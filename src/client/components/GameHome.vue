@@ -1,6 +1,7 @@
 <template>
     <div id="game-home" class="game-home-container">
         <h1><a href="/" v-i18n>Terraforming Mars</a> [game id: <span>{{getGameId()}}</span>]</h1>
+      <h4 v-if="game.gameOptions.rankOption" class="text-yellow-600" v-i18n>This game is <a href="/ranks" class="text-yellow-400">Rank Mode</a>. You can't resign. If you run out of time, you will lose the game. Good Luck!</h4>
         <h4 v-i18n>Send players their links below. As game administrator pick your link to use.</h4>
         <div v-if="game !== undefined" style="margin:0px 15px;">Game Age： {{game.gameAge}} ,Last Save Id : {{game.saveId}}
           <span v-if="game.rollback == true">--&gt;

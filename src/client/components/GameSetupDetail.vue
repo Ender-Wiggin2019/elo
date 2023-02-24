@@ -1,6 +1,10 @@
 <template>
         <div id="game-setup-detail" class="game-setup-detail-container">
           <ul>
+            <li><div class="setup-item text-yellow-600" v-i18n>Rank Mode:</div>
+              <div v-if="gameOptions.rankOption" class="game-config generic bg-yellow-600" v-i18n>On</div>
+              <div v-else class="game-config generic" v-i18n>Off</div>
+            </li>
             <li><div class="setup-item" v-i18n>Expansion:</div>
               <div v-if="gameOptions.venusNextExtension" class="create-game-expansion-icon expansion-icon-venus"></div>
               <div v-if="gameOptions.preludeExtension" class="create-game-expansion-icon expansion-icon-prelude"></div>

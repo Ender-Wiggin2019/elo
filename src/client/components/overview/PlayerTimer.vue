@@ -25,6 +25,7 @@ export default Vue.extend({
   data() {
     return {
       timerText: '',
+      restSeconds: 15, // TODO 天梯 TEST
     };
   },
   mounted() {
@@ -38,10 +39,18 @@ export default Vue.extend({
         }, 1000);
       },
     },
+    // restSeconds: { // TODO 天梯 TEST
+    //   handler(newValue) {
+    //     if (newValue===0) console.log('Time===0!');
+    //     else if (newValue===10) alert('Time===10!');
+    //   },
+    // },
   },
   methods: {
     updateTimer() {
       this.timerText = Timer.toString(this.timer);
+      if (this.getSeconds()==='20') console.log('Time===20!'); // TODO 天梯 TEST
+      else if (this.getSeconds()==='30') alert('Time===30!');
     },
     hasHours() {
       if (this.timerText.split(':').length > 2) {

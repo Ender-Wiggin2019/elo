@@ -1,10 +1,9 @@
 import Vue from 'vue';
 
-import axios from 'axios';
-import {PreferencesManager} from '../utils/PreferencesManager';
+// import {PreferencesManager} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
 import RankTier from '@/client/components/RankTier.vue';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA, RankTiers} from '../../common/RankManager';
+import {RankTiers} from '../../common/RankManager';
 
 const RANK_LIMIT = 100;
 export const Ranks = Vue.component('ranks', {
@@ -45,25 +44,6 @@ export const Ranks = Vue.component('ranks', {
       xhr.responseType = 'json';
       xhr.send();
     },
-    // 天梯，在`user_rank`表中创建对应数据
-    activateRank: function() {
-      const userId = PreferencesManager.load('userId');
-      if ( userId === undefined || userId === '') {
-        return;
-      }
-      console.log('activateRank');
-      axios.post('/api/activateRank', {
-        userId: userId,
-        rankValue: DEFAULT_RANK_VALUE,
-        mu: DEFAULT_MU,
-        sigma: DEFAULT_SIGMA,
-        activate: 1,
-      }).then(function() {
-        window.location.reload();
-      }).catch(function(error) {
-        alert(error);
-      });
-    },
     toggleTabs: function(tabNumber: number) {
       this.openTab = tabNumber;
     },
@@ -72,28 +52,28 @@ export const Ranks = Vue.component('ranks', {
   },
   template: `
     <div id="games-overview" xmlns="http://www.w3.org/1999/html">
-    <h1><a href="/" v-i18n>Terraforming Mars</a> — <span v-i18n>My Games</span>
+    <h1><a href="/" v-i18n>Terraforming Mars</a> — <span v-i18n>Ranking</span>
     </h1>
 
     <div class="flex flex-wrap">
       <div class="w-full mr-8">
         <ul class="flex mb-0 list-none flex-wrap pt-3 pb-4 flex-row">
           <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
-            <div class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
+            <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
                  v-on:click="toggleTabs(1)"
                  v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 1, 'text-white bg-blue-300': openTab === 1}">
               <span v-i18n>User Information</span>
             </div>
           </li>
           <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
-            <div class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
+            <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
                  v-on:click="toggleTabs(2)"
                  v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 2, 'text-white bg-blue-300': openTab === 2}">
               <span v-i18n>Rank Rules</span>
             </div>
           </li>
           <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
-            <div class="text-xs font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
+            <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
                  v-on:click="toggleTabs(3)"
                  v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 3, 'text-white bg-blue-300': openTab === 3}">
               <span v-i18n>User Games</span>
@@ -155,7 +135,7 @@ export const Ranks = Vue.component('ranks', {
                 <div class="text-2xl text-blue-300" v-i18n>4P</div>
                 <div class="text-lg">First player + 2, second player +1, third player +0, fourth player -1.</div>
                 <div class="text-2xl text-blue-300" v-i18n>5P</div>
-                <div class="text-lg">First player + 2, second player +1, third player +0, fourth player -1, fifth player -2;</div>
+                <div class="text-lg">First player + 2, second player +1, third player +0, fourth player -1, fifth player -2.</div>
                 <br/>
                 <br/>
               </div>
@@ -173,7 +153,7 @@ export const Ranks = Vue.component('ranks', {
                       </thead>
                       <tbody>
                       <tr v-for="rankTier in rankTiers">
-                        <td>{{ rankTier.name }}</td>
+                        <td v-i18n>{{ rankTier.name }}</td>
                         <td>
                           <div class="">
                             <RankTier :rankTier="rankTier"/>

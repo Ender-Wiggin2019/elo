@@ -2098,7 +2098,7 @@ export class Player {
   }
 
   public canExitFun(game:Game):boolean {
-    return this.canExit && game.phase === Phase.ACTION && game.activePlayer === this && game.getPlayers().length > 1;
+    return this.canExit && game.phase === Phase.ACTION && game.activePlayer === this && game.getPlayers().length > 1 && !game.isRankMode();
   }
   public toJSON(): string {
     return JSON.stringify(this.serialize());
