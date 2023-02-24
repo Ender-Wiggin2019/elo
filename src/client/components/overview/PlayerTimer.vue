@@ -50,7 +50,7 @@ export default Vue.extend({
     updateTimer() {
       this.timerText = Timer.toString(this.timer);
       if (this.getSeconds()==='20') console.log('Time===20!'); // TODO 天梯 TEST
-      else if (this.getSeconds()==='30') alert('Time===30!');
+      // else if (this.getSeconds()==='30') alert('Time===30!');
     },
     hasHours() {
       if (this.timerText.split(':').length > 2) {
