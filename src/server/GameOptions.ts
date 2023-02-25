@@ -63,6 +63,7 @@ export type GameOptions = {
   escapeVelocityPeriod?: number;
   escapeVelocityPenalty?: number;
   twoCorpsVariant: boolean;
+  rankTimeLimit?: number; // 天梯 玩家超时限制
 }
 
 export const DEFAULT_GAME_OPTIONS: GameOptions = {
@@ -116,4 +117,5 @@ export const DEFAULT_GAME_OPTIONS: GameOptions = {
   initialCorpDraftVariant: true,
   twoCorpsVariant: false,
   rankOption: false, // 天梯
+  rankTimeLimit: constants.DEFAULT_RANK_TIME_LIMIT, // 天梯
 };

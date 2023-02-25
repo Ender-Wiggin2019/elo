@@ -135,6 +135,7 @@ export class GameHandler extends Handler {
             leadersExtension: gameReq.leadersExtension,
             customLeaders: gameReq.customLeaders,
             rankOption: gameReq.rankOption, // 天梯
+            rankTimeLimit: gameReq.rankTimeLimit, // 天梯
           };
           const userId = gameReq.userId;
           let isvip = false;

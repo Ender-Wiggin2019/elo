@@ -85,3 +85,6 @@ export const LANGUAGES = [
 export const APP_NAME = 'Terraforming Mars';
 export const DISCORD_INVITE = 'https://discord.gg/afeyggbN6Y';
 export const PRELUDE_CARDS_DEALT_PER_PLAYER = 4;
+
+// Rank Mode
+export const DEFAULT_RANK_TIME_LIMIT = 90;

@@ -11,7 +11,7 @@ module.exports = {
   },
   plugins: [],
   corePlugins: {
-    preflight: false,
+    preflight: false, // 如果存在样式冲突选择原来自带的样式
   },
 };
 

@@ -87,5 +87,6 @@ export interface NewGameConfig {
   escapeVelocityPeriod: number | undefined;
   escapeVelocityPenalty: number | undefined;
   twoCorpsVariant: boolean,
-  customLeaders: Array<CardName>;
+  customLeaders: Array<CardName>,
+  rankTimeLimit: number | undefined;
 }

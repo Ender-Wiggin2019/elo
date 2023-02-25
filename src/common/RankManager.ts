@@ -18,6 +18,8 @@
 export const DEFAULT_RANK_VALUE = 0;
 export const DEFAULT_MU = 25.000;
 export const DEFAULT_SIGMA = 8.333;
+export const DEFAULT_TIMEOUT_PENALTY = -2; // 超时扣分
+export const DEFAULT_TIMEOUT_COMPENSATE = 1; // 超时补偿
 
 const rankValueChangeRules = [
   [1, -1], // 2p
@@ -63,6 +65,11 @@ export class UserRank {
     const delta = this.getRankValueDeltaByPosition(playerNumber, playerPosition);
     const tier = this.getTier();
     if (tier.maxStars === 3 && delta < 0) return; // 暂时hardcode, 前面的段位（maxStars为3）不降星
+    if (this.rankValue + delta >= 0) this.rankValue += delta; // 不低于0
+  }
+
+  public setRankValueDeltaByTimeOut(timeOut: boolean): void {
+    const delta = timeOut ? DEFAULT_TIMEOUT_PENALTY : DEFAULT_TIMEOUT_COMPENSATE;
     if (this.rankValue + delta >= 0) this.rankValue += delta; // 不低于0
   }
 
@@ -125,19 +132,29 @@ export function getChallengerValue(): number {
   return res;
 }
 
-// 天梯 根据原始排位，给出更新后的排位
-export async function getNewSkills(userRanks: Array<UserRank>): Promise<Array<UserRank>> {
+// 天梯 根据原始排位，给出更新后的排位，@param timeOutUser 超时玩家自动判负
+export async function getNewSkills(userRanks: Array<UserRank>, timeOutUser: UserRank | undefined): Promise<Array<UserRank>> {
   const {Rating, rate} = await import('ts-trueskill');
   const playerNumber = userRanks.length;
   const updatedRanks: Array<UserRank> = [];
-  const ratings = userRanks.map((userRank) => [new Rating(userRank.mu, userRank.sigma)]); // Rating[][]
-  const updatedRatings = rate(ratings);
-  for (let i = 0; i < playerNumber; i++) {
-    const userRank = userRanks[i];
-    userRank.setRankValueDeltaByPosition(playerNumber, i);
-    userRank.mu = updatedRatings[i][0].mu;
-    userRank.sigma = updatedRatings[i][0].sigma;
-    updatedRanks.push(userRank);
+
+  if (timeOutUser === undefined) { // 正常情况
+    const ratings = userRanks.map((userRank) => [new Rating(userRank.mu, userRank.sigma)]); // Rating[][]
+    const updatedRatings = rate(ratings);
+    for (let i = 0; i < playerNumber; i++) {
+      const userRank = userRanks[i];
+      userRank.setRankValueDeltaByPosition(playerNumber, i);
+      userRank.mu = updatedRatings[i][0].mu;
+      userRank.sigma = updatedRatings[i][0].sigma;
+      updatedRanks.push(userRank);
+    }
+  } else { // 超时情况 不会影响隐藏分，只扣表现分
+    for (let i = 0; i < playerNumber; i++) {
+      const userRank = userRanks[i];
+      userRank.setRankValueDeltaByTimeOut(userRank === timeOutUser);
+      updatedRanks.push(userRank);
+    }
   }
   return updatedRanks;
 }
+

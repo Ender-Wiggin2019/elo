@@ -76,5 +76,6 @@ export type SerializedGame = {
     finishFirstTrading: boolean,
     // unDraftedCards: Map<Object, Object>,
     unitedNationsMissionOneOwner: PlayerId | undefined ;
+    quitPlayers: Array<SerializedPlayerId>;
 }
 

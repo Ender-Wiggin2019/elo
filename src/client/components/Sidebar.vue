@@ -24,24 +24,39 @@
   </a>
   <a  href="#resign_panel" style="position: relative;">
       <div class="sidebar_item sidebar_item_shortcut">
-          <i class="sidebar_icon sidebar_icon--resign"  v-on:click="resignPanelOpen"><div class="deck-size">体退</div></i>
+          <i class="sidebar_icon sidebar_icon--resign"  v-on:click="resignPanelOpen">
+            <div v-if="gameOptions.rankOption" class="deck-size" v-i18n>Quit</div>
+            <div v-else class="deck-size">体退</div>
+          </i>
       </div>
-      <div class="resign_panel" id="resign_panel" v-if="ui.resign_panel_open">
-          <div class="preferences_panel_item form-group">
-              体退功能必须满足以下条件：
-              <li> 用户已登录且为赞助用户</li>
-              <li> 游戏处于行动阶段</li>
-              <li> 剩余玩家人数至少2人</li>
-              <li> 玩家当前回合才能体退</li>
-              <li> 玩家名称未注册 或者 本人登录<br></li>
-
-          </div>
-          <div style="padding: 10px;border-top: dashed;">玩家只剩1人时不能再获得新的里程牌<br>以及设立奖项</div>
+      <div v-if="gameOptions.rankOption && ui.resign_panel_open" class="resign_panel" id="resign_panel">
+        <div class="preferences_panel_item form-group">
+          如果所有玩家均选择退出
+          <br/>
+          则游戏会被放弃
+          <br/>
+          所有玩家段位保持不变
+        </div>
           <div class="preferences_panel_actions">
-              <button class="btn btn-lg btn-primary" v-on:click="resignWait" v-if="!ui.resign_wait && ui.canresign" >我要体退！{{ui.resign_time}}</button>
-              <button class="btn btn-lg btn-primary" v-on:click="resign" v-if="ui.resign_wait" >确认体退</button>
+              <button class="btn btn-lg btn-primary" v-on:click="resignWait" v-if="!ui.resign_wait" >退出游戏！{{ui.resign_time}}</button>
+              <button class="btn btn-lg btn-primary" v-on:click="quit" v-if="ui.resign_wait" >确认体退</button>
           </div>
       </div>
+    <div v-else-if="ui.resign_panel_open" class="resign_panel" id="resign_panel">
+      <div class="preferences_panel_item form-group">
+        体退功能必须满足以下条件：
+        <li> 用户已登录且为赞助用户</li>
+        <li> 游戏处于行动阶段</li>
+        <li> 剩余玩家人数至少2人</li>
+        <li> 玩家当前回合才能体退</li>
+        <li> 玩家名称未注册 或者 本人登录<br></li>
+      </div>
+      <div style="padding: 10px;border-top: dashed;">玩家只剩1人时不能再获得新的里程牌<br>以及设立奖项</div>
+      <div class="preferences_panel_actions">
+        <button class="btn btn-lg btn-primary" v-on:click="resignWait" v-if="!ui.resign_wait && ui.canresign" >我要体退！{{ui.resign_time}}</button>
+        <button class="btn btn-lg btn-primary" v-on:click="resign" v-if="ui.resign_wait" >确认体退</button>
+      </div>
+    </div>
   </a>
   <a href="#board" :title="$t('Jump to board')">
       <div class="sidebar_item sidebar_item_shortcut">
@@ -173,6 +188,7 @@ export default Vue.extend({
         'resign_time': '',
         'canresign': false,
         'gamesetup_detail_open': false,
+        'canquit': false,
       },
       'globalParameter': GlobalParameter,
     };
@@ -246,6 +262,32 @@ export default Vue.extend({
       const senddata ={'playerId': this.playerView.id, 'userId': userId};
       xhr.send(JSON.stringify(senddata));
     },
+    quit: function():void {
+      const userId = PreferencesManager.load('userId');
+      this.resignPanelOpen();
+      if (userId === '') {
+        this.resignPanelOpen();
+        return;
+      }
+      // TODO 传API api/endgame 到数据库。在game里面新增一个array，如果array.length===players.length，启动那个goendgame。注意这个不算超时，需要配置一下
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'player/endgame');
+      xhr.responseType = 'json';
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          if (window.location.pathname === '/the-end') {
+            (window as any).location = (window as any).location;
+          }
+        }
+        // else if (xhr.status === 400 && xhr.responseType === 'json') {
+        //   root.showAlert( xhr.response.message || '', () =>{});
+        // } else {
+        //   alert('Error sending input');
+        // }
+      };
+      const senddata ={'playerId': this.playerView.id, 'userId': userId};
+      xhr.send(JSON.stringify(senddata));
+    },
     getPlayerColorCubeClass(): string {
       return this.acting_player && (getPreferences().hide_animated_sidebar === false) ? 'preferences_player_inner active' : 'preferences_player_inner';
     },
@@ -282,6 +324,7 @@ export default Vue.extend({
     this.ui.canresign = this.playerView.canExit &&
             (this.$root as any).isvip &&
             this.playerView.block === false;
+    this.ui.canquit = this.playerView.block === false; // 只要是对应玩家就可以申请退出
   },
   computed: {
     preferencesManager(): PreferencesManager {

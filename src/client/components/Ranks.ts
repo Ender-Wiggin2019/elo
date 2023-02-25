@@ -38,7 +38,7 @@ export const Ranks = Vue.component('ranks', {
             alert('Unexpected response fetching games from API');
           }
         } else {
-          alert('Unexpected response fetching games from API');
+          console.log('No Ranking Data yet.');
         }
       };
       xhr.responseType = 'json';

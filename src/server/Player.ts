@@ -1752,6 +1752,9 @@ export class Player {
   public takeAction(saveBeforeTakingAction: boolean = true): void {
     const game = this.game;
 
+    if (game.phase === Phase.END) { // 天梯 TODO 增加一个phase，和正常结束游戏区分开
+      return;
+    };
     if (game.deferredActions.length > 0) {
       this.canExit = false;
       game.deferredActions.runAll(() => this.takeAction());
@@ -2315,8 +2318,9 @@ export class Player {
     return GameLoader.getUserRankByPlayer(this);
   }
 
+  // 天梯 如果是对应player，则更新玩家排名
   public addOrUpdateUserRank(userRank: UserRank): void {
-    if (this.getUserRank()?.userId === userRank.userId) GameLoader.getInstance().addOrUpdateUserRank(userRank); // 如果是对应player，则更新玩家排名
+    if (this.getUserRank()?.userId === userRank.userId) GameLoader.getInstance().addOrUpdateUserRank(userRank);
   }
 }
 

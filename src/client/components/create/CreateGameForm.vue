@@ -290,6 +290,11 @@
                             <span class="text-yellow-600" v-i18n>Rank Mode</span>&nbsp;
                             <a href="/ranks" class="tooltip text-yellow-600" :data-tooltip="$t('Go To Ranking')" target="_blank">&#9432;</a>
                           </label>
+                          <label for="rankTimeLimit-checkbox" v-show="rankOption">
+                              <span class="text-yellow-600" v-i18n>Each Player</span><span>&nbsp;</span>
+                              <input type="number" class="create-game-corporations-count" value="1" step="5" min="0" :max="180" v-model="rankTimeLimit" id="rankTimeLimit-checkbox">
+                              <span class="text-yellow-600" v-i18n>min</span>
+                            </label>
 
                             <div v-if="initialDraft && doubleCorp" >
                               <input type="checkbox" name="initialCorpDraftVariant" v-model="initialCorpDraftVariant" id="initialCorpDraftVariant-checkbox">
@@ -517,6 +522,7 @@ export interface CreateGameModel {
     pathfindersExpansion: boolean;
     undoOption: boolean;
     rankOption: boolean; // 天梯
+    rankTimeLimit: number; // 天梯时间限制
     showTimers: boolean;
     fastModeOption: boolean;
     removeNegativeGlobalEventsOption: boolean;
@@ -638,6 +644,7 @@ export default (Vue as WithRefs<Refs>).extend({
       pathfindersExpansion: false,
       undoOption: true,
       rankOption: false, // 天梯
+      rankTimeLimit: constants.DEFAULT_RANK_TIME_LIMIT, // 天梯
       showTimers: true,
       fastModeOption: true,
       removeNegativeGlobalEventsOption: false,
@@ -1026,6 +1033,7 @@ export default (Vue as WithRefs<Refs>).extend({
       const pathfindersExpansion = component.pathfindersExpansion;
       const undoOption = component.undoOption;
       const rankOption = component.rankOption; // 天梯
+      const rankTimeLimit = component.rankTimeLimit; // 天梯
       const showTimers = component.showTimers;
       const fastModeOption = component.fastModeOption;
       const removeNegativeGlobalEventsOption = this.removeNegativeGlobalEventsOption;
@@ -1158,6 +1166,7 @@ export default (Vue as WithRefs<Refs>).extend({
         'pathfindersExpansion': pathfindersExpansion,
         undoOption,
         rankOption,
+        rankTimeLimit,
         showTimers,
         fastModeOption,
         removeNegativeGlobalEventsOption,

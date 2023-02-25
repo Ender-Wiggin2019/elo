@@ -126,6 +126,8 @@ export function processRequest(
       UserManager.apiGameBack(req, res);
     } else if (req.url.indexOf('/api/activateRank') === 0) {
       UserManager.activateRank(req, res);
+    } else if (req.url.indexOf('/player/endgame') === 0) {
+      UserManager.endGameForTimeOut(req, res);
     }
     break;
   case 'PUT':

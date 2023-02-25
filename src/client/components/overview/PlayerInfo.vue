@@ -137,7 +137,7 @@ export default Vue.extend({
           </div>
 <!--            <RankTier v-if="player.rankTier !== undefined" :rankTier="player.rankTier" />-->
           </div>
-          <player-status :timer="player.timer" :showTimers="playerView.game.gameOptions.showTimers" :firstForGen="firstForGen" v-trim-whitespace :actionLabel="actionLabel" :rankTier="player.rankTier"/>
+          <player-status :timer="player.timer" :showTimers="playerView.game.gameOptions.showTimers" :firstForGen="firstForGen" v-trim-whitespace :actionLabel="actionLabel" :rankTier="player.rankTier" :player-id="playerView.id" :rank-mode="playerView.game.gameOptions.rankOption" :rank-time-limit="playerView.game.gameOptions.rankTimeLimit"/>
         </div>
           <PlayerResources :player="player" v-trim-whitespace />
           <div class="player-played-cards">

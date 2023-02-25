@@ -1,4 +1,3 @@
-
 import * as http from 'http';
 import {User} from './User';
 import {Database} from './database/Database';
@@ -11,6 +10,8 @@ import {Context} from './routes/IHandler';
 import {UnexpectedInput} from './routes/UnexpectedInput';
 import * as crypto from 'crypto';
 import {RankTier, UserRank} from '../common/RankManager';
+import {Phase} from '../common/Phase';
+
 const colorNames = ['blue', 'red', 'yellow', 'green', 'black', 'purple', 'you', '红色', '绿色', '黄色', '蓝色', '黑色', '紫色'];
 function notFound(req: http.IncomingMessage, res: http.ServerResponse): void {
   if ( ! process.argv.includes('hide-not-found-warnings')) {
@@ -508,4 +509,60 @@ export function getUserRanks(req: http.IncomingMessage, res: http.ServerResponse
   // });
 
   // res.end();
+}
+
+export function endGameForTimeOut(req: http.IncomingMessage, res: http.ServerResponse): void {
+  let body = '';
+  req.on('data', function(data) {
+    body += data.toString();
+  });
+  req.once('end', async function() {
+    try {
+      const userReq = JSON.parse(body);
+      const userId: string = userReq.userId;
+      const playerId: string = userReq.playerId;
+
+      const game = await GameLoader.getInstance().getByPlayerId(playerId); // 多个请求时await
+      if (game === undefined || GameLoader.getInstance().games.get(game.id) === undefined) {
+        notFound(req, res);
+        return;
+      }
+      // const player = game.getAllPlayers().find((p) => p.id === playerId);
+      // if (player === undefined) {
+      //   notFound(req, res);
+      //   return;
+      // }
+      // // const userPlayer = GameLoader.getUserByPlayer(player);
+      // const user = GameLoader.getInstance().userIdMap.get(userId); // 可以undefined
+      // if (user === undefined) {
+      //   notFound(req, res);
+      //   return;
+      // }
+      // if (userPlayer !== undefined && userPlayer.id !== userId) {// 已注册并且不等于登录用户  不能体退
+      //   notFound(req, res);
+      //   return;
+      // }
+      console.log('game.phase', game.phase, game.phase !== Phase.END);
+      if (game.phase !== Phase.END) { // 多个请求只执行一次
+        console.log('game.phase2', game.phase);
+        game.checkRankModeEndGame(playerId, userId);
+      }
+      // game.exitPlayer(player);
+      res.setHeader('Content-Type', 'application/json');
+      // const playerBlockModel : PlayerBlockModel ={
+      //   block: false,
+      //   isme: true,
+      //   showhandcards: user.showhandcards,
+      // };
+      // res.end(JSON.stringify(Server.getPlayerModel(player, playerBlockModel)));
+      res.end();
+    } catch (err) {
+      console.warn('error resign', err);
+      console.warn('error resign:', body);
+      res.writeHead(500);
+      const message = err instanceof Error ? err.message : String(err);
+      res.write('Unable to resign: ' + message);
+      res.end();
+    }
+  });
 }

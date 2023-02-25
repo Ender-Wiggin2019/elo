@@ -1,5 +1,5 @@
 <template>
-  <div class="player-timer">
+  <div class="player-timer" v-bind:class="timeState">
     <template v-if="hasHours()">
         <div class="player-timer-hours time-part">{{ getHours() }}</div>
         <div class="timer-delimiter">:</div>
@@ -14,6 +14,7 @@
 import Vue from 'vue';
 import {Timer} from '@/common/Timer';
 import {TimerModel} from '@/common/models/TimerModel';
+import {PreferencesManager} from '@/client/utils/PreferencesManager';
 
 export default Vue.extend({
   name: 'PlayerTimer',
@@ -21,13 +22,27 @@ export default Vue.extend({
     timer: {
       type: Object as () => TimerModel,
     },
+    playerId: {
+      type: String,
+    },
+    rankMode: { // 天梯 是否是排位模式
+      type: Boolean,
+    },
+    rankTimeLimit: { // 天梯 限时 单位为分钟
+      type: Number,
+    },
   },
   data() {
     return {
       timerText: '',
-      restSeconds: 15, // TODO 天梯 TEST
+      timeState: '', // TODO 天梯 TEST
     };
   },
+  // computed: {
+  //   color: function() {
+  //     return this.timeState === 'red' ? 'text-red-500' : this.timeState === 'red' ? 'text-orange-500' : '';
+  //   },
+  // },
   mounted() {
     this.updateTimer();
   },
@@ -39,18 +54,52 @@ export default Vue.extend({
         }, 1000);
       },
     },
-    // restSeconds: { // TODO 天梯 TEST
-    //   handler(newValue) {
-    //     if (newValue===0) console.log('Time===0!');
-    //     else if (newValue===10) alert('Time===10!');
-    //   },
-    // },
   },
   methods: {
     updateTimer() {
-      this.timerText = Timer.toString(this.timer);
-      if (this.getSeconds()==='20') console.log('Time===20!'); // TODO 天梯 TEST
-      // else if (this.getSeconds()==='30') alert('Time===30!');
+      // 排名模式 启动倒计时
+      console.log('this.rankTimeLimit', this.rankTimeLimit);
+      console.log('timerText倒数', Timer.toString(this.timer, this.rankTimeLimit));
+      console.log('timerText正数', Timer.toString(this.timer));
+      console.log('timerMinute', Timer.getMinutes(this.timer, this.rankTimeLimit));
+      if (this.rankMode) {
+        this.timerText = Timer.toString(this.timer, this.rankTimeLimit);
+        console.log('timerMinute', Timer.getMinutes(this.timer, this.rankTimeLimit));
+        if (this.rankTimeLimit > 0 && Timer.getMinutes(this.timer, this.rankTimeLimit) <= 0) { // 超时，直接结束游戏
+          this.endGameForTimeOut();
+        } else if (Timer.getMinutes(this.timer, this.rankTimeLimit) <= 5) { // 剩余时间小于5分钟，显示红色时间
+          this.timeState = 'text-red-500';
+        } else if (Timer.getMinutes(this.timer, this.rankTimeLimit) <= 15) { // 剩余时间小于5分钟，显示红色时间
+          this.timeState = 'text-orange-500';
+        }
+      } else {
+        this.timerText = Timer.toString(this.timer);
+      }
+    },
+    endGameForTimeOut: function():void {
+      const userId = PreferencesManager.load('userId');
+      // this.resignPanelOpen();
+      // if (userId === '') {
+      //   this.resignPanelOpen();
+      //   return;
+      // }
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'player/endgame');
+      xhr.responseType = 'json';
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          if (window.location.pathname === '/the-end') {
+            (window as any).location = (window as any).location;
+          }
+        }
+        // else if (xhr.status === 400 && xhr.responseType === 'json') {
+        //   root.showAlert( xhr.response.message || '', () =>{});
+        // } else {
+        //   alert('Error sending input');
+        // }
+      };
+      const senddata ={'playerId': this.playerId, 'userId': userId};
+      xhr.send(JSON.stringify(senddata));
     },
     hasHours() {
       if (this.timerText.split(':').length > 2) {

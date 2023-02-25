@@ -168,6 +168,9 @@ export class Game implements Logger {
   // Syndicate Pirate Raids
   public syndicatePirateRaider?: string;
 
+  // Rank Mode
+  public quitPlayers: Set<Player> = new Set<Player>;// 天梯 玩家申请退出游戏 所有人均同意则废弃游戏
+
   private constructor(
     public id: GameId,
     private players: Array<Player>,
@@ -515,6 +518,7 @@ export class Game implements Logger {
       finishFirstTrading: this.finishFirstTrading,
       // unDraftedCards: this.unDraftedCards,
       unitedNationsMissionOneOwner: this.unitedNationsMissionOneOwner,
+      quitPlayers: Array.from(this.quitPlayers).map((p) => p.serializeId()),
     };
     if (this.aresData !== undefined) {
       result.aresData = this.aresData;
@@ -1195,6 +1199,7 @@ export class Game implements Logger {
   }
 
   private async gotoEndGame(): Promise<void> {
+    console.log('call gotoEndGame');
     this.phase = Phase.END;
     await this.save();
 
@@ -1227,23 +1232,31 @@ export class Game implements Logger {
     if (this.isRankMode() && this.players.length > 1) {
       const userRanks: Array<UserRank> = [];
       const rankedPlayers: Array<Player> = [];
+      const timeOutPlayer = this.checkTimeOutPlayer();
+      let timeOutUserRank: UserRank | undefined = undefined; // 超时玩家的UserRank
       sortedPlayers.forEach((player) => {
         const userRank = player.getUserRank();
         if (userRank !== undefined) {
           userRanks.push(userRank);
           rankedPlayers.push(player);
+          if (player === timeOutPlayer) timeOutUserRank = userRank;
         }
       });
 
       // 更新
-      await getNewSkills(userRanks).then((userRanks) => {
-        // 如果成功获取更新后的UserRank：1. 写回UserRankMap 2. 将更新值传入数据库
-        for (let i = 0; i < userRanks.length; i ++ ) {
-          rankedPlayers[i].addOrUpdateUserRank(userRanks[i]);
-          Database.getInstance().updateUserRank(userRanks[i]);
-          console.log(userRanks[i]);
-        }
-      });
+      if (timeOutUserRank === undefined && this.quitPlayers.size === sortedPlayers.length) {
+        // 玩家放弃游戏，无事发生
+        console.log('all players quit the game');
+      } else {
+        await getNewSkills(userRanks, timeOutUserRank).then((userRanks) => {
+          // 如果成功获取更新后的UserRank：1. 写回UserRankMap 2. 将更新值传入数据库
+          for (let i = 0; i < userRanks.length; i ++ ) {
+            rankedPlayers[i].addOrUpdateUserRank(userRanks[i]);
+            Database.getInstance().updateUserRank(userRanks[i]);
+            console.log(userRanks[i]);
+          }
+        });
+      }
     }
 
     // 天梯 + MyGames 存储历史数据
@@ -2104,6 +2117,19 @@ export class Game implements Logger {
       // We should be in ACTION phase, let's prompt the active player for actions
       this.activePlayer.takeAction(/* saveBeforeTakingAction */ false);
     }
+
+    // Rebuild quit players set
+    if (d.quitPlayers === undefined) {
+      d.quitPlayers = [];
+    }
+    this.quitPlayers = new Set<Player>();
+    d.quitPlayers.forEach((element: SerializedPlayerId) => {
+      const player = this.players.find((player) => player.id === element.id);
+      if (player) {
+        this.quitPlayers.add(player);
+      }
+    });
+
     this.loadState = LoadState.LOADED;
     return o;
   }
@@ -2212,5 +2238,46 @@ export class Game implements Logger {
   // 天梯
   public isRankMode(): boolean {
     return this.gameOptions.rankOption;
+  }
+
+  // 判断是否有玩家超时,返回超时的玩家 （是否可能出现多个？）
+  public checkTimeOutPlayer(): Player | undefined {
+    if (this.isRankMode() && this.gameOptions.rankTimeLimit !== undefined) {
+      for (const player of this.getAllPlayers()) {
+        console.log('time', player.timer.getElapsedTimeInMinutes(), this.gameOptions.rankTimeLimit);
+        if (player.timer.getElapsedTimeInMinutes() >= this.gameOptions.rankTimeLimit) return player;
+      }
+    }
+    return undefined;
+  }
+
+  // 天梯 排名模式中强行结束游戏
+  // 1. 判断是否游戏超时，如果超时的话，会直接结束游戏，并将超时玩家设为唯一败方
+  // 2. 判断是否所有玩家都放弃游戏，是的话游戏作废，所有人分数不变
+  public checkRankModeEndGame(playerId: string, userId: string) {
+    const playerLength = this.getAllPlayers().length;
+    console.log('this.getPlayerById(userId as PlayerId)', userId, this.getPlayerById(playerId as PlayerId).userId);
+    // this.quitPlayers.forEach((player) => {
+    //   if (player.userId !== userId) {
+    //     this.quitPlayers.add(this.getPlayerById(playerId as PlayerId));
+    //   }
+    // });
+    this.quitPlayers.add(this.getPlayerById(playerId as PlayerId));
+    console.log('checkRankModeEndGame', this.phase, 'quitPlayers', this.quitPlayers.size);
+
+    if (this.phase === Phase.END) {
+      return;
+    } else if (this.quitPlayers.size === playerLength) {
+      this.gotoRankModeEndGame();
+    } else if (this.phase !== Phase.RESEARCH && this.checkTimeOutPlayer()) { // 如果没选完卡，不视为进入游戏，不会超时
+      this.checkTimeOutPlayer()?.timer.stop(); // 结束计数器
+      this.gotoRankModeEndGame();
+    }
+  }
+
+  private gotoRankModeEndGame() {
+    this.phase = Phase.END;
+    this.updateVPbyGeneration();
+    this.gotoEndGame();
   }
 }
