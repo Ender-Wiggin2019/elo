@@ -4,7 +4,7 @@
           <div :class="getLabelAndTimerClasses()">
             <div :class="getActionStatusClasses()"><span v-i18n>{{ actionLabel }}</span></div>
             <div class="player-status-timer" v-if="showTimers && display==='timer'"><player-timer :timer="timer" :player-id="playerId" :rank-mode="rankMode" :finalRankTimeLimit="finalRankTimeLimit"/></div>
-            <RankTier :rankTier="rankTier" v-if="display==='tier'" class="ml-2"/>
+            <RankTier v-if="display==='tier'" :rankTier="rankTier" :showNumber="false" class="ml-2"/>
           </div>
         </div>
       </div>

@@ -60,7 +60,10 @@ export default Vue.extend({
       return 'tooltip tooltip-' + (this.isTopBar ? 'bottom' : 'top');
     },
     finalRankTimeLimit(): string {
-      return (Number(this.playerView.game.gameOptions.rankTimeLimit) + Number(this.playerView.game.gameOptions.rankTimePerGeneration) * Math.max(Number(this.playerView.game.generation) - 1, 0)).toString();
+      return (Number(this.playerView?.game.gameOptions.rankTimeLimit) + Number(this.playerView?.game.gameOptions.rankTimePerGeneration) * Math.max(Number(this.playerView?.game.generation) - 1, 0)).toString();
+    },
+    playerId(): string {
+      return this.playerView?.id || '';
     },
   },
   methods: {
@@ -142,7 +145,7 @@ export default Vue.extend({
               v-trim-whitespace
               :actionLabel="actionLabel"
               :rankTier="player.rankTier"
-              :player-id="playerView.id"
+              :player-id="playerId"
               :rank-mode="playerView.game.gameOptions.rankOption"
               :finalRankTimeLimit="finalRankTimeLimit"/>
         </div>

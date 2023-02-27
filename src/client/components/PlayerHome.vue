@@ -165,7 +165,9 @@
             <br/>
             <div>
               <dynamic-title title="Your Picked Corporations" :color="thisPlayer.color"/>
-              <div v-for="card in playerView.draftedCorporations" :key="card.name" class="cardbox">
+              <!-- Ender: dealtCorporationCards会报错，我先注释掉了，本身也没有执行 -->
+              <div v-for="card in playerView.dealtCorporationCards" :key="card.name" class="cardbox">
+<!--              <div v-for="card in playerView.draftedCorporations" :key="card.name" class="cardbox">-->
                 <Card :card="card"/>
               </div>
             </div>
@@ -223,7 +225,7 @@
           </template>
 
           <dynamic-title v-if="playerView.pickedCorporationCard.length === 0" title="Select initial cards:" :color="thisPlayer.color"/>
-          <waiting-for v-if="game.phase !== 'end' || game.phase !== 'timeout' || game.phase !== 'abandon'" :players="playerView.players" :playerView="playerView" :settings="settings" :waitingfor="playerView.waitingFor"></waiting-for>
+          <waiting-for v-if="game.phase !== 'end' && game.phase !== 'timeout' && game.phase !== 'abandon'" :players="playerView.players" :playerView="playerView" :settings="settings" :waitingfor="playerView.waitingFor"></waiting-for>
 
           <dynamic-title title="Game details" :color="thisPlayer.color"/>
 

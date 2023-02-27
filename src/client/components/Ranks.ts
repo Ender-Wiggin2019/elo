@@ -116,7 +116,7 @@ export const Ranks = Vue.component('ranks', {
                         <td>{{ singleUserRank.userName }}</td>
                         <td>
                           <div class="">
-                            <RankTier :rankTier="singleUserRank.userTier"/>
+                            <RankTier :rankTier="singleUserRank.userTier" :showNumber="false"/>
                           </div>
                         </td>
                       </tr>
@@ -155,7 +155,7 @@ export const Ranks = Vue.component('ranks', {
                         <td v-i18n>{{ rankTier.name }}</td>
                         <td>
                           <div class="">
-                            <RankTier :rankTier="rankTier"/>
+                            <RankTier :rankTier="rankTier" :showNumber="false"/>
                           </div>
                         </td>
                         <td>

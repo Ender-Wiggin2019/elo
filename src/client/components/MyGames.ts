@@ -199,12 +199,12 @@ export const MyGames = Vue.component('my-games', {
                   <div class="text-lg text-gray-700 font-bold">{{$t('User Name')}}</div>
                   {{ userName }}
                 </div>
-                <div class="align-center rounded-md bg-gray-500 w-64 my-4 text-center text-md" v-i18n>
+                <div class="align-center rounded-md bg-gray-500 w-64 my-4 text-center text-md p-2" v-i18n>
                   <div class="text-lg text-gray-700 font-bold">{{$t('Potato Date')}}</div>
                   <div v-if="this.vipDate">{{ vipDate }}</div>
                   <div v-else>
                     <div class="rounded-md bg-yellow-500 hover:bg-yellow-600 w-auto p-2"><a href="/donate" class="text-black text-md align-center" v-i18n>
-                      Get Potato
+                      {{$t('Get Potato')}}
                     </a></div>
                   </div>
 <!--                    <img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle; margin-top: 2px"/>-->
@@ -213,7 +213,7 @@ export const MyGames = Vue.component('my-games', {
                 <div class="flex flex-col items-center justify-center rounded-md bg-gray-500 w-64 h-32 my-4 pb-2 text-center text-md " v-i18n>
                   <div class="text-lg text-gray-700 font-bold">User Rank</div>
                   <div v-if="this.userRank.userId!==''" class=" scale-125 ml-10 mb-2">
-                    <RankTier :rankTier="getTier()"/>
+                    <RankTier :rankTier="getTier()" :showNumber="false"/>
                   </div>
                   <div v-else>
                     <button class="rounded-md bg-yellow-500 hover:bg-yellow-600 w-auto p-2 text-md align-center mb-2" v-on:click="activateRank" v-i18n>

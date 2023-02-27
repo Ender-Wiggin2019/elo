@@ -573,11 +573,11 @@
               </div>
             </div>
 
-            <!--天梯选项-->
+            <!-- 天梯选项 -->
             <input type="checkbox" v-model="rankOption" id="rank-checkbox" v-if="isvip" />
             <label for="rank-checkbox" :class="{ forbidden: !isvip }">
               <div class="create-game-expansion-icon expansion-icon-rank"></div>
-              <span class="text-yellow-600" v-i18n>Rank Mode</span>&nbsp;&nbsp;&nbsp;
+              <span :class="isvip ? 'text-yellow-600' : 'text-gray-300'" v-i18n>Rank Mode</span>&nbsp;&nbsp;&nbsp;
               <a
                 href="/ranks"
                 class="tooltip text-yellow-600"
@@ -852,38 +852,38 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { WithRefs } from "vue-typed-refs";
-import { Color } from "@/common/Color";
-import { BoardName } from "@/common/boards/BoardName";
-import { RandomBoardOption } from "@/common/boards/RandomBoardOption";
-import { CardName } from "@/common/cards/CardName";
-import CorporationsFilter from "@/client/components/create/CorporationsFilter.vue";
-import PreludesFilter from "@/client/components/create/PreludesFilter.vue";
-import { translateText, translateTextWithParams } from "@/client/directives/i18n";
-import ColoniesFilter from "@/client/components/create/ColoniesFilter.vue";
-import { ColonyName } from "@/common/colonies/ColonyName";
-import CardsFilter from "@/client/components/create/CardsFilter.vue";
-import Button from "@/client/components/common/Button.vue";
-import { playerColorClass } from "@/common/utils/utils";
-import { PreferencesManager } from "../../utils/PreferencesManager";
-import { RandomMAOptionType } from "@/common/ma/RandomMAOptionType";
-import { AgendaStyle } from "@/common/turmoil/Types";
-import PreferencesIcon from "@/client/components/PreferencesIcon.vue";
-import { getCard } from "@/client/cards/ClientCardManifest";
-import { GameModule } from "@/common/cards/GameModule";
+import Vue from 'vue';
+import {WithRefs} from 'vue-typed-refs';
+import {Color} from '@/common/Color';
+import {BoardName} from '@/common/boards/BoardName';
+import {RandomBoardOption} from '@/common/boards/RandomBoardOption';
+import {CardName} from '@/common/cards/CardName';
+import CorporationsFilter from '@/client/components/create/CorporationsFilter.vue';
+import PreludesFilter from '@/client/components/create/PreludesFilter.vue';
+import {translateText, translateTextWithParams} from '@/client/directives/i18n';
+import ColoniesFilter from '@/client/components/create/ColoniesFilter.vue';
+import {ColonyName} from '@/common/colonies/ColonyName';
+import CardsFilter from '@/client/components/create/CardsFilter.vue';
+import Button from '@/client/components/common/Button.vue';
+import {playerColorClass} from '@/common/utils/utils';
+import {PreferencesManager} from '../../utils/PreferencesManager';
+import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
+import {AgendaStyle} from '@/common/turmoil/Types';
+import PreferencesIcon from '@/client/components/PreferencesIcon.vue';
+import {getCard} from '@/client/cards/ClientCardManifest';
+import {GameModule} from '@/common/cards/GameModule';
 
-import * as constants from "@/common/constants";
-import * as json_constants from "@/client/components/create/json";
-import { QrCode } from "../QrCode";
-import { mainAppSettings } from "../App";
+import * as constants from '@/common/constants';
+import * as json_constants from '@/client/components/create/json';
+import {QrCode} from '../QrCode';
+import {mainAppSettings} from '../App';
 import {
   BoardNameType,
   NewGameConfig,
   NewPlayerModel,
-} from "@/common/game/NewGameConfig";
-import { GameId } from "../../../common/Types";
-import * as HTTPResponseCode from "@/client/utils/HTTPResponseCode";
+} from '@/common/game/NewGameConfig';
+import {GameId} from '../../../common/Types';
+import * as HTTPResponseCode from '@/client/utils/HTTPResponseCode';
 
 const REVISED_COUNT_ALGORITHM = false;
 
@@ -988,7 +988,7 @@ type Refs = {
 };
 
 export default (Vue as WithRefs<Refs>).extend({
-  name: "CreateGameForm",
+  name: 'CreateGameForm',
   data(): CreateGameModel {
     return {
       isvip: false,
@@ -998,7 +998,7 @@ export default (Vue as WithRefs<Refs>).extend({
       players: [
         {
           index: 1,
-          name: "",
+          name: '',
           color: Color.RED,
           beginner: false,
           handicap: 0,
@@ -1006,7 +1006,7 @@ export default (Vue as WithRefs<Refs>).extend({
         },
         {
           index: 2,
-          name: "",
+          name: '',
           color: Color.GREEN,
           beginner: false,
           handicap: 0,
@@ -1014,7 +1014,7 @@ export default (Vue as WithRefs<Refs>).extend({
         },
         {
           index: 3,
-          name: "",
+          name: '',
           color: Color.YELLOW,
           beginner: false,
           handicap: 0,
@@ -1022,7 +1022,7 @@ export default (Vue as WithRefs<Refs>).extend({
         },
         {
           index: 4,
-          name: "",
+          name: '',
           color: Color.BLUE,
           beginner: false,
           handicap: 0,
@@ -1030,7 +1030,7 @@ export default (Vue as WithRefs<Refs>).extend({
         },
         {
           index: 5,
-          name: "",
+          name: '',
           color: Color.BLACK,
           beginner: false,
           handicap: 0,
@@ -1038,7 +1038,7 @@ export default (Vue as WithRefs<Refs>).extend({
         },
         {
           index: 6,
-          name: "",
+          name: '',
           color: Color.PURPLE,
           beginner: false,
           handicap: 0,
@@ -1046,7 +1046,7 @@ export default (Vue as WithRefs<Refs>).extend({
         },
         {
           index: 7,
-          name: "",
+          name: '',
           color: Color.ORANGE,
           beginner: false,
           handicap: 0,
@@ -1054,7 +1054,7 @@ export default (Vue as WithRefs<Refs>).extend({
         },
         {
           index: 8,
-          name: "",
+          name: '',
           color: Color.PINK,
           beginner: false,
           handicap: 0,
@@ -1184,27 +1184,27 @@ export default (Vue as WithRefs<Refs>).extend({
       const serializedData = await this.serializeSettings();
 
       if (serializedData) {
-        const a = document.createElement("a");
-        const blob = new Blob([serializedData], { type: "application/json" });
+        const a = document.createElement('a');
+        const blob = new Blob([serializedData], {type: 'application/json'});
         a.href = window.URL.createObjectURL(blob);
-        a.download = "tm_settings.json";
+        a.download = 'tm_settings.json';
         a.click();
       }
     },
     handleSettingsUpload() {
       const refs: Refs = this.$refs;
       const file = refs.file.files !== null ? refs.file.files[0] : undefined;
-      (refs.file as any).value = ""; //  避免上传相同文件时不触发更新事件
+      (refs.file as any).value = ''; //  避免上传相同文件时不触发更新事件
       const reader = new FileReader();
       const component = this.$data as CreateGameModel;
 
       reader.addEventListener(
-        "load",
-        function () {
+        'load',
+        function() {
           const warnings: Array<string> = [];
           try {
             const readerResults = reader.result;
-            if (typeof readerResults === "string") {
+            if (typeof readerResults === 'string') {
               const results = JSON.parse(readerResults);
 
               const customCorporations =
@@ -1221,7 +1221,7 @@ export default (Vue as WithRefs<Refs>).extend({
                 [];
               const customPreludes = results[json_constants.CUSTOM_PRELUDES] || [];
 
-              const players = results["players"];
+              const players = results['players'];
               component.playersCount = players.length;
               component.showCorporationList = customCorporations.length > 0;
               component.showColoniesList = customColonies.length > 0;
@@ -1240,15 +1240,15 @@ export default (Vue as WithRefs<Refs>).extend({
                 json_constants.CUSTOM_PRELUDES,
                 json_constants.BANNED_CARDS,
                 json_constants.OLD_BANNED_CARDS,
-                "_corporationsDraft",
-                "userId",
-                "players",
-                "constants",
+                '_corporationsDraft',
+                'userId',
+                'players',
+                'constants',
               ];
               for (const k in results) {
                 if (specialFields.includes(k)) continue;
                 if (!Object.prototype.hasOwnProperty.call(component, k)) {
-                  warnings.push("Unknown property: " + k);
+                  warnings.push('Unknown property: ' + k);
                 }
                 // This is safe because of the hasOwnProperty check, above. hasOwnProperty doesn't help with type declarations.
                 (component as any)[k] = results[k];
@@ -1264,14 +1264,15 @@ export default (Vue as WithRefs<Refs>).extend({
                 for (const k in vipOptions) {
                   if (
                     [
-                      "customCorporationsList",
-                      "customColoniesList",
-                      "bannedCards",
-                      "players",
-                      "showPreludesList",
+                      'customCorporationsList',
+                      'customColoniesList',
+                      'bannedCards',
+                      'players',
+                      'showPreludesList',
                     ].includes(k)
-                  )
+                  ) {
                     continue;
+                  }
                   (component as any)[k] = vipOptions[k];
                 }
               }
@@ -1282,35 +1283,39 @@ export default (Vue as WithRefs<Refs>).extend({
               Vue.nextTick(() => {
                 try {
                   if (component.isvip) {
-                    if (component.showColoniesList)
+                    if (component.showColoniesList) {
                       refs.coloniesFilter.updateColoniesByNames(customColonies);
-                    if (component.showCorporationList)
+                    }
+                    if (component.showCorporationList) {
                       refs.corporationsFilter.selectedCorporations = customCorporations;
-                    if (component.showPreludesList)
+                    }
+                    if (component.showPreludesList) {
                       refs.preludesFilter.updatePreludes(customPreludes);
-                    if (component.showBannedCards)
+                    }
+                    if (component.showBannedCards) {
                       refs.cardsFilter.selectedCardNames = bannedCards;
+                    }
                   }
                   if (!component.seededGame) component.seed = Math.random();
                   // set to alter after any watched properties
                   component.solarPhaseOption = Boolean(capturedSolarPhaseOption);
                 } catch (e) {
-                  window.alert("Error reading JSON " + e);
+                  window.alert('Error reading JSON ' + e);
                 }
               });
             }
             if (warnings.length > 0) {
               window.alert(
-                "Settings loaded, with these errors: \n" + warnings.join("\n")
+                'Settings loaded, with these errors: \n' + warnings.join('\n'),
               );
             } else {
               // window.alert('Settings loaded.');
             }
           } catch (e) {
-            window.alert("Error reading JSON " + e);
+            window.alert('Error reading JSON ' + e);
           }
         },
-        false
+        false,
       );
       if (file) {
         if (/\.json$/i.test(file.name)) {
@@ -1319,7 +1324,7 @@ export default (Vue as WithRefs<Refs>).extend({
       }
     },
     getPlayerNamePlaceholder(player: NewPlayerModel): string {
-      return translateTextWithParams("Player ${0} name", [String(player.index)]);
+      return translateTextWithParams('Player ${0} name', [String(player.index)]);
     },
     updatecustomCorporations(customCorporations: Array<CardName>) {
       this.customCorporations = customCorporations;
@@ -1346,10 +1351,10 @@ export default (Vue as WithRefs<Refs>).extend({
         this.randomMA = RandomMAOptionType.NONE;
       }
     },
-    getRandomMaOptionType(type: "limited" | "full"): RandomMAOptionType {
-      if (type === "limited") {
+    getRandomMaOptionType(type: 'limited' | 'full'): RandomMAOptionType {
+      if (type === 'limited') {
         return RandomMAOptionType.LIMITED;
-      } else if (type === "full") {
+      } else if (type === 'full') {
         return RandomMAOptionType.UNLIMITED;
       } else {
         return RandomMAOptionType.NONE;
@@ -1365,13 +1370,13 @@ export default (Vue as WithRefs<Refs>).extend({
         this.politicalAgendasExtension = AgendaStyle.STANDARD;
       }
     },
-    getPoliticalAgendasExtensionAgendaStyle(type: "random" | "chairman"): AgendaStyle {
-      if (type === "random") {
+    getPoliticalAgendasExtensionAgendaStyle(type: 'random' | 'chairman'): AgendaStyle {
+      if (type === 'random') {
         return AgendaStyle.RANDOM;
-      } else if (type === "chairman") {
+      } else if (type === 'chairman') {
         return AgendaStyle.CHAIRMAN;
       } else {
-        console.warn("AgendaStyle not found");
+        console.warn('AgendaStyle not found');
         return AgendaStyle.STANDARD;
       }
     },
@@ -1397,69 +1402,69 @@ export default (Vue as WithRefs<Refs>).extend({
     },
     getBoardColorClass(boardName: string): string {
       if (boardName === BoardName.THARSIS) {
-        return "create-game-board-hexagon create-game-tharsis";
+        return 'create-game-board-hexagon create-game-tharsis';
       } else if (boardName === BoardName.HELLAS) {
-        return "create-game-board-hexagon create-game-hellas";
+        return 'create-game-board-hexagon create-game-hellas';
       } else if (boardName === BoardName.ELYSIUM) {
-        return "create-game-board-hexagon create-game-elysium";
+        return 'create-game-board-hexagon create-game-elysium';
       } else if (boardName === BoardName.AMAZONIS) {
-        return "create-game-board-hexagon create-game-amazonis";
+        return 'create-game-board-hexagon create-game-amazonis';
       } else if (boardName === BoardName.ARABIA_TERRA) {
-        return "create-game-board-hexagon create-game-arabia-terra";
+        return 'create-game-board-hexagon create-game-arabia-terra';
       } else if (boardName === BoardName.TERRA_CIMMERIA) {
-        return "create-game-board-hexagon create-game-terra-cimmeria";
+        return 'create-game-board-hexagon create-game-terra-cimmeria';
       } else if (boardName === BoardName.VASTITAS_BOREALIS) {
-        return "create-game-board-hexagon create-game-vastitas-borealis";
+        return 'create-game-board-hexagon create-game-vastitas-borealis';
       } else {
-        return "create-game-board-hexagon create-game-random";
+        return 'create-game-board-hexagon create-game-random';
       }
     },
     getPlayerCubeColorClass(color: string): string {
-      return playerColorClass(color.toLowerCase(), "bg");
+      return playerColorClass(color.toLowerCase(), 'bg');
     },
     getPlayerContainerColorClass(color: string): string {
-      return playerColorClass(color.toLowerCase(), "bg_transparent");
+      return playerColorClass(color.toLowerCase(), 'bg_transparent');
     },
     isEnabled(module: GameModule): boolean {
       switch (module) {
-        case "corpera":
-          return this.$data.corpera;
-        case "promo":
-          return this.$data.promoCardsOption;
-        case "venus":
-          return this.$data.venusNext;
-        case "colonies":
-          return this.$data.colonies;
-        case "prelude":
-          return this.$data.prelude;
-        case "turmoil":
-          return this.$data.turmoil;
-        case "community":
-          return this.$data.communityCardsOption;
-        case "ares":
-          return this.$data.aresExtension;
-        case "moon":
-          return this.$data.moonExpansion;
-        case "pathfinders":
-          return this.$data.pathfindersExpansion;
-        default:
-          return true;
+      case 'corpera':
+        return this.$data.corpera;
+      case 'promo':
+        return this.$data.promoCardsOption;
+      case 'venus':
+        return this.$data.venusNext;
+      case 'colonies':
+        return this.$data.colonies;
+      case 'prelude':
+        return this.$data.prelude;
+      case 'turmoil':
+        return this.$data.turmoil;
+      case 'community':
+        return this.$data.communityCardsOption;
+      case 'ares':
+        return this.$data.aresExtension;
+      case 'moon':
+        return this.$data.moonExpansion;
+      case 'pathfinders':
+        return this.$data.pathfindersExpansion;
+      default:
+        return true;
       }
     },
     boardHref(boardName: BoardName | RandomBoardOption) {
       const options: Record<BoardName | RandomBoardOption, string> = {
-        [BoardName.THARSIS]: "tharsis",
-        [BoardName.HELLAS]: "hellas",
-        [BoardName.ELYSIUM]: "elysium",
-        [BoardName.ARABIA_TERRA]: "arabia-terra",
-        [BoardName.VASTITAS_BOREALIS]: "vastitas-borealis",
-        [BoardName.AMAZONIS]: "amazonis-planatia",
-        [BoardName.TERRA_CIMMERIA]: "terra-cimmeria",
-        [RandomBoardOption.OFFICIAL]: "",
-        [RandomBoardOption.ALL]: "",
+        [BoardName.THARSIS]: 'tharsis',
+        [BoardName.HELLAS]: 'hellas',
+        [BoardName.ELYSIUM]: 'elysium',
+        [BoardName.ARABIA_TERRA]: 'arabia-terra',
+        [BoardName.VASTITAS_BOREALIS]: 'vastitas-borealis',
+        [BoardName.AMAZONIS]: 'amazonis-planatia',
+        [BoardName.TERRA_CIMMERIA]: 'terra-cimmeria',
+        [RandomBoardOption.OFFICIAL]: '',
+        [RandomBoardOption.ALL]: '',
       };
       return (
-        "https://github.com/terraforming-mars/terraforming-mars/wiki/Maps#" +
+        'https://github.com/terraforming-mars/terraforming-mars/wiki/Maps#' +
         options[boardName]
       );
     },
@@ -1472,7 +1477,7 @@ export default (Vue as WithRefs<Refs>).extend({
       if (component.randomFirstPlayer) {
         // Shuffle players array to assign each player a random seat around the table
         players = players
-          .map((a) => ({ sort: Math.random(), value: a }))
+          .map((a) => ({sort: Math.random(), value: a}))
           .sort((a, b) => a.sort - b.sort)
           .map((a) => a.value);
         component.firstIndex = Math.floor(component.seed * component.playersCount) + 1;
@@ -1506,17 +1511,17 @@ export default (Vue as WithRefs<Refs>).extend({
       const isSoloMode = component.playersCount === 1;
 
       players.forEach((player) => {
-        if (player.name === "") {
+        if (player.name === '') {
           if (isSoloMode) {
-            const userName = PreferencesManager.load("userName");
+            const userName = PreferencesManager.load('userName');
             if (userName.length > 0) {
               player.name = userName;
             } else {
-              player.name = this.$t("You");
+              player.name = this.$t('You');
             }
           } else {
             const defaultPlayerName = this.$t(
-              player.color.charAt(0).toUpperCase() + player.color.slice(1)
+              player.color.charAt(0).toUpperCase() + player.color.slice(1),
             );
             player.name = defaultPlayerName;
           }
@@ -1571,15 +1576,15 @@ export default (Vue as WithRefs<Refs>).extend({
       const randomFirstPlayer = component.randomFirstPlayer;
       const requiresVenusTrackCompletion = component.requiresVenusTrackCompletion;
       const escapeVelocityMode = component.escapeVelocityMode;
-      const escapeVelocityThreshold = component.escapeVelocityMode
-        ? component.escapeVelocityThreshold
-        : undefined;
-      const escapeVelocityPeriod = component.escapeVelocityMode
-        ? component.escapeVelocityPeriod
-        : undefined;
-      const escapeVelocityPenalty = component.escapeVelocityMode
-        ? component.escapeVelocityPenalty
-        : undefined;
+      const escapeVelocityThreshold = component.escapeVelocityMode ?
+        component.escapeVelocityThreshold :
+        undefined;
+      const escapeVelocityPeriod = component.escapeVelocityMode ?
+        component.escapeVelocityPeriod :
+        undefined;
+      const escapeVelocityPenalty = component.escapeVelocityMode ?
+        component.escapeVelocityPenalty :
+        undefined;
       const twoCorpsVariant = component.twoCorpsVariant;
       const leadersExtension = component.leadersExtension;
       const customLeaders = component.customLeaders;
@@ -1597,9 +1602,9 @@ export default (Vue as WithRefs<Refs>).extend({
 
         if (customColonies.length < neededColoniesCount) {
           window.alert(
-            translateTextWithParams("Must select at least ${0} colonies", [
+            translateTextWithParams('Must select at least ${0} colonies', [
               neededColoniesCount.toString(),
-            ])
+            ]),
           );
           return;
         }
@@ -1608,8 +1613,8 @@ export default (Vue as WithRefs<Refs>).extend({
       if (players.length === 1 && corporateEra === false) {
         const confirm = window.confirm(
           translateText(
-            "We do not recommend playing a solo game without the Corporate Era. Press OK if you want to play without it."
-          )
+            'We do not recommend playing a solo game without the Corporate Era. Press OK if you want to play without it.',
+          ),
         );
         if (confirm === false) return;
       }
@@ -1632,9 +1637,9 @@ export default (Vue as WithRefs<Refs>).extend({
         }
         if (customCorporations.length < neededCorpsCount) {
           window.alert(
-            translateTextWithParams("Must select at least ${0} corporations", [
+            translateTextWithParams('Must select at least ${0} corporations', [
               neededCorpsCount.toString(),
-            ])
+            ]),
           );
           return;
         }
@@ -1663,9 +1668,9 @@ export default (Vue as WithRefs<Refs>).extend({
           players.length * constants.PRELUDE_CARDS_DEALT_PER_PLAYER;
         if (customPreludes.length < requiredPreludeCount) {
           window.alert(
-            translateTextWithParams("Must select at least ${0} Preludes", [
+            translateTextWithParams('Must select at least ${0} Preludes', [
               requiredPreludeCount.toString(),
-            ])
+            ]),
           );
           return;
         }
@@ -1681,8 +1686,8 @@ export default (Vue as WithRefs<Refs>).extend({
         if (valid === false) {
           const confirm = window.confirm(
             translateText(
-              "Some of the Preludes you selected need expansions you have not enabled. Using them might break your game. Press OK to continue or Cancel to change your selections."
-            )
+              'Some of the Preludes you selected need expansions you have not enabled. Using them might break your game. Press OK to continue or Cancel to change your selections.',
+            ),
           );
           if (confirm === false) return;
         }
@@ -1732,7 +1737,7 @@ export default (Vue as WithRefs<Refs>).extend({
         _corporationsDraft: false,
         randomMA,
         shuffleMapOption,
-        userId: PreferencesManager.load("userId"),
+        userId: PreferencesManager.load('userId'),
         // beginnerOption,
         randomFirstPlayer,
         requiresVenusTrackCompletion,
@@ -1753,25 +1758,25 @@ export default (Vue as WithRefs<Refs>).extend({
     async checkUsersForRankMode(): Promise<boolean> {
       const players = this.players.slice(0, this.playersCount);
       for (const player of players) {
-        if (player.name === "") {
+        if (player.name === '') {
           return false;
         }
-        const result = await fetch("/api/userrank?playerName=" + player.name).then(
-          (response) => response.status
+        const result = await fetch('/api/userrank?playerName=' + player.name).then(
+          (response) => response.status,
         );
         if (result !== HTTPResponseCode.OK) return false;
       }
       return true;
     },
     async createGame() {
-      const lastcreated = Number(PreferencesManager.load("lastcreated")) || 0;
+      const lastcreated = Number(PreferencesManager.load('lastcreated')) || 0;
       const nowtime = new Date().getTime();
       if (
         (nowtime - lastcreated < 60000 && !this.isvip) ||
         nowtime - lastcreated < 3000
       ) {
         // location.href.indexOf("localhost") < 0){
-        alert("请不要频繁创建游戏");
+        alert('请不要频繁创建游戏');
         return;
       }
 
@@ -1779,14 +1784,14 @@ export default (Vue as WithRefs<Refs>).extend({
       if (this.rankOption === true) {
         const vaildForCreate = await this.checkUsersForRankMode();
         if (!vaildForCreate) {
-          alert("存在玩家不符合天梯规则，请检查");
+          alert('存在玩家不符合天梯规则，请检查');
           return;
         }
       }
 
       const root = (this.$root as unknown) as typeof mainAppSettings.data;
       root.isServerSideRequestInProgress = true;
-      PreferencesManager.INSTANCE.set("lastcreated", nowtime.toString());
+      PreferencesManager.INSTANCE.set('lastcreated', nowtime.toString());
 
       const dataToSend = await this.serializeSettings();
 
@@ -1794,23 +1799,23 @@ export default (Vue as WithRefs<Refs>).extend({
       const onSuccess = (json: any) => {
         root.isServerSideRequestInProgress = false;
         if (json.players.length === 1) {
-          window.location.href = "/player?id=" + json.players[0].id;
+          window.location.href = '/player?id=' + json.players[0].id;
           return;
         } else {
           window.history.replaceState(
             json,
             `${constants.APP_NAME} - Game`,
-            "/game?id=" + json.id
+            '/game?id=' + json.id,
           );
           (this as any).$root.$data.game = json;
-          (this as any).$root.$data.screen = "game-home";
+          (this as any).$root.$data.screen = 'game-home';
         }
       };
 
-      fetch("/game", {
-        method: "PUT",
+      fetch('/game', {
+        method: 'PUT',
         body: dataToSend,
-        headers: { "Content-Type": "application/json" },
+        headers: {'Content-Type': 'application/json'},
       })
         .then((response) => response.text())
         .then((text) => {
