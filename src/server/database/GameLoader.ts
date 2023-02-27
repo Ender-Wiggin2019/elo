@@ -7,7 +7,7 @@ import {GameId, PlayerId, SpectatorId} from '../../common/Types';
 import {User} from '../User';
 import {IGameLoader, State} from './IGameLoader';
 import {GameIdLedger, IGameShortData} from './IDatabase';
-import {UserRank} from '../../common/RankManager';
+import {UserRank} from '../../common/rank/RankManager';
 
 type LoadCallback = (game: Game | undefined) => void;
 
@@ -22,7 +22,7 @@ export class GameLoader implements IGameLoader {
   public readonly userNameMap: Map<string, User> = new Map<string, User>();
   public readonly usersToGames: Map<string, Set<string>> = new Map<string, Set<string>>();
 
-  // 天梯，id到排名的映射表
+  // 天梯，id到`UserRank`的映射表
   public readonly userRankMap: Map<string, UserRank> = new Map<string, UserRank>();
   // 以前的game没存shortData, 通过allGameIds读取全部数据
   public allGameIds: Array<GameId> = [];

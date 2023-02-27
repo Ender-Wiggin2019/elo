@@ -80,7 +80,7 @@ export default Vue.extend({
       if (player.exited) {
         return ActionLabel.RESIGNED;
       }
-      // 天梯 异常结束后不能再操作
+      // 天梯 TODO: 异常结束游戏的`ActionLabel`等价于体退的状态？
       if (this.playerView.game.phase === Phase.TIMEOUT || this.playerView.game.phase === Phase.ABANDON) {
         return ActionLabel.RESIGNED;
       }

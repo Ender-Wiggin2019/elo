@@ -36,14 +36,9 @@ export default Vue.extend({
     return {
       rankTimeLimitMinute: Number(this.rankTimeLimit),
       timerText: '',
-      timeState: '', // TODO 天梯 TEST
+      timeState: '', // 显示倒计时颜色
     };
   },
-  // computed: {
-  //   color: function() {
-  //     return this.timeState === 'red' ? 'text-red-500' : this.timeState === 'red' ? 'text-orange-500' : '';
-  //   },
-  // },
   mounted() {
     this.updateTimer();
   },

@@ -9,7 +9,8 @@ import {RunResult} from 'sqlite3';
 import {User} from '../User';
 import {Timer} from '../../common/Timer';
 import {MultiMap} from 'mnemonist';
-import {getChallengerValue, UserRank} from '../../common/RankManager';
+import {UserRank} from '../../common/rank/RankManager';
+import {getChallengerValue} from '../../common//rank/RankTier';
 // import {Rating} from 'ts-trueskill';
 
 const path = require('path');
@@ -38,9 +39,9 @@ export class SQLite implements IDatabase {
     await this.asyncRun('CREATE TABLE IF NOT EXISTS \'users\'(\'id\'  varchar NOT NULL,\'name\'  varchar NOT NULL,\'password\'  varchar NOT NULL,\'prop\' varchar,\'createtime\'  timestamp DEFAULT (datetime(CURRENT_TIMESTAMP,\'localtime\')),PRIMARY KEY (\'id\'))');
     await this.asyncRun('CREATE TABLE IF NOT EXISTS game_results(game_id varchar not null, seed_game_id varchar, players integer, generations integer, game_options text, scores text,createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), PRIMARY KEY (game_id))');
 
-    // 天梯 新增实时表，当第一次加入天梯游戏时插入
+    // 天梯 新增`user_rank`表记录用户的排名
     await this.asyncRun('CREATE TABLE IF NOT EXISTS user_rank (id varchar not null, rank_value integer default 0, mu double, sigma double, activate integer default 1, PRIMARY KEY (id))');
-    // 天梯 玩家数据表，用于保存段位的历史记录，和未来的数据分析 TODO 将这两张表在PG中也加上
+    // 天梯 玩家数据表，用于保存段位的历史记录，和未来的数据分析 TODO: 将这两张表在PG中也加上
     await this.asyncRun('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), corporation text, position integer, player_score integer, rank_value integer, mu double, sigma double, is_rank integer, PRIMARY KEY (user_id, game_id))');
   }
 
@@ -365,7 +366,6 @@ export class SQLite implements IDatabase {
     }
   }
 
-  // 天梯，?是否需要async
   addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void {
     console.log('db:addUserRank', id, rank_value, mu, sigma, activate);
     this.db.run('INSERT INTO user_rank(id, rank_value, mu, sigma, activate) VALUES(?, ?, ?, ?, ?)', [id, rank_value, mu, sigma, activate], function(err: { message: any; }) {
@@ -386,8 +386,6 @@ export class SQLite implements IDatabase {
       const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma);
       allUserRanks.push(userRank);
     });
-    // const {Rating} = await import('ts-trueskill');
-    // const rating = new Rating(row.mu, row.sigma);
     return allUserRanks;
   }
 

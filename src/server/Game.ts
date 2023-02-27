@@ -77,7 +77,7 @@ import {SerializedPlayer, SerializedPlayerId} from './SerializedPlayer';
 import {CardManifest} from './cards/ModuleManifest';
 import {ColoniesHandler} from './colonies/ColoniesHandler';
 import {Dealer} from './Dealer';
-import {getNewSkills, UserRank} from '../common/RankManager';
+import {getNewSkills, UserRank} from '../common/rank/RankManager';
 
 export enum LoadState {
   HALFLOADED = 'halfloaded',
@@ -170,7 +170,7 @@ export class Game implements Logger {
 
   // Rank Mode
   public quitPlayers: Set<Player> = new Set<Player>;// 天梯 玩家申请退出游戏 所有人均同意则废弃游戏
-  public endGameInProgress: boolean = false; // 锁
+  public endGameInProgress: boolean = false; // 锁 避免同时多次访问`endGame`
 
   private constructor(
     public id: GameId,
@@ -388,7 +388,7 @@ export class Game implements Logger {
     }
 
     players.forEach((player) => {
-      if (game.isRankMode()) game.log('This game is Rank Mode. Good luck ${0}!', (b) => b.player(player), {reservedFor: player}); // 天梯 log
+      if (game.isRankMode()) game.log('This game is Rank Mode. Good luck ${0}!', (b) => b.player(player), {reservedFor: player});
       else game.log('Good luck ${0}!', (b) => b.player(player), {reservedFor: player});
     });
 
@@ -1265,13 +1265,13 @@ export class Game implements Logger {
         }
       });
 
-      // 更新
       if (this.phase === Phase.ABANDON) {
         // 玩家放弃游戏，无事发生
         console.log('all players quit the game');
       } else {
+        // 超时或者正常结束，都会更新段位和排名
+        // 如果成功获取更新后的UserRank：1. 写回UserRankMap 2. 将更新值传入数据库
         await getNewSkills(userRanks, timeOutUserRank).then((userRanks) => {
-          // 如果成功获取更新后的UserRank：1. 写回UserRankMap 2. 将更新值传入数据库
           for (let i = 0; i < userRanks.length; i ++ ) {
             rankedPlayers[i].addOrUpdateUserRank(userRanks[i]);
             Database.getInstance().updateUserRank(userRanks[i]);
@@ -1280,12 +1280,12 @@ export class Game implements Logger {
       }
     }
 
-    // 天梯 + MyGames 存储历史数据
+    // 天梯 存储历史数据和段位变化情况
     // 1. 获取天梯排名的历史数据，用于显示变化以及在未来赛季重置时获取备份 @param position是玩家名次，写入数据库时+1
-    // 2. 在用户信息界面可以提供一定信息
+    // 2. TODO: 在用户信息界面可以提供一定信息，例如近期胜率等等...
     sortedPlayers.forEach((player, position) => {
       const newUserRank = player.getUserRank();
-      if (player.userId === undefined) return; // table user_game_results pk: user_id + game_id
+      if (player.userId === undefined) return; // table `user_game_results` pk: user_id + game_id
       const playerIndex = players.indexOf(player);
       Database.getInstance().saveUserGameResult(player.userId, this.id, this.phase, scores[playerIndex], players.length, this.generation, this.createtime, position+1, this.isRankMode(), newUserRank);
     });
@@ -1293,7 +1293,7 @@ export class Game implements Logger {
     return;
   }
 
-  // 天梯 获取玩家终局排名
+  // 天梯 获取按照终局排名的玩家列表，包含所有玩家
   public getSortedPlayers() {
     const players = this.getAllPlayers();
     players.sort(function(a:Player, b:Player) {
@@ -2255,7 +2255,6 @@ export class Game implements Logger {
     console.warn('Illegal state: ' + description, JSON.stringify(gameMetadata, null, ' '));
   }
 
-  // 天梯
   public isRankMode(): boolean {
     return this.gameOptions.rankOption;
   }
@@ -2273,35 +2272,29 @@ export class Game implements Logger {
   // 天梯 排名模式中强行结束游戏
   // 1. 判断是否游戏超时，如果超时的话，会直接结束游戏，并将超时玩家设为唯一败方
   // 2. 判断是否所有玩家都放弃游戏，是的话游戏作废，所有人分数不变
-  public async checkRankModeEndGame(playerId: string, userId: string) {
+  public async checkRankModeEndGame(playerId: string) {
     if (!this.isRankMode()) return;
     const playerLength = this.getAllPlayers().length;
-    console.log('this.quitPlayers.size', this.quitPlayers.size, userId);
-    // this.quitPlayers.forEach((player) => {
-    //   if (player.userId !== userId) {
-    //     this.quitPlayers.add(this.getPlayerById(playerId as PlayerId));
-    //   }
-    // });
-    // if (this.quitPlayers.has(this.getPlayerById(playerId as PlayerId))) return; // 避免重复情况
+
     this.quitPlayers.add(this.getPlayerById(playerId as PlayerId));
-    console.log('checkRankModeEndGame', this.phase, 'quitPlayers', this.quitPlayers.size);
     console.log('是否有玩家超时：', this.shouldGoToTimeOutPhase());
 
     if (this.phase === Phase.END || this.phase === Phase.ABANDON || this.phase === Phase.TIMEOUT) {
       return;
     } else if (this.quitPlayers.size === playerLength) {
       await this.gotoRankModeEndGame();
-    } else if (this.shouldGoToTimeOutPhase()) { // 如果没选完卡，不视为进入游戏，不会超时 FIXME: 初始选卡和后续选卡是同个阶段？
+    } else if (this.shouldGoToTimeOutPhase()) {
       this.checkTimeOutPlayer()?.timer.stop(); // 结束计数器
       await this.gotoRankModeEndGame();
     }
   }
 
   public shouldGoToTimeOutPhase() {
+    // FIXME: 游戏在初始选卡时的计时器和选完卡打牌时的好像不一样，先多加几个条件确保不会在初始选卡时超时
     return this.isRankMode() && ((this.phase !== Phase.RESEARCH && this.phase !== Phase.INITIALDRAFTING) || this.generation !== 1) && this.checkTimeOutPlayer() !== undefined;
   }
+
   private async gotoRankModeEndGame() {
-    console.log('gotoRankModeEndGame in phase: ', this.phase, 'endGameInProgress: ', this.endGameInProgress);
     try {
       this.endGameInProgress = true; // 在异步函数之前设置为true
       this.updateVPbyGeneration();
@@ -2318,11 +2311,4 @@ export class Game implements Logger {
   public getQuitPlayers():Array<Color> {
     return Array.from(this.quitPlayers).map((x) => x.color);
   }
-  // private gotoRankModeEndGame() {
-  //   if (this.phase === Phase.END || this.phase === Phase.ABANDON || this.phase === Phase.TIMEOUT) {
-  //     this.endGameInProgress = true;
-  //     this.updateVPbyGeneration();
-  //     this.gotoEndGame();
-  //   }
-  // }
 }

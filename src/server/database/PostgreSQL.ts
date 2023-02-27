@@ -8,7 +8,8 @@ import {Timer} from '../../common/Timer';
 import {Pool, ClientConfig} from 'pg';
 import {daysAgoToSeconds} from './utils.ts';
 import {GameIdLedger} from './IDatabase';
-import {getChallengerValue, UserRank} from '../../common/RankManager';
+import {UserRank} from '../../common/rank/RankManager';
+import {getChallengerValue} from '../../common//rank/RankTier';
 // import {Rating} from 'ts-trueskill';
 
 export class PostgreSQL implements IDatabase {
@@ -57,6 +58,11 @@ export class PostgreSQL implements IDatabase {
     await this.client.query('CREATE INDEX IF NOT EXISTS participants_idx_ids on participants USING GIN (participants)');
 
     await this.client.query('CREATE TABLE IF NOT EXISTS users(id varchar not null, name varchar not null, password varchar not null, prop varchar, createtime timestamp(0) default now(), PRIMARY KEY (id))');
+
+    // 天梯 新增`user_rank`表记录用户的排名
+    await this.client.query('CREATE TABLE IF NOT EXISTS user_rank (id varchar not null, rank_value integer default 0, mu double, sigma double, activate integer default 1, PRIMARY KEY (id))');
+    // 天梯 玩家数据表，用于保存段位的历史记录，和未来的数据分析 TODO: 未来如果做分析的话加上index
+    await this.client.query('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp(0) default now(), corporation text, position integer, player_score integer, rank_value integer, mu double, sigma double, is_rank integer, PRIMARY KEY (user_id, game_id))');
   }
 
   public async getPlayerCount(game_id: GameId): Promise<number> {
@@ -348,7 +354,6 @@ export class PostgreSQL implements IDatabase {
 
   }
 
-  // 天梯，?是否需要async
   addUserRank(id: string, rank_value: number, mu: number, sigma: number, activate: number): void {
     // Insert user
     this.client.query('INSERT INTO user_rank(id, rank_value, mu, sigma, activate) VALUES(?, ?, ?, ?, ?)', [id, rank_value, mu, sigma, activate], function(err: { message: any; }) {
@@ -358,28 +363,6 @@ export class PostgreSQL implements IDatabase {
     });
   }
 
-  // 天梯，根据User返回UserRank
-  // public async getUserRanks(user: User): Promise<UserRank> {
-  //   const res = await this.client.query('SELECT id, rank_value, mu, sigma FROM user_rank where id = $1 limit 1', [user.id]);
-  //   if (res.rows.length === 0 || res.rows[0] === undefined) {
-  //     throw new Error(`Rank of user id ${user.id} not found`);
-  //   }
-  //   const {Rating} = await import('ts-trueskill');
-  //   const rating = new Rating(res.rows[0].mu, res.rows[0].sigma);
-  //   const userRank = new UserRank(user, res.rows[0].rank_value, rating);
-  //   return userRank;
-  //   // return import('ts-trueskill')
-  //   //   .then(({Rating}) => {
-  //   //     const rating = new Rating(res.rows[0].mu, res.rows[0].sigma);
-  //   //     const userRank = new UserRank(user, res.rows[0].rank_value, rating);
-  //   //     return userRank;
-  //   //   });
-  //   // const rating = new Rating(res.rows[0].mu, res.rows[0].sigma);
-  //   // const userRank = new UserRank(user, res.rows[0].rank_value, rating);
-  //   // return userRank;
-  // }
-
-  // 天梯 TODO 同步更新下
   public async getUserRanks(limit:number | undefined = 0): Promise<Array<UserRank>> {
     const concatLimit: string = limit === 0 ? '' : ' limit ' + limit.toString();
     const ChallengerValue: number = getChallengerValue();
@@ -390,8 +373,6 @@ export class PostgreSQL implements IDatabase {
       const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma);
       allUserRanks.push(userRank);
     });
-    // const {Rating} = await import('ts-trueskill');
-    // const rating = new Rating(row.mu, row.sigma);
     return allUserRanks;
   }
 

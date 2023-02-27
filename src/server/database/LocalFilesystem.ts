@@ -4,7 +4,7 @@ import {GameOptions} from '../GameOptions';
 import {GameId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
 import {Dirent} from 'fs';
-import {UserRank} from '../../common/RankManager';
+import {UserRank} from '../../common/rank/RankManager';
 
 const path = require('path');
 const fs = require('fs');

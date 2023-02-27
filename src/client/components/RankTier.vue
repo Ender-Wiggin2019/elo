@@ -13,7 +13,7 @@
 <script lang="ts">
 
 import Vue from 'vue';
-import {RankTier} from '../../common/RankManager';
+import {RankTier} from '../../common/rank/RankTier';
 
 export default Vue.extend({
   name: 'RankTier',

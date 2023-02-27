@@ -1,8 +1,7 @@
-export const DEFAULT_RANK_VALUE = 0;
-export const DEFAULT_MU = 25.000;
-export const DEFAULT_SIGMA = 8.333;
-export const DEFAULT_TIMEOUT_PENALTY = -2; // 超时扣分
-export const DEFAULT_TIMEOUT_COMPENSATE = 1; // 超时补偿
+import {TierName} from '../rank/TierName';
+import {RankTiers} from '../rank/RankTiers';
+import {DEFAULT_TIMEOUT_COMPENSATE, DEFAULT_TIMEOUT_PENALTY} from '../rank/constants';
+import {RankTier} from '../rank/RankTier';
 
 const rankValueChangeRules = [
   [1, -1], // 2p
@@ -11,13 +10,13 @@ const rankValueChangeRules = [
   [2, 1, 0, -1, -2], // 5p
 ];
 
+// 用户的排名数据，包含用户ID
 export class UserRank {
   constructor(
       public userId: string,
       public rankValue: number,
       public mu: number,
       public sigma: number,
-    // public rating: Rating,
   ) {}
 
   public getRankValue() {
@@ -46,6 +45,7 @@ export class UserRank {
     if (this.rankValue + delta >= 0) this.rankValue += delta; // 不低于0
   }
 
+  // 获得对应的段位
   public getTier() {
     let rankValue = this.rankValue;
     for (const rank of RankTiers) {
@@ -63,49 +63,8 @@ export class UserRank {
   }
 }
 
-export enum TierName {
-  IRON = 'Iron',
-  BRONZE = 'Bronze',
-  SILVER = 'Silver',
-  GOLD = 'Gold',
-  PLATINUM = 'Platinum',
-  DIAMOND = 'Diamond',
-  MASTER = 'Master',
-  GRANDMASTER = 'Grandmaster',
-  CHALLENGER = 'Challenger',
-}
 
-export class RankTier {
-  constructor(
-      public name: TierName,
-      public measurement: 'star' | 'value', // 展示方式为星星或者数字
-      public maxStars: number,
-      public stars: number = 0,
-      public value: number = 0,
-  ) {}
-}
-
-
-export const RankTiers = [
-  new RankTier(TierName.IRON, 'star', 3),
-  new RankTier(TierName.BRONZE, 'star', 3),
-  new RankTier(TierName.SILVER, 'star', 3),
-  new RankTier(TierName.GOLD, 'star', 4),
-  new RankTier(TierName.PLATINUM, 'star', 4),
-  new RankTier(TierName.DIAMOND, 'star', 5),
-  new RankTier(TierName.MASTER, 'star', 5),
-  new RankTier(TierName.GRANDMASTER, 'star', 5),
-  new RankTier(TierName.CHALLENGER, 'value', Infinity),
-];
-
-// 返回CHALLENGER需要的星星数量
-export function getChallengerValue(): number {
-  let res = 1; // 晋级需要+1
-  RankTiers.filter((rankTier) => rankTier.name !== TierName.CHALLENGER).forEach((rankTier) => res += rankTier.maxStars);
-  return res;
-}
-
-// 天梯 根据原始排位，给出更新后的排位，@param timeOutUser 超时玩家自动判负
+// 天梯 根据原始排位，给出更新后的排位，@param timeOutUser: 超时玩家自动判负
 export async function getNewSkills(userRanks: Array<UserRank>, timeOutUser: UserRank | undefined): Promise<Array<UserRank>> {
   const {Rating, rate} = await import('ts-trueskill');
   const playerNumber = userRanks.length;

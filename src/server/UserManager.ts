@@ -9,8 +9,9 @@ import {PlayerBlockModel} from '../common/models/PlayerModel';
 import {Context} from './routes/IHandler';
 import {UnexpectedInput} from './routes/UnexpectedInput';
 import * as crypto from 'crypto';
-import {RankTier, UserRank} from '../common/RankManager';
+import {UserRank} from '../common/rank/RankManager';
 import {Phase} from '../common/Phase';
+import {RankTier} from '../common/rank/RankTier';
 
 const colorNames = ['blue', 'red', 'yellow', 'green', 'black', 'purple', 'you', '红色', '绿色', '黄色', '蓝色', '黑色', '紫色'];
 function notFound(req: http.IncomingMessage, res: http.ServerResponse): void {
@@ -406,7 +407,7 @@ export function sitDown(req: http.IncomingMessage, res: http.ServerResponse): vo
   });
 }
 
-// 天梯 TODO
+// 天梯 用户激活排名的接口
 export function activateRank(req: http.IncomingMessage, res: http.ServerResponse): void {
   let body = '';
   req.on('data', function(data) {
@@ -484,31 +485,6 @@ export function getUserRanks(req: http.IncomingMessage, res: http.ServerResponse
     res.write(JSON.stringify(data));
     res.end();
   });
-
-  // Database.getInstance().getUserRanks(limit).then( (allUserRanks:Array<UserRank> ) => {
-  //   const resRanks: Array<{userName: String, userRank: UserRank}> = [];
-  //   allUserRanks.forEach((userRank) => {
-  //     const user = GameLoader.getInstance().userIdMap.get(userRank.userId);
-  //     if (user !== undefined) {
-  //       resRanks.push({userName: user.name, userRank: userRank});
-  //     }
-  //   });
-  //   if (resRanks.length === 0) {
-  //     notFound(req, res);
-  //     return;
-  //   }
-  //   const data = {allUserRanks: resRanks};
-  //   console.log(data);
-  //   res.setHeader('Content-Type', 'application/json');
-  //   res.write(JSON.stringify(data));
-  // }).catch((err) => {
-  //   console.warn('error activate', err);
-  //   res.writeHead(500);
-  //   const message = err instanceof Error ? err.message : String(err);
-  //   res.write( message);
-  // });
-
-  // res.end();
 }
 
 // 天梯 由于超时或者所有玩家退出游戏，调用API
@@ -522,44 +498,20 @@ export function endGameByEvent(req: http.IncomingMessage, res: http.ServerRespon
       const userReq = JSON.parse(body);
       const userId: string = userReq.userId;
       const playerId: string = userReq.playerId;
-
       const game = await GameLoader.getInstance().getByPlayerId(playerId); // 多个请求时await
       if (game === undefined || GameLoader.getInstance().games.get(game.id) === undefined) {
         notFound(req, res);
         return;
       }
-      // const player = game.getAllPlayers().find((p) => p.id === playerId);
-      // if (player === undefined) {
-      //   notFound(req, res);
-      //   return;
-      // }
-      // // const userPlayer = GameLoader.getUserByPlayer(player);
-      // const user = GameLoader.getInstance().userIdMap.get(userId); // 可以undefined
-      // if (user === undefined) {
-      //   notFound(req, res);
-      //   return;
-      // }
-      // if (userPlayer !== undefined && userPlayer.id !== userId) {// 已注册并且不等于登录用户  不能体退
-      //   notFound(req, res);
-      //   return;
-      // }
       if (game.phase !== Phase.END && game.phase !== Phase.TIMEOUT && game.phase !== Phase.ABANDON) {
         console.log('API start from userId', userId, game.phase);
-        game.checkRankModeEndGame(playerId, userId).then(() => {
+        game.checkRankModeEndGame(playerId).then(() => {
           console.log('API success from', userId);
         }).catch((err) => {
           console.error(err);
         });
-        // game.checkRankModeEndGame(playerId, userId);
       }
-      // game.exitPlayer(player);
       res.setHeader('Content-Type', 'application/json');
-      // const playerBlockModel : PlayerBlockModel ={
-      //   block: false,
-      //   isme: true,
-      //   showhandcards: user.showhandcards,
-      // };
-      // res.end(JSON.stringify(Server.getPlayerModel(player, playerBlockModel)));
       res.end();
     } catch (err) {
       console.warn('error endgame', err);

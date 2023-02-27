@@ -5,7 +5,8 @@ import {Phase} from '@/common/Phase';
 import {getPreferences, PreferencesManager} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
 import RankTier from '@/client/components/RankTier.vue';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA, UserRank} from '../../common/RankManager';
+import {UserRank} from '../../common/rank/RankManager';
+import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../common/rank/constants';
 
 export const MyGames = Vue.component('my-games', {
   data: function() {
@@ -16,8 +17,7 @@ export const MyGames = Vue.component('my-games', {
       vipDate: '',
       enable_sounds: false,
       showhandcards: false,
-      // 天梯
-      userRank: new UserRank('', DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA),
+      userRank: new UserRank('', DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA), // 用户默认段位
       openTab: 1,
     };
   },

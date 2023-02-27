@@ -520,7 +520,7 @@ export interface CreateGameModel {
     moonExpansion: boolean;
     pathfindersExpansion: boolean;
     undoOption: boolean;
-    rankOption: boolean; // 天梯
+    rankOption: boolean; // 是否开启天梯
     rankTimeLimit: number; // 天梯时间限制
     showTimers: boolean;
     fastModeOption: boolean;
@@ -642,8 +642,8 @@ export default (Vue as WithRefs<Refs>).extend({
       moonExpansion: false,
       pathfindersExpansion: false,
       undoOption: true,
-      rankOption: false, // 天梯
-      rankTimeLimit: constants.DEFAULT_RANK_TIME_LIMIT, // 天梯
+      rankOption: false,
+      rankTimeLimit: constants.DEFAULT_RANK_TIME_LIMIT,
       showTimers: true,
       fastModeOption: true,
       removeNegativeGlobalEventsOption: false,
@@ -1031,8 +1031,8 @@ export default (Vue as WithRefs<Refs>).extend({
       const moonExpansion = component.moonExpansion;
       const pathfindersExpansion = component.pathfindersExpansion;
       const undoOption = component.undoOption;
-      const rankOption = component.rankOption; // 天梯
-      const rankTimeLimit = component.rankTimeLimit; // 天梯
+      const rankOption = component.rankOption;
+      const rankTimeLimit = component.rankTimeLimit;
       const showTimers = component.showTimers;
       const fastModeOption = component.fastModeOption;
       const removeNegativeGlobalEventsOption = this.removeNegativeGlobalEventsOption;
@@ -1199,8 +1199,8 @@ export default (Vue as WithRefs<Refs>).extend({
       };
       return JSON.stringify(dataToSend, undefined, 4);
     },
+    // 天梯 检查玩家id是否可以参加排名模式
     async checkUsersForRankMode(): Promise<boolean> {
-      // 天梯 判断创建合法性
       const players = this.players.slice(0, this.playersCount);
       for (const player of players) {
         if (player.name === '') {

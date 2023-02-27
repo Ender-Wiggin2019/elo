@@ -3,7 +3,7 @@ import Vue from 'vue';
 // import {PreferencesManager} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
 import RankTier from '@/client/components/RankTier.vue';
-import {RankTiers} from '../../common/RankManager';
+import {RankTiers} from '../../common/rank/RankTiers';
 
 const RANK_LIMIT = 100;
 export const Ranks = Vue.component('ranks', {

@@ -70,7 +70,7 @@ import {GameLoader} from './database/GameLoader';
 import {getBehaviorExecutor} from './behavior/BehaviorExecutor';
 import {SelectAmount} from './inputs/SelectAmount';
 import {UnexpectedInput} from './routes/UnexpectedInput';
-import {UserRank} from '../common/RankManager';
+import {UserRank} from '../common/rank/RankManager';
 
 /**
  * Behavior when playing a card:

@@ -52,8 +52,7 @@ const handlers: Map<string, IHandler> = new Map(
     [paths.PLAYER_INPUT, PlayerInput.INSTANCE],
     [paths.SPECTATOR, ServeApp.INSTANCE],
     ['/styles.css', ServeAsset.INSTANCE],
-    // TODO 天梯
-    ['/tailwindcss.css', ServeAsset.INSTANCE],
+    ['/tailwindcss.css', ServeAsset.INSTANCE], // Ender: 我新加了Tailwind CSS用于生成样式，不会和之前的样式冲突
     ['/sw.js', ServeAsset.INSTANCE],
     [paths.THE_END, ServeApp.INSTANCE],
 
