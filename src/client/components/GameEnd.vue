@@ -236,6 +236,9 @@ export default Vue.extend({
       }
       return `${paths.API_GAME_LOGS}?id=${id}&full=true`;
     },
+    finalRankTimeLimit(): number {
+      return Number(this.game.gameOptions.rankTimeLimit) + Number(this.game.gameOptions.rankTimePerGeneration) * Math.max((Number(this.game.generation) - 1), 0);
+    },
   },
   data() {
     return {
@@ -259,14 +262,14 @@ export default Vue.extend({
       return Timer.toString(p.timer);
     },
     checkTimeOut(p: PublicPlayerModel): string {
-      console.log('玩家是否超时：', p.name, Timer.getMinutes(p.timer, this.game.gameOptions.rankTimeLimit));
-      if (Timer.getMinutes(p.timer, this.game.gameOptions.rankTimeLimit) <= 0 && this.game.phase === 'timeout') { // 剩余时间小于5分钟，显示红色时间
+      console.log('玩家是否超时：', p.name, Timer.getMinutes(p.timer, this.finalRankTimeLimit));
+      if (Timer.getMinutes(p.timer, this.finalRankTimeLimit) <= 0 && this.game.phase === 'timeout') { // 剩余时间小于5分钟，显示红色时间
         return 'text-red-500';
       }
       return '';
     },
     getCountDownTimer(p: PublicPlayerModel): string {
-      return Timer.toString(p.timer, this.game.gameOptions.rankTimeLimit);
+      return Timer.toString(p.timer, this.finalRankTimeLimit);
     },
     getSortedPlayers(): Array<PublicPlayerModel> {
       const copy = [...this.viewModel.players];

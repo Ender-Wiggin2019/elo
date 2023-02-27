@@ -51,5 +51,8 @@
   "Quit":"放弃",
   "Ask for Quit: (":"申请放弃游戏: (",
   " Players)":" 名玩家)",
-  "Quit!":"放弃游戏!"
+  "Quit!":"放弃游戏!",
+  "Additional":"额外",
+  "mins per generation":"分钟/每时代",
+  " + every generation ":" + 后续每时代额外 "
 }

@@ -3,7 +3,7 @@
         <div class="player-status-bottom">
           <div :class="getLabelAndTimerClasses()">
             <div :class="getActionStatusClasses()"><span v-i18n>{{ actionLabel }}</span></div>
-            <div class="player-status-timer" v-if="showTimers && display==='timer'"><player-timer :timer="timer" :player-id="playerId" :rank-mode="rankMode" :rankTimeLimit="rankTimeLimit"/></div>
+            <div class="player-status-timer" v-if="showTimers && display==='timer'"><player-timer :timer="timer" :player-id="playerId" :rank-mode="rankMode" :finalRankTimeLimit="finalRankTimeLimit"/></div>
             <RankTier :rankTier="rankTier" v-if="display==='tier'" class="ml-2"/>
           </div>
         </div>
@@ -39,7 +39,7 @@ export default Vue.extend({
     rankMode: { // 天梯 是否是排位模式
       type: Boolean,
     },
-    rankTimeLimit: { // 天梯 限时 单位为分钟
+    finalRankTimeLimit: { // 天梯 限时 单位为分钟
       type: String,
     },
   },

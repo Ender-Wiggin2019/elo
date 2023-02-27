@@ -28,13 +28,13 @@ export default Vue.extend({
     rankMode: { // 天梯 是否是排位模式
       type: Boolean,
     },
-    rankTimeLimit: { // 天梯 限时 单位为分钟
+    finalRankTimeLimit: { // 天梯 限时 单位为分钟
       type: String,
     },
   },
   data() {
     return {
-      rankTimeLimitMinute: Number(this.rankTimeLimit),
+      finalRankTimeLimitMinute: Number(this.finalRankTimeLimit),
       timerText: '',
       timeState: '', // 显示倒计时颜色
     };
@@ -55,12 +55,12 @@ export default Vue.extend({
     updateTimer() {
       // 排名模式 启动倒计时
       if (this.rankMode) {
-        this.timerText = Timer.toString(this.timer, this.rankTimeLimitMinute);
-        if (Timer.getMinutes(this.timer, this.rankTimeLimitMinute) <= 5) { // 剩余时间小于5分钟，显示红色时间
+        this.timerText = Timer.toString(this.timer, this.finalRankTimeLimitMinute);
+        if (Timer.getMinutes(this.timer, this.finalRankTimeLimitMinute) <= 5) { // 剩余时间小于5分钟，显示红色时间
           this.timeState = 'text-red-500';
-        } else if (Timer.getMinutes(this.timer, this.rankTimeLimitMinute) <= 15) { // 剩余时间小于5分钟，显示橙色时间
+        } else if (Timer.getMinutes(this.timer, this.finalRankTimeLimitMinute) <= 15) { // 剩余时间小于5分钟，显示橙色时间
           this.timeState = 'text-orange-500';
-        } else if (Timer.getMinutes(this.timer, this.rankTimeLimitMinute) <= 30) { // 剩余时间小于5分钟，显示橙色时间
+        } else if (Timer.getMinutes(this.timer, this.finalRankTimeLimitMinute) <= 30) { // 剩余时间小于5分钟，显示橙色时间
           this.timeState = 'text-yellow-600';
         }
       } else {

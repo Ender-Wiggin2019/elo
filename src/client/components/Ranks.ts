@@ -50,7 +50,7 @@ export const Ranks = Vue.component('ranks', {
   created() {
   },
   template: `
-    <div id="games-overview" xmlns="http://www.w3.org/1999/html">
+    <div id="games-overview">
     <h1><a href="/" v-i18n>Terraforming Mars</a> — <span v-i18n>Ranking</span>
     </h1>
 

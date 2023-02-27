@@ -388,11 +388,17 @@ export class Game implements Logger {
     }
 
     players.forEach((player) => {
-      if (game.isRankMode()) game.log('This game is Rank Mode. Good luck ${0}!', (b) => b.player(player), {reservedFor: player});
-      else game.log('Good luck ${0}!', (b) => b.player(player), {reservedFor: player});
+      game.log('Good luck ${0}!', (b) => b.player(player), {reservedFor: player});
     });
 
     game.log('Generation ${0}', (b) => b.forNewGeneration().number(game.generation));
+
+    // 天梯
+    if (game.isRankMode() && game.gameOptions.rankTimeLimit !== undefined && game.gameOptions.rankTimePerGeneration !== undefined) {
+      game.generation === 1 ?
+        game.log('This game is Rank Mode. You will have ${0} minutes at beginning!', (b) => b.number(game.gameOptions.rankTimeLimit || 0)) :
+        game.log('You get extra ${0} minutes this generation.', (b) => b.number(game.gameOptions.rankTimePerGeneration || 0));
+    }
 
     // Do we draft corporations or do we start the game?
     // NOT  goto else
@@ -566,33 +572,31 @@ export class Game implements Logger {
   }
 
   public marsIsTerraformed(): boolean {
-    // TODO  天梯
-    return true;
-    // const oxygenMaxed = this.oxygenLevel >= constants.MAX_OXYGEN_LEVEL;
-    // const temperatureMaxed = this.temperature >= constants.MAX_TEMPERATURE;
-    // const oceansMaxed = !this.canAddOcean();
-    // let globalParametersMaxed = oxygenMaxed && temperatureMaxed && oceansMaxed;
-    // const venusMaxed = this.getVenusScaleLevel() === constants.MAX_VENUS_SCALE;
-    //
-    // MoonExpansion.ifMoon(this, (moonData) => {
-    //   if (this.gameOptions.requiresMoonTrackCompletion) {
-    //     const moonMaxed =
-    //       moonData.colonyRate === constants.MAXIMUM_HABITAT_RATE &&
-    //       moonData.miningRate === constants.MAXIMUM_MINING_RATE &&
-    //       moonData.logisticRate === constants.MAXIMUM_LOGISTICS_RATE;
-    //     globalParametersMaxed = globalParametersMaxed && moonMaxed;
-    //   }
-    // });
-    //
-    // // Solo games with Venus needs Venus maxed to end the game.
-    // if (this.isSoloMode() && this.gameOptions.venusNextExtension) {
-    //   return globalParametersMaxed && venusMaxed;
-    // }
-    // // new option "requiresVenusTrackCompletion" also makes maximizing Venus a game-end requirement
-    // if (this.gameOptions.venusNextExtension && this.gameOptions.requiresVenusTrackCompletion) {
-    //   return globalParametersMaxed && venusMaxed;
-    // }
-    // return globalParametersMaxed;
+    const oxygenMaxed = this.oxygenLevel >= constants.MAX_OXYGEN_LEVEL;
+    const temperatureMaxed = this.temperature >= constants.MAX_TEMPERATURE;
+    const oceansMaxed = !this.canAddOcean();
+    let globalParametersMaxed = oxygenMaxed && temperatureMaxed && oceansMaxed;
+    const venusMaxed = this.getVenusScaleLevel() === constants.MAX_VENUS_SCALE;
+
+    MoonExpansion.ifMoon(this, (moonData) => {
+      if (this.gameOptions.requiresMoonTrackCompletion) {
+        const moonMaxed =
+          moonData.colonyRate === constants.MAXIMUM_HABITAT_RATE &&
+          moonData.miningRate === constants.MAXIMUM_MINING_RATE &&
+          moonData.logisticRate === constants.MAXIMUM_LOGISTICS_RATE;
+        globalParametersMaxed = globalParametersMaxed && moonMaxed;
+      }
+    });
+
+    // Solo games with Venus needs Venus maxed to end the game.
+    if (this.isSoloMode() && this.gameOptions.venusNextExtension) {
+      return globalParametersMaxed && venusMaxed;
+    }
+    // new option "requiresVenusTrackCompletion" also makes maximizing Venus a game-end requirement
+    if (this.gameOptions.venusNextExtension && this.gameOptions.requiresVenusTrackCompletion) {
+      return globalParametersMaxed && venusMaxed;
+    }
+    return globalParametersMaxed;
   }
 
   public lastSoloGeneration(): number {
@@ -1201,8 +1205,6 @@ export class Game implements Logger {
   }
 
   private async gotoEndGame(): Promise<void> {
-    console.log('call gotoEndGame');
-
     // 储存终局计分到数据库 暂时不替换为`getSortedPlayers`因为目前不能获得玩家顺位
     const scores: Array<Score> = [];
     const players = this.getAllPlayers();
@@ -1211,7 +1213,7 @@ export class Game implements Logger {
     const allPlayerQuit = this.quitPlayers.size === players.length;
 
 
-    // 存入数据库的最终Phase TODO
+    // 存入数据库的最终Phase
     this.phase = this.shouldGoToTimeOutPhase() ?
       Phase.TIMEOUT :
       this.isRankMode() && allPlayerQuit ?
@@ -1234,7 +1236,7 @@ export class Game implements Logger {
       Database.getInstance().cleanGame(this.id).catch((err) => {
         console.error(err);
       });
-    } else { // 异常结束的，数据库里全删了
+    } else { // 异常结束的，数据库里没必要保留吧
       Database.getInstance().cleanGameAllSaves(this.id);
     }
 
@@ -1245,7 +1247,6 @@ export class Game implements Logger {
         playerScore: vpb.total, player: player.name, userId: player.userId});
     });
     if (this.players.length > 1) {
-      console.log('save game result', this.generation);
       Database.getInstance().saveGameResults(this.id, players.length, this.generation, this.gameOptions, scores);
     }
 
@@ -2261,9 +2262,11 @@ export class Game implements Logger {
 
   // 判断是否有玩家超时,返回超时的玩家 （是否可能出现多个？）
   public checkTimeOutPlayer(): Player | undefined {
-    if (this.isRankMode() && this.gameOptions.rankTimeLimit !== undefined) {
+    if (this.isRankMode() && this.gameOptions.rankTimeLimit !== undefined && this.gameOptions.rankTimePerGeneration !== undefined) {
+      // 超时时间 = 基础时限 + 每时代的时间增量 * (当前时代数 - 1)
+      const timeLimit = this.gameOptions.rankTimeLimit + this.gameOptions.rankTimePerGeneration * (this.generation - 1);
       for (const player of this.getAllPlayers()) {
-        if (player.timer.getElapsedTimeInMinutes() >= this.gameOptions.rankTimeLimit) return player;
+        if (player.timer.getElapsedTimeInMinutes() >= timeLimit) return player;
       }
     }
     return undefined;

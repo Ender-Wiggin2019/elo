@@ -4,7 +4,7 @@ import {SerializedGame} from '../../src/server/SerializedGame';
 import {GameLoader} from '../../src/server/database/GameLoader';
 import {registerBehaviorExecutor} from '../../src/server/behavior/BehaviorExecutor';
 import {Executor} from '../../src/server/behavior/Executor';
-import {UserRank} from '../../src/server//RankManager';
+import {UserRank} from '../../src/common/rank/RankManager';
 
 registerBehaviorExecutor(new Executor());
 
@@ -32,9 +32,11 @@ const FAKE_DATABASE: IDatabase = {
   storeParticipants: () => Promise.resolve(),
   getParticipants: () => Promise.resolve([]),
 
-  // 天梯
+  // 天梯测试
   addUserRank: () => Promise.resolve(),
-  getUserRanks: () => Promise.resolve({} as UserRank),
+  getUserRanks: () => Promise.resolve({} as UserRank[]),
+  updateUserRank: () => Promise.resolve(),
+  saveUserGameResult: () => {},
 };
 
 let databaseUnderTest: IDatabase = FAKE_DATABASE;

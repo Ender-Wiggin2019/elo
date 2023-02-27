@@ -59,6 +59,9 @@ export default Vue.extend({
     tooltipCss(): string {
       return 'tooltip tooltip-' + (this.isTopBar ? 'bottom' : 'top');
     },
+    finalRankTimeLimit(): string {
+      return (Number(this.playerView.game.gameOptions.rankTimeLimit) + Number(this.playerView.game.gameOptions.rankTimePerGeneration) * Math.max(Number(this.playerView.game.generation) - 1, 0)).toString();
+    },
   },
   methods: {
     pinPlayer() {
@@ -141,7 +144,7 @@ export default Vue.extend({
               :rankTier="player.rankTier"
               :player-id="playerView.id"
               :rank-mode="playerView.game.gameOptions.rankOption"
-              :rankTimeLimit="playerView.game.gameOptions.rankTimeLimit.toString()"/>
+              :finalRankTimeLimit="finalRankTimeLimit"/>
         </div>
           <PlayerResources :player="player" v-trim-whitespace />
           <div class="player-played-cards">

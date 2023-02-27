@@ -7,9 +7,11 @@ import {SerializedGame} from '../../src/server/SerializedGame';
 import {IGameShortData} from '../../src/server/database/IDatabase';
 import {IDatabase} from '../../src/server/database/IDatabase';
 import {TestPlayer} from '../TestPlayer';
+import {UserRank} from '../../src/common/rank/RankManager';
 
 describe('GameLoader', function() {
   const expectedGameIds: Array<IGameShortData> = [{'gameId': 'galpha'}, {'gameId': 'gfoobar'}];
+  const expectedUserRank: Array<UserRank> = [new UserRank('1', 2, 25, 8), new UserRank('2', 5, 25, 8)];
   const originalGenerateId = (Player as any).prototype.generateId;
   const originalGetInstance = (Database as any).getInstance;
   const player = TestPlayer.BLUE.newPlayer();
@@ -40,6 +42,9 @@ describe('GameLoader', function() {
       },
       initialize: function(): Promise<void> {
         return Promise.resolve();
+      },
+      getUserRanks: function(): Promise<Array<UserRank>> {
+        return Promise.resolve(expectedUserRank);
       },
     };
     (Database as any).getInstance = function() {
@@ -194,6 +199,22 @@ describe('GameLoader', function() {
     const game1 = await GameLoader.getInstance().getByParticipantId('pfoobar');
     expect(game1).is.undefined;
     Database.getInstance().getGames = workingGetGames;
+  });
+
+  it('User Rank should be update', async function( ) {
+    // const workingGetGames = Database.getInstance().getGames;
+    // const userRanks = Database.getInstance().getUserRanks();
+    // Database.getInstance().getGames = () => Promise.resolve([]);
+    // (GameLoader.getInstance() as GameLoader).addOrUpdateUserRank(new UserRank('1', 10, 20, 5));
+    // const userRank1 = await GameLoader.getInstance().('pfoobar');
+    // const workingGetGames = Database.getInstance().getGames;
+    const userId = '1';
+    Database.getInstance().getUserRanks = () => Promise.resolve([new UserRank('1', 2, 25, 8), new UserRank('2', 5, 25, 8)]);
+    expect(GameLoader.getInstance().userRankMap.get(userId)?.rankValue).eq(2);
+    (GameLoader.getInstance() as GameLoader).reset();
+    expect(GameLoader.getInstance().userRankMap.get(userId)?.rankValue).eq(2);
+    (GameLoader.getInstance() as GameLoader).addOrUpdateUserRank(new UserRank('1', 10, 20, 5));
+    expect(GameLoader.getInstance().userRankMap.get(userId)?.rankValue).eq(10);
   });
 
   // it('loads players available later', function(done) {

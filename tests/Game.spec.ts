@@ -775,4 +775,30 @@ it('specifically-requested preludes override expansion preludes', () => {
     expect(deserialized.colonies.map(toName)).has.members(colonyNames);
     expect(deserialized.discardedColonies.map(toName)).has.members(discardedColonyNames);
   });
+
+  // it('Game should time out if rank mode is chosen and a player is time out', () => {
+  //   const player1 = new TestPlayer(Color.BLUE);
+  //   const player2 = new TestPlayer(Color.GREEN);
+  //   const player3 = new TestPlayer(Color.YELLOW);
+  //   const player4 = new TestPlayer(Color.RED);
+  //   const game = Game.newInstance('gto', [player1, player2, player3, player4], player2);
+  //   game.gameOptions.rankOption = true;
+  //   game.gameOptions.rankTimeLimit = 10;
+  //   game.gameOptions.rankTimePerGeneration = 10;
+  //   game.generation = 5;
+  //   game.incrementFirstPlayer();
+  //   expect(game.generation).eq(1);
+  //   [player1, player2, player3, player4].forEach((p) => {
+  //     p.popWaitingFor();
+  //   });
+  //   player1.process({type: 'or', index: 1, response: {type: 'option'}});
+  //   expect(game.phase).eq(Phase.END);
+  //   // player1.timer.getElapsedTimeInMinutes = () => 50;
+
+  //   expect(game.shouldGoToTimeOutPhase()).eq(true);
+  //   expect(game.phase).eq(Phase.TIMEOUT);
+
+  //   // await game.checkRankModeEndGame(player1.id);
+  //   expect(game.phase).eq(Phase.TIMEOUT);
+  // });
 });

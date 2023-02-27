@@ -64,6 +64,8 @@ export type GameOptions = {
   escapeVelocityPenalty?: number;
   twoCorpsVariant: boolean;
   rankTimeLimit?: number; // 天梯 玩家超时限制
+  rankTimePerGeneration?: number; // 天梯 每时代额外加成
+
 }
 
 export const DEFAULT_GAME_OPTIONS: GameOptions = {
@@ -118,4 +120,5 @@ export const DEFAULT_GAME_OPTIONS: GameOptions = {
   twoCorpsVariant: false,
   rankOption: false, // 天梯
   rankTimeLimit: constants.DEFAULT_RANK_TIME_LIMIT, // 天梯
+  rankTimePerGeneration: constants.DEFAULT_RANK_TIME_PER_GENERATION, // 天梯 每时代额外加成
 };

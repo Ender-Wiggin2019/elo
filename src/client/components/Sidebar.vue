@@ -324,15 +324,15 @@ export default Vue.extend({
     timeOutCheck: function(): void {
       const rankOption = this.gameOptions.rankOption;
       if (!rankOption) return;
-      const rankTimeLimit = this.gameOptions.rankTimeLimit;
+      const finalRankTimeLimit = Number(this.gameOptions.rankTimeLimit) + Number(this.gameOptions.rankTimePerGeneration) * Math.max(Number(this.generation) - 1, 0);
       const phase = this.playerView.game.phase;
-      console.log('运行超时检查', 'rankOption: ', rankOption, 'phase: ', phase, 'generation: ', this.generation);
-      if (rankOption && rankTimeLimit && ((phase !== Phase.RESEARCH && phase !== Phase.INITIALDRAFTING) || this.generation !== 1)) {
+      console.log('运行超时检查', 'phase: ', phase, 'generation: ', this.generation, '基础时间：', this.gameOptions.rankTimeLimit, '总时间: ', finalRankTimeLimit);
+      if (rankOption && finalRankTimeLimit && ((phase !== Phase.RESEARCH && phase !== Phase.INITIALDRAFTING) || this.generation !== 1)) {
         console.log('符合超时检查的条件');
         this.playerView.players.some((player) => {
-          console.log('遍历剩余时间秒：', Timer.getMinutes(player.timer, rankTimeLimit) * 60);
+          console.log('遍历剩余时间秒：', Timer.getMinutes(player.timer, finalRankTimeLimit) * 60);
         });
-        if (this.playerView.players.some((player) => Timer.getMinutes(player.timer, rankTimeLimit) <= 0)) {
+        if (this.playerView.players.some((player) => Timer.getMinutes(player.timer, finalRankTimeLimit) <= 0)) {
           this.endGameForTimeOut();
         }
       }

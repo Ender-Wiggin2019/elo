@@ -87,4 +87,5 @@ export const DISCORD_INVITE = 'https://discord.gg/afeyggbN6Y';
 export const PRELUDE_CARDS_DEALT_PER_PLAYER = 4;
 
 // Rank Mode
-export const DEFAULT_RANK_TIME_LIMIT = 90;
+export const DEFAULT_RANK_TIME_LIMIT = 20;
+export const DEFAULT_RANK_TIME_PER_GENERATION = 15;

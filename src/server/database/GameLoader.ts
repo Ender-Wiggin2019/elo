@@ -255,25 +255,6 @@ export class GameLoader implements IGameLoader {
       });
     });
 
-    // 天梯
-    Database.getInstance().getUserRanks().then( (allUserRanks:Array<UserRank> ) => {
-      if (allUserRanks.length === 0) {
-        // this.onAllGamesLoaded(); // TODO check
-        cb();
-        return;
-      }
-      console.log(`loading all ranks ${allUserRanks.length}`);
-
-      allUserRanks.forEach((userRank) => {
-        $this.userRankMap.set(userRank.userId, userRank); // TODO 是否要加一个检查是否是用户的判断？
-      });
-      console.log($this.userRankMap);
-    }).catch((err) => {
-      console.error('error loading all user ranks', err);
-      cb();
-      return;
-    });
-
     Database.getInstance().getGames().then( (allGames:Array<IGameShortData> ) => {
       if (allGames.length === 0) {
         this.onAllGamesLoaded();
@@ -295,6 +276,22 @@ export class GameLoader implements IGameLoader {
         }
       });
       this.loadNextGame(cb);
+
+      // FIXME: 嵌套Promise有点怪，但是不这么写测试用例会报错，要求必须加载完所有游戏
+      Database.getInstance().getUserRanks().then( (allUserRanks:Array<UserRank> ) => {
+        if (allUserRanks.length === 0) {
+          return;
+        }
+        console.log(`loading all ranks ${allUserRanks.length}`);
+
+        allUserRanks.forEach((userRank) => {
+          $this.userRankMap.set(userRank.userId, userRank); // TODO: 是否要加一个检查是否是用户的判断？
+        });
+      }).catch((err) => {
+        console.error('error loading all user ranks', err);
+        cb();
+        return;
+      });
     }).catch((err) => {
       console.error('error loading all games', err);
       this.onAllGamesLoaded();
