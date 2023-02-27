@@ -1,6 +1,5 @@
 
 import {getDay, myId} from './UserUtil';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../common/RankManager';
 
 export class User {
   public createtime: string = '';
@@ -11,9 +10,6 @@ export class User {
   public accessDate : string = '2021-01-01';
   public showhandcards : boolean = false;
   public donateNum : number = 0;
-  public rankValue : number = DEFAULT_RANK_VALUE; // 天梯
-  public mu : number = DEFAULT_MU; // 天梯
-  public sigma : number = DEFAULT_SIGMA; // 天梯
 
   constructor(
         public name: string,
@@ -75,14 +71,5 @@ export class User {
     // TODO 天梯
     return 2;
   }
-
-  // 天梯，返回排位分数
-  // public getRankValue(): number {
-  //   return this.rankValue;
-  // }
-  //
-  // public setRankValue(value: number) {
-  //   this.rankValue = value;
-  // }
 }
 

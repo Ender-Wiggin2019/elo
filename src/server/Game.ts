@@ -170,6 +170,7 @@ export class Game implements Logger {
 
   // Rank Mode
   public quitPlayers: Set<Player> = new Set<Player>;// 天梯 玩家申请退出游戏 所有人均同意则废弃游戏
+  public endGameInProgress: boolean = false; // 锁
 
   private constructor(
     public id: GameId,
@@ -387,7 +388,8 @@ export class Game implements Logger {
     }
 
     players.forEach((player) => {
-      game.log('Good luck ${0}!', (b) => b.player(player), {reservedFor: player});
+      if (game.isRankMode()) game.log('This game is Rank Mode. Good luck ${0}!', (b) => b.player(player), {reservedFor: player}); // 天梯 log
+      else game.log('Good luck ${0}!', (b) => b.player(player), {reservedFor: player});
     });
 
     game.log('Generation ${0}', (b) => b.forNewGeneration().number(game.generation));
@@ -1200,8 +1202,24 @@ export class Game implements Logger {
 
   private async gotoEndGame(): Promise<void> {
     console.log('call gotoEndGame');
-    this.phase = Phase.END;
-    await this.save();
+
+    // 储存终局计分到数据库 暂时不替换为`getSortedPlayers`因为目前不能获得玩家顺位
+    const scores: Array<Score> = [];
+    const players = this.getAllPlayers();
+
+    const timeOutPlayer = this.checkTimeOutPlayer(); // 判断是否有玩家超时
+    const allPlayerQuit = this.quitPlayers.size === players.length;
+
+
+    // 存入数据库的最终Phase TODO
+    this.phase = this.shouldGoToTimeOutPhase() ?
+      Phase.TIMEOUT :
+      this.isRankMode() && allPlayerQuit ?
+        Phase.ABANDON :
+        Phase.END;
+    // this.phase = Phase.END;
+    console.log('最终phase是', this.phase);
+    if (this.phase === Phase.END) await this.save(); // 只有正常结束的才会保留，超时放弃的这种的直接清除了
 
     // Log id or cloned game id
     if (this.clonedGamedId !== undefined && this.clonedGamedId.startsWith('#')) {
@@ -1212,11 +1230,14 @@ export class Game implements Logger {
       this.log('This game id was ${0}', (b) => b.rawString(id));
     }
 
-    Database.getInstance().cleanGame(this.id).catch((err) => {
-      console.error(err);
-    });
-    const scores: Array<Score> = [];
-    const players = this.getAllPlayers();
+    if (this.phase === Phase.END) {
+      Database.getInstance().cleanGame(this.id).catch((err) => {
+        console.error(err);
+      });
+    } else { // 异常结束的，数据库里全删了
+      Database.getInstance().cleanGameAllSaves(this.id);
+    }
+
     players.forEach((player) => {
       const corporation = player.corporations.map((c) => c.name).join('|');
       const vpb = player.getVictoryPoints();
@@ -1224,15 +1245,16 @@ export class Game implements Logger {
         playerScore: vpb.total, player: player.name, userId: player.userId});
     });
     if (this.players.length > 1) {
+      console.log('save game result', this.generation);
       Database.getInstance().saveGameResults(this.id, players.length, this.generation, this.gameOptions, scores);
     }
 
-    // 天梯 TODO
-    const sortedPlayers = this.getSortedPlayers();
+    const sortedPlayers = this.getSortedPlayers(); // 玩家排名，包含体退玩家，尽管目前排名模式不能体退
+    // 天梯 更新段位和排名
     if (this.isRankMode() && this.players.length > 1) {
       const userRanks: Array<UserRank> = [];
       const rankedPlayers: Array<Player> = [];
-      const timeOutPlayer = this.checkTimeOutPlayer();
+      // const timeOutPlayer = this.checkTimeOutPlayer();
       let timeOutUserRank: UserRank | undefined = undefined; // 超时玩家的UserRank
       sortedPlayers.forEach((player) => {
         const userRank = player.getUserRank();
@@ -1244,7 +1266,7 @@ export class Game implements Logger {
       });
 
       // 更新
-      if (timeOutUserRank === undefined && this.quitPlayers.size === sortedPlayers.length) {
+      if (this.phase === Phase.ABANDON) {
         // 玩家放弃游戏，无事发生
         console.log('all players quit the game');
       } else {
@@ -1253,7 +1275,6 @@ export class Game implements Logger {
           for (let i = 0; i < userRanks.length; i ++ ) {
             rankedPlayers[i].addOrUpdateUserRank(userRanks[i]);
             Database.getInstance().updateUserRank(userRanks[i]);
-            console.log(userRanks[i]);
           }
         });
       }
@@ -1263,11 +1284,10 @@ export class Game implements Logger {
     // 1. 获取天梯排名的历史数据，用于显示变化以及在未来赛季重置时获取备份 @param position是玩家名次，写入数据库时+1
     // 2. 在用户信息界面可以提供一定信息
     sortedPlayers.forEach((player, position) => {
-      console.log('player: ', player.userId);
       const newUserRank = player.getUserRank();
       if (player.userId === undefined) return; // table user_game_results pk: user_id + game_id
       const playerIndex = players.indexOf(player);
-      Database.getInstance().saveUserGameResult(player.userId, this.id, scores[playerIndex], players.length, this.generation, this.createtime, position+1, this.isRankMode(), newUserRank);
+      Database.getInstance().saveUserGameResult(player.userId, this.id, this.phase, scores[playerIndex], players.length, this.generation, this.createtime, position+1, this.isRankMode(), newUserRank);
     });
 
     return;
@@ -2244,7 +2264,6 @@ export class Game implements Logger {
   public checkTimeOutPlayer(): Player | undefined {
     if (this.isRankMode() && this.gameOptions.rankTimeLimit !== undefined) {
       for (const player of this.getAllPlayers()) {
-        console.log('time', player.timer.getElapsedTimeInMinutes(), this.gameOptions.rankTimeLimit);
         if (player.timer.getElapsedTimeInMinutes() >= this.gameOptions.rankTimeLimit) return player;
       }
     }
@@ -2254,30 +2273,56 @@ export class Game implements Logger {
   // 天梯 排名模式中强行结束游戏
   // 1. 判断是否游戏超时，如果超时的话，会直接结束游戏，并将超时玩家设为唯一败方
   // 2. 判断是否所有玩家都放弃游戏，是的话游戏作废，所有人分数不变
-  public checkRankModeEndGame(playerId: string, userId: string) {
+  public async checkRankModeEndGame(playerId: string, userId: string) {
+    if (!this.isRankMode()) return;
     const playerLength = this.getAllPlayers().length;
-    console.log('this.getPlayerById(userId as PlayerId)', userId, this.getPlayerById(playerId as PlayerId).userId);
+    console.log('this.quitPlayers.size', this.quitPlayers.size, userId);
     // this.quitPlayers.forEach((player) => {
     //   if (player.userId !== userId) {
     //     this.quitPlayers.add(this.getPlayerById(playerId as PlayerId));
     //   }
     // });
+    // if (this.quitPlayers.has(this.getPlayerById(playerId as PlayerId))) return; // 避免重复情况
     this.quitPlayers.add(this.getPlayerById(playerId as PlayerId));
     console.log('checkRankModeEndGame', this.phase, 'quitPlayers', this.quitPlayers.size);
+    console.log('是否有玩家超时：', this.shouldGoToTimeOutPhase());
 
-    if (this.phase === Phase.END) {
+    if (this.phase === Phase.END || this.phase === Phase.ABANDON || this.phase === Phase.TIMEOUT) {
       return;
     } else if (this.quitPlayers.size === playerLength) {
-      this.gotoRankModeEndGame();
-    } else if (this.phase !== Phase.RESEARCH && this.checkTimeOutPlayer()) { // 如果没选完卡，不视为进入游戏，不会超时
+      await this.gotoRankModeEndGame();
+    } else if (this.shouldGoToTimeOutPhase()) { // 如果没选完卡，不视为进入游戏，不会超时 FIXME: 初始选卡和后续选卡是同个阶段？
       this.checkTimeOutPlayer()?.timer.stop(); // 结束计数器
-      this.gotoRankModeEndGame();
+      await this.gotoRankModeEndGame();
     }
   }
 
-  private gotoRankModeEndGame() {
-    this.phase = Phase.END;
-    this.updateVPbyGeneration();
-    this.gotoEndGame();
+  public shouldGoToTimeOutPhase() {
+    return this.isRankMode() && ((this.phase !== Phase.RESEARCH && this.phase !== Phase.INITIALDRAFTING) || this.generation !== 1) && this.checkTimeOutPlayer() !== undefined;
   }
+  private async gotoRankModeEndGame() {
+    console.log('gotoRankModeEndGame in phase: ', this.phase, 'endGameInProgress: ', this.endGameInProgress);
+    try {
+      this.endGameInProgress = true; // 在异步函数之前设置为true
+      this.updateVPbyGeneration();
+      console.log('await gotoEndGame');
+      await this.gotoEndGame();
+    } catch (error) {
+      console.error('gotoEndGame failed:', error);
+      this.endGameInProgress = false;
+    } finally {
+      // this.endGameInProgress = false; // 如果成功了，不需要解锁
+    }
+  }
+
+  public getQuitPlayers():Array<Color> {
+    return Array.from(this.quitPlayers).map((x) => x.color);
+  }
+  // private gotoRankModeEndGame() {
+  //   if (this.phase === Phase.END || this.phase === Phase.ABANDON || this.phase === Phase.TIMEOUT) {
+  //     this.endGameInProgress = true;
+  //     this.updateVPbyGeneration();
+  //     this.gotoEndGame();
+  //   }
+  // }
 }

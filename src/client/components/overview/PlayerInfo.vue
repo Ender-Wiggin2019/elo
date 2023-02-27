@@ -11,7 +11,6 @@ import {PlayerMixin} from '@/client/mixins/PlayerMixin';
 import Button from '@/client/components/common/Button.vue';
 import {CardType} from '@/common/cards/CardType';
 import {CardName} from '@/common/cards/CardName';
-import RankTier from '@/client/components/RankTier.vue';
 
 
 const isPinned = (root: any, playerIndex: number): boolean => {
@@ -54,7 +53,6 @@ export default Vue.extend({
     PlayerResources,
     PlayerTags,
     'player-status': PlayerStatus,
-    RankTier,
   },
   mixins: [PlayerMixin],
   computed: {
@@ -86,7 +84,6 @@ export default Vue.extend({
       return isPinned(this.$root, this.playerIndex) ? 'hide' : 'show';
     },
     togglePlayerDetails() {
-      console.log(this.player?.rankTier);
       // for the player viewing this page => scroll to cards UI
       if (this.player.color === this.playerView.thisPlayer?.color) {
         const el = document.getElementsByClassName(
@@ -131,13 +128,20 @@ export default Vue.extend({
         <div class="player-status">
           <div class="player-info-details">
             <div class="player-info-name"  @click="togglePlayerDetails">{{ player.name }} <em title="vip" v-if="player.isvip" :class="'icon_vip'+player.isvip" />
-<!--              <RankTier v-if="player.rankTier !== undefined" :rankTier="player.rankTier" /></div> &lt;!&ndash;天梯，TODO传入player.rankValue&ndash;&gt;-->
             <div class="icon-first-player" v-if="firstForGen && playerView.players.length > 1" v-i18n>1st</div>
             <div class="player-info-corp" @click="togglePlayerDetails" v-if="corporationCardName() !== undefined" :title="$t(corporationCardName())"><span v-i18n>{{ corporationCardName() }}</span></div>
           </div>
-<!--            <RankTier v-if="player.rankTier !== undefined" :rankTier="player.rankTier" />-->
           </div>
-          <player-status :timer="player.timer" :showTimers="playerView.game.gameOptions.showTimers" :firstForGen="firstForGen" v-trim-whitespace :actionLabel="actionLabel" :rankTier="player.rankTier" :player-id="playerView.id" :rank-mode="playerView.game.gameOptions.rankOption" :rank-time-limit="playerView.game.gameOptions.rankTimeLimit"/>
+          <player-status
+              :timer="player.timer"
+              :showTimers="playerView.game.gameOptions.showTimers"
+              :firstForGen="firstForGen"
+              v-trim-whitespace
+              :actionLabel="actionLabel"
+              :rankTier="player.rankTier"
+              :player-id="playerView.id"
+              :rank-mode="playerView.game.gameOptions.rankOption"
+              :rankTimeLimit="playerView.game.gameOptions.rankTimeLimit.toString()"/>
         </div>
           <PlayerResources :player="player" v-trim-whitespace />
           <div class="player-played-cards">

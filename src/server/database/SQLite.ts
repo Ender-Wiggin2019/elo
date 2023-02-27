@@ -396,13 +396,13 @@ export class SQLite implements IDatabase {
   }
 
   // @param position: 这局游戏第几名
-  saveUserGameResult(user_id: string, game_id: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void {
+  saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void {
     const sql: string = user_rank !== undefined ?
-      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma, is_rank) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)' :
-      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma, is_rank, phase) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)' :
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank, phase) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const params: any = user_rank !== undefined ?
-      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, is_rank] :
-      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank];
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, is_rank, phase] :
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank, phase];
 
     this.db.run(sql, params, (err) => {
       if (err) {

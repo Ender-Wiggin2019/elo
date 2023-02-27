@@ -80,8 +80,17 @@ export const MyGames = Vue.component('my-games', {
     getTier() {
       return this.userRank.getTier();
     },
-    isGameRunning: function(gamePhase: string): boolean {
-      return (gamePhase === Phase.END) ? false : true;
+    // isGameRunning: function(gamePhase: string): boolean {
+    //   return (gamePhase === Phase.END) ? false : true;
+    // },
+    isGameTimeOut: function(gamePhase: string): boolean {
+      return gamePhase === Phase.TIMEOUT;
+    },
+    isGameAbandon: function(gamePhase: string): boolean {
+      return gamePhase === Phase.ABANDON;
+    },
+    isGameEnd: function(gamePhase: string): boolean {
+      return gamePhase === Phase.END;
     },
     changeLogin: function(): void {
       if (this.userName !== '') {
@@ -122,7 +131,7 @@ export const MyGames = Vue.component('my-games', {
       });
     },
 
-    // 天梯，在`user_rank`表中创建对应数据
+    // 天梯，激活排名，在`user_rank`表中创建对应数据
     activateRank: function() {
       const userId = PreferencesManager.load('userId');
       if ( userId === undefined || userId === '') {
@@ -179,12 +188,12 @@ export const MyGames = Vue.component('my-games', {
         <div class="px-4 py-5 flex-auto">
           <div class="tab-content tab-space">
             <div v-bind:class="{'hidden': openTab !== 1, 'block': openTab === 1}">
-              <button class="rounded-md bg-blue-500 hover:bg-blue-300 w-24 p-2 text-md align-center" 
+              <button class="rounded-md bg-blue-500 hover:bg-blue-300 w-24 p-2 text-md align-center"
                       v-on:click="changeLogin" v-i18n>
                 <span v-if="userName">LoginOut</span>
                 <span v-else>Login/Register</span>
               </button>
-              
+
               <div v-if="userName" class="flex flex-col items-center justify-center">
                 <div class="rounded-md bg-gray-500 w-64 my-4 text-center text-md" v-i18n>
                   <div class="text-lg text-gray-700 font-bold">{{$t('User Name')}}</div>
@@ -200,7 +209,7 @@ export const MyGames = Vue.component('my-games', {
                   </div>
 <!--                    <img src="assets/qrcode/potato.png" style="height: 50px;vertical-align: middle; margin-top: 2px"/>-->
                   </div>
-                
+
                 <div class="flex flex-col items-center justify-center rounded-md bg-gray-500 w-64 h-32 my-4 pb-2 text-center text-md " v-i18n>
                   <div class="text-lg text-gray-700 font-bold">User Rank</div>
                   <div v-if="this.userRank.userId!==''" class=" scale-125 ml-10 mb-2">
@@ -213,13 +222,13 @@ export const MyGames = Vue.component('my-games', {
                   </div>
                   <div class="rounded-md bg-yellow-500 hover:bg-yellow-600 w-auto p-2">
                     <a href="/ranks" class="text-black text-md align-center" v-i18n>
-                      Go To Ranking
+                      {{ $t('Go To Ranking') }}
                     </a></div>
                   <!--      <p>Hello <span class="user-name">{{ userName }}</span>,the following games are related with you:</p>-->
                 </div>
                 </div>
               </div>
-            
+
             </div>
             <div v-bind:class="{'hidden': openTab !== 2, 'block': openTab === 2}">
               <div v-if="userName">
@@ -250,7 +259,7 @@ export const MyGames = Vue.component('my-games', {
                 </thead>
                 <tbody>
                 <tr v-for="game in games">
-                  <td><a v-bind:href="'/game?id='+game.id" target="_blank" v-i18n>{{ game.createtime.slice(0, 16) }}</a></td>
+                  <td>{{ game.createtime.slice(0, 16) }}</td>
                   <td>{{ game.players.length }}</td>
                   <td class="text-left"><span v-for="player in game.players" class="player_name"
                             :class="'player_bg_color_'+ player.color">
@@ -258,11 +267,22 @@ export const MyGames = Vue.component('my-games', {
                         </span>
                   </td>
                   <td>
-                    <div v-if="isGameRunning(game.phase)" class="rounded-md w-16 bg-green-600 text-center" v-i18n>Running</div>
-                    <div v-else class="rounded-md w-16 bg-gray-500 text-center">Ended</div>
+<!--                    <div v-if="isGameRunning(game.phase)" class="rounded-md w-16 bg-green-600 text-center" v-i18n>Running</div>-->
+                    <div v-if="isGameAbandon(game.phase)" class="rounded-md w-20 bg-gray-500 text-center p-1">
+                      Abandon
+                    </div>
+                    <div v-else-if="isGameTimeOut(game.phase)" class="rounded-md w-20 bg-red-400 text-center p-1">
+                      Time Out
+                    </div>
+                    <div v-else-if="isGameEnd(game.phase)" class="rounded-md w-20 bg-gray-500 text-center p-1">
+                      <a v-bind:href="'/game?id='+game.id" target="_blank" v-i18n>Ended</a>
+                    </div>
+                    <div v-else class="rounded-md w-20 bg-green-600 text-center p-1" v-i18n>
+                      <a v-bind:href="'/game?id='+game.id" target="_blank" v-i18n>Running</a>
+                    </div>
                   </td>
                 </tr>
-                
+
                 </tbody>
               </table>
               </div>

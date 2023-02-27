@@ -283,9 +283,8 @@
                             </div>
 
                           <!--天梯选项-->
-                          <!--TODO add a css class-->
-                          <input type="checkbox" v-model="rankOption" id="rank-checkbox">
-                          <label for="rank-checkbox">
+                          <input type="checkbox" v-model="rankOption" id="rank-checkbox"  v-if="isvip">
+                          <label for="rank-checkbox" :class="{forbidden:!isvip}">
                             <div class="create-game-expansion-icon expansion-icon-rank"></div>
                             <span class="text-yellow-600" v-i18n>Rank Mode</span>&nbsp;
                             <a href="/ranks" class="tooltip text-yellow-600" :data-tooltip="$t('Go To Ranking')" target="_blank">&#9432;</a>

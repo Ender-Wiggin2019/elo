@@ -1752,9 +1752,11 @@ export class Player {
   public takeAction(saveBeforeTakingAction: boolean = true): void {
     const game = this.game;
 
-    if (game.phase === Phase.END) { // 天梯 TODO 增加一个phase，和正常结束游戏区分开
+    // 天梯 异常结束游戏后，不会修改Phase
+    console.log('before takeAction phase is', game.phase);
+    if (game.phase === Phase.END || game.phase === Phase.ABANDON || game.phase === Phase.TIMEOUT) {
       return;
-    };
+    }
     if (game.deferredActions.length > 0) {
       this.canExit = false;
       game.deferredActions.runAll(() => this.takeAction());
@@ -2093,15 +2095,16 @@ export class Player {
     return this.waitingFor;
   }
   public setWaitingFor(input: PlayerInput | undefined, cb: (() => void) | undefined = () => {}): void {
-    if (this.game.phase !== Phase.END) {
+    if (this.game.phase !== Phase.END && this.game.phase !== Phase.ABANDON && this.game.phase !== Phase.TIMEOUT) {
       this.timer.start();
     }
     this.waitingFor = input;
     this.waitingForCb = cb;
   }
 
+  // 体退新增规则：如果是排名模式，则必须玩家人数为2才行
   public canExitFun(game:Game):boolean {
-    return this.canExit && game.phase === Phase.ACTION && game.activePlayer === this && game.getPlayers().length > 1 && !game.isRankMode();
+    return this.canExit && game.phase === Phase.ACTION && game.activePlayer === this && game.getPlayers().length > 1 && (!game.isRankMode() || game.getPlayers().length === 2);
   }
   public toJSON(): string {
     return JSON.stringify(this.serialize());

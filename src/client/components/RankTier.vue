@@ -39,7 +39,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      displayRankValue: Math.round(this.rankTier?.value | 0),
+      displayRankValue: Math.round(this.rankTier?.value * 100 | 0), // 乘100，看起来刺激一点
     };
   },
 });

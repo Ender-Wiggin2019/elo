@@ -511,7 +511,8 @@ export function getUserRanks(req: http.IncomingMessage, res: http.ServerResponse
   // res.end();
 }
 
-export function endGameForTimeOut(req: http.IncomingMessage, res: http.ServerResponse): void {
+// 天梯 由于超时或者所有玩家退出游戏，调用API
+export function endGameByEvent(req: http.IncomingMessage, res: http.ServerResponse): void {
   let body = '';
   req.on('data', function(data) {
     body += data.toString();
@@ -542,10 +543,14 @@ export function endGameForTimeOut(req: http.IncomingMessage, res: http.ServerRes
       //   notFound(req, res);
       //   return;
       // }
-      console.log('game.phase', game.phase, game.phase !== Phase.END);
-      if (game.phase !== Phase.END) { // 多个请求只执行一次
-        console.log('game.phase2', game.phase);
-        game.checkRankModeEndGame(playerId, userId);
+      if (game.phase !== Phase.END && game.phase !== Phase.TIMEOUT && game.phase !== Phase.ABANDON) {
+        console.log('API start from userId', userId, game.phase);
+        game.checkRankModeEndGame(playerId, userId).then(() => {
+          console.log('API success from', userId);
+        }).catch((err) => {
+          console.error(err);
+        });
+        // game.checkRankModeEndGame(playerId, userId);
       }
       // game.exitPlayer(player);
       res.setHeader('Content-Type', 'application/json');
@@ -557,11 +562,11 @@ export function endGameForTimeOut(req: http.IncomingMessage, res: http.ServerRes
       // res.end(JSON.stringify(Server.getPlayerModel(player, playerBlockModel)));
       res.end();
     } catch (err) {
-      console.warn('error resign', err);
-      console.warn('error resign:', body);
+      console.warn('error endgame', err);
+      console.warn('error endgame:', body);
       res.writeHead(500);
       const message = err instanceof Error ? err.message : String(err);
-      res.write('Unable to resign: ' + message);
+      res.write('Unable to endgame: ' + message);
       res.end();
     }
   });

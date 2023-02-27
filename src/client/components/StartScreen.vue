@@ -16,7 +16,8 @@
           <!-- <a class="start-screen-link start-screen-link--cards-list" href="https://docs.qq.com/doc/DQU5vYmtJeGRQaVpN"  target="_blank" v-i18n>Help Translation</a> -->
           <a class="start-screen-link start-screen-link--board-game" href="/help"  target="_blank"  v-i18n>Help</a>
           <a class="start-screen-link start-screen-link--about" href="cards"  target="_blank"  v-i18n>Cards list</a>
-          <a class="start-screen-link start-screen-link--changelog" href="https://boardgamegeek.com/boardgame/167791/terraforming-mars"  target="_blank"  v-i18n>Board game</a>
+        <a class="start-screen-link start-screen-link--changelog" href="/ranks"  target="_blank"  v-i18n>Tier Ranking</a>
+        <!--          <a class="start-screen-link start-screen-link&#45;&#45;changelog" href="https://boardgamegeek.com/boardgame/167791/terraforming-mars"  target="_blank"  v-i18n>Board game</a>-->
 
           <div class="start-screen-header  start-screen-link--languages">
             <language-switcher />

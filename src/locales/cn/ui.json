@@ -233,7 +233,7 @@
     "Login/Register": "登录/注册",
     "Register": "注册",
     "Go To Register": "前往注册",
-    "My Games": "我的记录",
+    "My Games": "用户中心",
     "Donate": "支援火星",
     "LoginOut": "登出",
     "Help Translation": "帮助翻译",
@@ -336,7 +336,7 @@
      "Timer": "计时器",
      "Victory points details": "获胜点数详情",
      "${0} won!": "${0}获胜！！！"
-   
+
 
 
 }

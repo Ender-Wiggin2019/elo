@@ -10,7 +10,6 @@ export const Ranks = Vue.component('ranks', {
   data: function() {
     return {
       allUserRanks: [],
-      // 天梯
       openTab: 1,
       rankTiers: RankTiers,
     };
@@ -62,7 +61,7 @@ export const Ranks = Vue.component('ranks', {
             <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
                  v-on:click="toggleTabs(1)"
                  v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 1, 'text-white bg-blue-300': openTab === 1}">
-              <span v-i18n>User Information</span>
+              <span v-i18n>User Raking</span>
             </div>
           </li>
           <li class="-mb-px mr-2 last:mr-0 flex-auto text-center">
@@ -76,7 +75,7 @@ export const Ranks = Vue.component('ranks', {
             <div class="text-lg font-bold uppercase px-5 py-3 shadow-lg rounded block leading-normal"
                  v-on:click="toggleTabs(3)"
                  v-bind:class="{'text-blue-300 bg-gray-700': openTab !== 3, 'text-white bg-blue-300': openTab === 3}">
-              <span v-i18n>User Games</span>
+              <span v-i18n>Rank Tiers</span>
             </div>
           </li>
         </ul>
@@ -129,13 +128,13 @@ export const Ranks = Vue.component('ranks', {
               </div>
               <div v-bind:class="{'hidden': openTab !== 2, 'block': openTab === 2}">
                 <div class="text-2xl text-blue-300" v-i18n>2P</div>
-                <div class="text-lg">First player + 1, second player -1.</div>
+                <div class="text-lg" v-i18n>First player + 1, second player -1.</div>
                 <div class="text-2xl text-blue-300" v-i18n>3P</div>
-                <div class="text-lg">First player + 1, second player +0, third player -1.</div>
+                <div class="text-lg" v-i18n>First player + 1, second player +0, third player -1.</div>
                 <div class="text-2xl text-blue-300" v-i18n>4P</div>
-                <div class="text-lg">First player + 2, second player +1, third player +0, fourth player -1.</div>
+                <div class="text-lg" v-i18n>First player + 2, second player +1, third player +0, fourth player -1.</div>
                 <div class="text-2xl text-blue-300" v-i18n>5P</div>
-                <div class="text-lg">First player + 2, second player +1, third player +0, fourth player -1, fifth player -2.</div>
+                <div class="text-lg" v-i18n>First player + 2, second player +1, third player +0, fourth player -1, fifth player -2.</div>
                 <br/>
                 <br/>
               </div>

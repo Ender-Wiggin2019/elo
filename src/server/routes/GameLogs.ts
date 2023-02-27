@@ -38,7 +38,7 @@ export class GameLogs {
   }
 
   public getLogsForGameEnd(game: Game): Array<string> {
-    if (game.phase !== Phase.END) {
+    if (game.phase !== Phase.END && game.phase !== Phase.ABANDON && game.phase !== Phase.TIMEOUT) {
       throw new Error('Game is not over');
     }
 

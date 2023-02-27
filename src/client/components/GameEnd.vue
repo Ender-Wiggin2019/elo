@@ -1,7 +1,8 @@
 <template>
   <div id="game-end" class="game_end_cont">
-      <h1  v-i18n>{{ constants.APP_NAME }} - Game finished!</h1>
-      <div class="game_end">
+<!--    <h1  v-i18n>{{ constants.APP_NAME }} - {{this.getPhase()}}<span v-if="game.phase='abandon'">Abandon!</span><span v-else-if="game.phase='timeout'">Time Out!</span><span v-else>Game finished!</span></h1>-->
+    <h1  v-i18n>{{ constants.APP_NAME }} - {{this.getPhase()}}</h1>
+    <div class="game_end">
           <div v-if="isSoloGame()">
               <div v-if="game.isSoloModeWin">
                   <div class="game_end_success">
@@ -35,16 +36,27 @@
                   </div>
               </div>
           </div>
-          <div class="game_end_go_home">
+          <div v-if="!game.gameOptions.rankOption" class="game_end_go_home">
               <a href="/">
                   <Button size="big" type="back" />
                   <span  v-i18n>Go to main page</span>
               </a>
           </div>
-          <div v-if="!isSoloGame() || game.isSoloModeWin" class="game-end-winer-announcement">
+        <div v-else class="game_end_go_home">
+          <a href="/ranks">
+            <Button size="big" type="back" />
+            <span v-i18n>Go to Ranking</span>
+          </a>
+        </div>
+          <div v-if="(!isSoloGame() || game.isSoloModeWin) && game.phase==='end'" class="game-end-winer-announcement">
               <span v-for="p in getWinners()" :key="p.color"><span :class="'log-player ' + getEndGamePlayerRowColorClass(p.color)">{{ p.name }}</span></span> <span v-i18n>won!</span>
           </div>
+        <div v-if="game.phase==='timeout'" class="game-end-winer-announcement">
+          <span v-for="p in getTimeOutPlayer()" :key="p.color"><span :class="'log-player ' + getEndGamePlayerRowColorClass(p.color)">{{ p.name }}</span></span> <span class="text-red-500" v-i18n>time out!</span>
+        </div>
           <div class="game_end_victory_points">
+            <h2 v-if="game.phase==='timeout'" class="text-yellow-600"><span v-i18n>Time out player lost 2 Stars, other player got 1 star.</span></h2>
+            <h2 v-else-if="game.phase==='abandon'" class="text-yellow-600"><span v-i18n>All player abandoned the game. Tiers didn't change.</span></h2>
               <h2><span v-i18n>Victory points breakdown after</span> {{game.generation}} <span v-i18n>generations</span></h2>
               <table class="table game_end_table">
                   <thead>
@@ -90,7 +102,8 @@
                             <div>{{ p.megaCredits }}</div>
                           </td>
                           <td>
-                            <div v-if="game.gameOptions.showTimers" class="game-end-timer">{{ getTimer(p) }}</div>
+                            <div v-if="game.gameOptions.showTimers && !game.gameOptions.rankOption" class="game-end-timer">{{ getTimer(p) }}</div>
+                            <div v-if="game.gameOptions.showTimers && game.gameOptions.rankOption" :class="[checkTimeOut(p), 'game-end-timer']">{{ getCountDownTimer(p) }}</div>
                           </td>
                           <td><div class="game-end-timer">{{ p.actionsTakenThisGame }}</div></td>
                       </tr>
@@ -245,6 +258,16 @@ export default Vue.extend({
     getTimer(p: PublicPlayerModel): string {
       return Timer.toString(p.timer);
     },
+    checkTimeOut(p: PublicPlayerModel): string {
+      console.log('玩家是否超时：', p.name, Timer.getMinutes(p.timer, this.game.gameOptions.rankTimeLimit));
+      if (Timer.getMinutes(p.timer, this.game.gameOptions.rankTimeLimit) <= 0 && this.game.phase === 'timeout') { // 剩余时间小于5分钟，显示红色时间
+        return 'text-red-500';
+      }
+      return '';
+    },
+    getCountDownTimer(p: PublicPlayerModel): string {
+      return Timer.toString(p.timer, this.game.gameOptions.rankTimeLimit);
+    },
     getSortedPlayers(): Array<PublicPlayerModel> {
       const copy = [...this.viewModel.players];
       copy.sort(function(a:PublicPlayerModel, b:PublicPlayerModel) {
@@ -267,6 +290,13 @@ export default Vue.extend({
         }
       }
       return winners;
+    },
+    getPhase() {
+      console.log('phase: ', this.game.phase);
+      return this.game.phase;
+    },
+    getTimeOutPlayer() {
+      return this.players.filter((p) => this.checkTimeOut(p) === 'text-red-500');
     },
     isSoloGame(): boolean {
       return this.players.length === 1;

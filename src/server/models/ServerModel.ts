@@ -112,6 +112,7 @@ export class Server {
       venusScaleLevel: game.getVenusScaleLevel(),
       step: game.lastSaveId,
       corporationsToDraft: this.getCards(game.getPlayers()[0], game._corporationsToDraft),
+      quitPlayers: game.getQuitPlayers(),
     };
   }
 

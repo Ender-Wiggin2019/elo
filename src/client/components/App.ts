@@ -77,8 +77,7 @@ export const mainAppSettings = {
       'turmoil_parties': false,
     } as {[x: string]: boolean},
     game: undefined as SimpleGameModel | undefined,
-    // 天梯 TODO 测试时启动vip
-    isvip: true, // 页面加载时刷新isvip, 之后都可以根据这个值判断是否vip
+    isvip: false, // 页面加载时刷新isvip, 之后都可以根据这个值判断是否vip
     oscreen: 'empty', // 跳转赞助页面前的页面
     playerView: undefined,
     spectator: undefined,
@@ -101,7 +100,7 @@ export const mainAppSettings = {
     'register': Register,
     'my-games': MyGames,
     'donate': Donate,
-    'ranks': Ranks, // 天梯 TODO 增加排行榜
+    'ranks': Ranks, // 天梯排行榜
     // 这里引入是为了统一编译进去，渲染 card 并在card_HTML.spec.ts中获取html 保存到json中
     'cardHTML': CardHTML,
   },
@@ -165,7 +164,7 @@ export const mainAppSettings = {
             }
             app.playerkey++;
             if (
-              model.game.phase === 'end' &&
+              (model.game.phase === 'end' || model.game.phase === 'timeout' || model.game.phase === 'abandon') &&
               window.location.search.includes('&noredirect') === false
             ) {
               app.screen = 'the-end';

@@ -9,4 +9,6 @@ export enum Phase {
     PRELUDES = 'preludes',
     SOLAR = 'solar',
     INTERGENERATION = 'intergeneration',
+    TIMEOUT = 'timeout', // 天梯 有玩家超时，结束游戏
+    ABANDON = 'abandon', // 天梯 所有玩家放弃游戏，结束游戏
 }

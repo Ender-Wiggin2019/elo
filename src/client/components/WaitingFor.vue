@@ -88,7 +88,7 @@ export default Vue.extend({
           root.playerView = xhr.response;
           root.playerkey++;
           root.screen = 'player-home';
-          if (root?.playerView?.game.phase === 'end' && window.location.pathname !== '/the-end') {
+          if ((root?.playerView?.game.phase === 'end' || root?.playerView?.game.phase === 'abandon' || root?.playerView?.game.phase === 'timeout') && window.location.pathname !== '/the-end') {
             (window).location = (window).location; // eslint-disable-line no-self-assign
           }
         } else if (xhr.status === HTTPResponseCode.BAD_REQUEST && xhr.responseType === 'json') {

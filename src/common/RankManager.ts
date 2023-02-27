@@ -1,20 +1,3 @@
-
-// import * as http from 'http';
-// import {User} from './User';
-// import {Database} from './database/Database';
-// import {getDate, getDay, myId} from './UserUtil';
-// import {GameLoader} from './database/GameLoader';
-// import {generateRandomId} from './server-ids';
-// import {Server} from './models/ServerModel';
-// import {PlayerBlockModel} from '../common/models/PlayerModel';
-// import {Context} from './routes/IHandler';
-// import {UnexpectedInput} from './routes/UnexpectedInput';
-// import * as crypto from 'crypto';
-
-// import {Rating} from 'ts-trueskill';
-// import {rate} from 'ts-trueskill';
-
-
 export const DEFAULT_RANK_VALUE = 0;
 export const DEFAULT_MU = 25.000;
 export const DEFAULT_SIGMA = 8.333;
@@ -27,19 +10,6 @@ const rankValueChangeRules = [
   [2, 1, 0, -1],
   [2, 1, 0, -1, -2], // 5p
 ];
-// export class RankSystem {
-//   public getNewSkill(userResult: Array<UserRank>): Array<UserRank> {
-//     const updatedRanks = [];
-//     const ratings = userResult.map((userRank) => userRank.rankValue);
-//     const updatedRatings = rate(ratings);
-//     for (let i = 0; i < userResult.length; i++) {
-//       const updatedRank = new UserRank(userResult[i].user, userResult[i].rankValue, updatedRatings[i][0]);
-//       updatedRanks.push(updatedRank);
-//     }
-//     return updatedRanks;
-//   }
-// }
-
 
 export class UserRank {
   constructor(
@@ -64,12 +34,15 @@ export class UserRank {
   public setRankValueDeltaByPosition(playerNumber: number, playerPosition: number): void {
     const delta = this.getRankValueDeltaByPosition(playerNumber, playerPosition);
     const tier = this.getTier();
-    if (tier.maxStars === 3 && delta < 0) return; // 暂时hardcode, 前面的段位（maxStars为3）不降星
+
+    // 暂时hardcode, 前面的段位或者最高段位不降星
+    if ((tier.measurement === 'value' || tier.name === TierName.IRON || tier.name === TierName.BRONZE || tier.name === TierName.SILVER) && delta < 0) return;
     if (this.rankValue + delta >= 0) this.rankValue += delta; // 不低于0
   }
 
   public setRankValueDeltaByTimeOut(timeOut: boolean): void {
     const delta = timeOut ? DEFAULT_TIMEOUT_PENALTY : DEFAULT_TIMEOUT_COMPENSATE;
+    // 如果超时，即便前面的段位也会降星
     if (this.rankValue + delta >= 0) this.rankValue += delta; // 不低于0
   }
 
@@ -117,8 +90,8 @@ export const RankTiers = [
   new RankTier(TierName.IRON, 'star', 3),
   new RankTier(TierName.BRONZE, 'star', 3),
   new RankTier(TierName.SILVER, 'star', 3),
-  new RankTier(TierName.GOLD, 'star', 5),
-  new RankTier(TierName.PLATINUM, 'star', 5),
+  new RankTier(TierName.GOLD, 'star', 4),
+  new RankTier(TierName.PLATINUM, 'star', 4),
   new RankTier(TierName.DIAMOND, 'star', 5),
   new RankTier(TierName.MASTER, 'star', 5),
   new RankTier(TierName.GRANDMASTER, 'star', 5),

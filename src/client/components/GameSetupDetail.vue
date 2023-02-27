@@ -6,7 +6,7 @@
               <div v-else class="game-config generic" v-i18n>Off</div>
             </li>
             <li><div v-if="gameOptions.rankTimeLimit" class="setup-item text-yellow-600" v-i18n>Rank Mode Time Limit:</div>
-              <div class="game-config generic bg-yellow-600" v-i18n>{{gameOptions.rankTimeLimit+$t('Min per Player')}}</div>
+              <div class="game-config generic bg-yellow-600" v-i18n>{{gameOptions.rankTimeLimit+$t(' Min per Player')}}</div>
             </li>
             <li><div class="setup-item" v-i18n>Expansion:</div>
               <div v-if="gameOptions.venusNextExtension" class="create-game-expansion-icon expansion-icon-venus"></div>
@@ -41,8 +41,8 @@
               <div v-if="gameOptions.randomMA === RandomMAOptionType.NONE" class="game-config generic" v-i18n>Board-defined</div>
               <div v-if="gameOptions.randomMA === RandomMAOptionType.LIMITED" class="game-config generic" v-i18n>Randomized with limited synergy</div>
               <div v-if="gameOptions.randomMA === RandomMAOptionType.UNLIMITED" class="game-config generic" v-i18n>Full randomized</div>
-              <div v-if="gameOptions.venusNextExtension && gameOptions.includeVenusMA" class="game-config generic" v-18n>Venus Milestone/Award</div>
-              <div v-if="gameOptions.randomMA !== RandomMAOptionType.NONE && gameOptions.includeFanMA" class="game-config generic" v-18n>Include fan Milestones/Awards</div>
+              <div v-if="gameOptions.venusNextExtension && gameOptions.includeVenusMA" class="game-config generic" v-i18n>Venus Milestone/Award</div>
+              <div v-if="gameOptions.randomMA !== RandomMAOptionType.NONE && gameOptions.includeFanMA" class="game-config generic" v-i18n>Include fan Milestones/Awards</div>
             </li>
 
             <li v-if="playerNumber > 1">

@@ -40,4 +40,5 @@ export type GameModel = {
   turmoil: TurmoilModel | undefined;
   undoCount: number;
   venusScaleLevel: number;
+  quitPlayers: Array<Color>;
 }

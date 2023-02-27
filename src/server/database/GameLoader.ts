@@ -154,6 +154,7 @@ export class GameLoader implements IGameLoader {
   }
 
   private async loadFullGame(game: Game): Promise<void> {
+    console.log('game phase', game.phase); // 天梯 TEST
     const gameId = game.id;
     try {
       console.log(`loadFullGame ${gameId}`);

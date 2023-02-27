@@ -15,7 +15,7 @@ export class ApiWaitingFor extends Handler {
   }
 
   private timeToGo(player: Player): boolean {
-    return player.getWaitingFor() !== undefined || player.game.phase === Phase.END;
+    return player.getWaitingFor() !== undefined || (player.game.phase === Phase.END || player.game.phase === Phase.ABANDON || player.game.phase === Phase.TIMEOUT);
   }
 
   // When player is undefined, caller is a spectator.
