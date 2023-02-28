@@ -67,7 +67,7 @@ export class User {
     } else if (this.vipDate >= getDay()) {
       return 1;
     }
-    return 0;
+    return 2;
   }
 }
 
