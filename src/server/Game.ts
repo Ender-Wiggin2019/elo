@@ -2293,8 +2293,6 @@ export class Game implements Logger {
   }
 
   public shouldGoToTimeOutPhase() {
-    console.log('this.checkTimeOutPlayer() !== undefined', this.checkTimeOutPlayer() !== undefined);
-    console.log('((this.phase !== Phase.RESEARCH && this.phase !== Phase.INITIALDRAFTING) || this.generation !== 1)', ((this.phase !== Phase.RESEARCH && this.phase !== Phase.INITIALDRAFTING) || this.generation !== 1));
     // FIXME: 游戏在初始选卡时的计时器和选完卡打牌时的好像不一样，先多加几个条件确保不会在初始选卡时超时
     return this.isRankMode() && ((this.phase !== Phase.RESEARCH && this.phase !== Phase.INITIALDRAFTING) || this.generation !== 1) && this.checkTimeOutPlayer() !== undefined;
   }
