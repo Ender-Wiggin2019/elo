@@ -62,7 +62,7 @@ export class PostgreSQL implements IDatabase {
     // 天梯 新增`user_rank`表记录用户的排名
     await this.client.query('CREATE TABLE IF NOT EXISTS user_rank (id varchar not null, rank_value integer default 0, mu double, sigma double, activate integer default 1, PRIMARY KEY (id))');
     // 天梯 玩家数据表，用于保存段位的历史记录，和未来的数据分析 TODO: 未来如果做分析的话加上index
-    await this.client.query('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp(0) default now(), corporation text, position integer, player_score integer, rank_value integer, mu double, sigma double, is_rank integer, PRIMARY KEY (user_id, game_id))');
+    await this.client.query('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp(0) default now(), corporation text, position integer, player_score integer, rank_value integer, mu double, sigma double, is_rank integer, phase text, PRIMARY KEY (user_id, game_id))');
   }
 
   public async getPlayerCount(game_id: GameId): Promise<number> {
