@@ -1,8 +1,10 @@
 import {TierName} from '../rank/TierName';
 import {RankTiers} from '../rank/RankTiers';
 import {DEFAULT_TIMEOUT_COMPENSATE, DEFAULT_TIMEOUT_PENALTY} from '../rank/constants';
-import {RankTier, challengerStar} from '../rank/RankTier';
+import {RankTier} from '../rank/RankTier';
+import {challengerStar} from '../rank/RankTiers';
 import {rate, Rating} from 'ts-trueskill';
+
 const rankValueChangeRules = [
   [1, -1], // 2p
   [1, 0, -1],
@@ -31,7 +33,11 @@ export class UserRank {
   }
 
 
-  // 根据玩家人数更新玩家的分数，@param playerNumber: 玩家人数；@param playerPosition 结束游戏时的排位，从0开始
+  /**
+   * 根据玩家人数更新玩家的分数
+   * @param playerNumber: 玩家人数
+   * @param playerPosition 结束游戏时的排位，从0开始
+   */
   public getRankValueDeltaByPosition(playerNumber: number, playerPosition: number): number {
     const p = Math.max(playerNumber - 2, 0); // 避免小于0
     const pos = Math.min(playerPosition, rankValueChangeRules[p].length);

@@ -84,9 +84,9 @@ export class Timer {
     if (countDown > 0) elapsed = Math.max(countDown * 60 * 1000 - elapsed, 0); // 天梯 TODO: 考虑是否显示负数
     const elapsedDate = new Date(elapsed);
     if (elapsed >= 3600 * 1000) {
-      return elapsedDate.toISOString().substr(11, 8);
+      return elapsedDate.toISOString().slice(11, 19);
     }
-    return elapsedDate.toISOString().substr(14, 5);
+    return elapsedDate.toISOString().slice(14, 19);
   }
 
   // 获取分钟数 可以通过countDown设置倒计时

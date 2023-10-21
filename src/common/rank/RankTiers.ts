@@ -13,3 +13,12 @@ export const RankTiers = [
   new RankTier(TierName.GRANDMASTER, 'star', 5),
   new RankTier(TierName.CHALLENGER, 'value', Infinity),
 ];
+
+// 返回CHALLENGER需要的星星数量  33
+function getChallengerValue(): number {
+  return RankTiers.filter((rankTier) => rankTier.name !== TierName.CHALLENGER)
+    .reduce((res, currRankTier) => res + currRankTier.maxStars, 1);
+}
+
+
+export const challengerStar = getChallengerValue();
