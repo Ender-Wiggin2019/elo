@@ -1,4 +1,4 @@
-import {ICorporationCard} from '../corporation/ICorporationCard';
+import {ICorporationCard, isICorporationCard} from '../corporation/ICorporationCard';
 import {Player} from '../../Player';
 import {ICard, isIActionCard} from '../ICard';
 import {SelectCard} from '../../inputs/SelectCard';
@@ -49,7 +49,9 @@ export class Tyrell extends Card implements ICard, ICorporationCard {
       for (const playedCard of player.tableau) {
         if (isIActionCard(playedCard) &&
             playedCard.resourceType === undefined &&
-            playedCard.canAct(cardOwner)) {
+            playedCard.canAct(cardOwner) &&
+          (!isICorporationCard(playedCard) || playedCard.isUsed === undefined) // 不能复制限定技
+        ) {
           result.push(playedCard);
         }
       }
