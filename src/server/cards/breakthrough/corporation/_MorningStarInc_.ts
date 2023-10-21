@@ -19,8 +19,7 @@ export class _MorningStarInc_ extends MorningStarInc {
     return undefined;
   }
   public canAct(): boolean {
-    if (this.isUsed !== true) return true;
-    return false;
+    return !this.isUsed;
   }
   public action(player: Player) {
     player.production.add(Resource.MEGACREDITS, player.tags.count(Tag.VENUS));

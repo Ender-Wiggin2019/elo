@@ -13,8 +13,8 @@ export interface ICorporationCard extends ICard {
   cardCost?: number;
   onCorpCardPlayed?: (player: Player, card: ICorporationCard) => PlayerInput | undefined;
   onProductionPhase?: (player: Player) => undefined; // For Pristar
-  isDisabled?: boolean;
-  isUsed?: boolean;
+  isDisabled?: boolean; // 制药联盟的翻面
+  isUsed?: boolean; // 限定技
   serialize?(serialized: SerializedCard): void;
   deserialize?(serialized: SerializedCard): void;
 }
