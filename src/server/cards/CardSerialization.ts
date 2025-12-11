@@ -1,15 +1,37 @@
-import {newCorporationCard, newProjectCard} from '../createCard';
-import {isCeoCard} from './ceos/ICeoCard';
-import {IProjectCard} from './IProjectCard';
+import {newCard, newCorporationCard, newProjectCard} from '../createCard';
+import {IProjectCard, isIProjectCard} from './IProjectCard';
 import {isICloneTagCard} from './pathfinders/ICloneTagCard';
-import {SelfReplicatingRobots} from './promo/SelfReplicatingRobots';
 import {SerializedCard} from '../SerializedCard';
 import {CardType} from '../../common/cards/CardType';
 import {ICard} from './ICard';
 import {asArray} from '../../common/utils/utils';
-import {ICorporationCard} from './corporation/ICorporationCard';
+import {ICorporationCard, isICorporationCard} from './corporation/ICorporationCard';
+import {isPreludeCard} from './prelude/IPreludeCard';
+import {isCeoCard} from './ceos/ICeoCard';
+import {ProxyCard} from './ProxyCard';
 
-export function serializePlayedCard(card: ICard): SerializedCard {
+export function serializeCard(card: ICard): SerializedCard {
+  if (isICorporationCard(card)) {
+    return serializeCorporationCard(card);
+  } else if (isIProjectCard(card) || isPreludeCard(card) || isCeoCard(card) || card instanceof ProxyCard) {
+    return serializeProjectCard(card);
+  }
+  throw new Error('Unknown card type ' + card.type + ' for ' + card.name);
+}
+
+export function deserializeCard(element: SerializedCard): IProjectCard | ICorporationCard {
+  const card = newCard(element.name);
+  if (card === undefined) {
+    throw new Error(`Card ${element.name} not found`);
+  }
+  if (card.type === CardType.CORPORATION) {
+    return deserializeCorporationCard(element);
+  } else {
+    return deserializeProjectCard(element);
+  }
+}
+
+export function serializeProjectCard(card: ICard): SerializedCard {
   const serialized: SerializedCard = {
     name: card.name,
   };
@@ -26,23 +48,9 @@ export function serializePlayedCard(card: ICard): SerializedCard {
   if (card.generationUsed !== undefined) {
     serialized.generationUsed = card.generationUsed;
   }
-  if (card instanceof SelfReplicatingRobots) {
-    serialized.targetCards = card.targetCards.map((t) => {
-      return {
-        card: {name: t.name},
-        resourceCount: t.resourceCount,
-      };
-    });
-  }
 
   if (isICloneTagCard(card)) {
     serialized.cloneTag = card.cloneTag;
-  }
-  if (isCeoCard(card)) {
-    serialized.isDisabled = card.isDisabled;
-    if (card.opgActionIsActive !== undefined) {
-      serialized.opgActionIsActive = card.opgActionIsActive;
-    }
   }
 
   if (anyc.allTags !== undefined) {
@@ -63,6 +71,7 @@ export function serializePlayedCard(card: ICard): SerializedCard {
   if (card.data !== undefined) {
     serialized.data = card.data;
   }
+  card.serialize?.(serialized);
   return serialized;
 }
 
@@ -89,33 +98,26 @@ export function deserializeProjectCard(element: SerializedCard): IProjectCard {
   if (isICloneTagCard(card) && element.cloneTag !== undefined) {
     card.cloneTag = element.cloneTag;
   }
-  if (card instanceof SelfReplicatingRobots && element.targetCards !== undefined) {
-    card.targetCards = [];
-    element.targetCards.forEach((targetCard) => {
-      const foundTargetCard = newProjectCard(targetCard.card.name);
-      if (foundTargetCard !== undefined) {
-        foundTargetCard.resourceCount = targetCard.resourceCount;
-        card.targetCards.push(foundTargetCard);
-      } else {
-        console.warn('did not find card for SelfReplicatingRobots', targetCard);
-      }
-    });
+  if (element.bonusResource !== undefined) {
+    card.bonusResource = asArray(element.bonusResource);
   }
-  if (!(card instanceof SelfReplicatingRobots)) {
-    if (element.bonusResource !== undefined) {
-      card.bonusResource = asArray(element.bonusResource);
-    }
-  }
-  if (isCeoCard(card)) {
-    card.isDisabled = element.isDisabled;
-    if (element.opgActionIsActive !== undefined) {
-      card.opgActionIsActive = element.opgActionIsActive;
-    }
-  }
+  card.deserialize?.(element);
   return card;
 }
 
-export function deserializeCorpCard(element: SerializedCard):ICorporationCard | undefined {
+export function serializeCorporationCard(card: ICorporationCard): SerializedCard {
+  const serialized = {
+    name: card.name,
+    resourceCount: card.resourceCount,
+    isDisabled: false,
+    data: card.data,
+  };
+  card.serialize?.(serialized);
+  return serialized;
+}
+
+
+export function deserializeCorporationCard(element: SerializedCard):ICorporationCard {
   const corpCard = newCorporationCard(element.name);
   const corpJson : any = element;
   if (corpCard !== undefined) {
@@ -131,8 +133,13 @@ export function deserializeCorpCard(element: SerializedCard):ICorporationCard | 
     if (corpJson.isUsed !== undefined) {
       (corpCard as any).isUsed = Boolean(corpJson.isUsed);
     }
+    if (corpJson.data !== undefined) {
+      corpCard.data = corpJson.data;
+    }
   } else {
     console.warn('did not find card ', element);
+    throw new Error(`Card ${element.name} not found`);
   }
+  corpCard.deserialize?.(element);
   return corpCard;
 }

@@ -11,7 +11,7 @@ import {GameLoader} from '../../src/server/database/GameLoader';
 import {State} from '../../src/server/database/IGameLoader';
 use(chaiAsPromised);
 
-describe('ApiGameLogs', function() {
+describe('ApiGameLogs', () => {
   let scaffolding: RouteTestScaffolding;
   let res: MockResponse;
 

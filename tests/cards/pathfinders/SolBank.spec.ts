@@ -26,14 +26,17 @@ describe('SolBank', () => {
   let game: IGame;
 
   beforeEach(() => {
-    [game, player] = testGame(1, {coloniesExtension: true, turmoilExtension: true});
+    [game, player] = testGame(1, {coloniesExtension: true, turmoilExtension: true,skipInitialCardSelection:true});
+    runAllActions(game);
+    // Player is waiting for SelectColony. Popping it. The cast is just to ensure that if this changes, the test changes.
+    cast(player.popWaitingFor(), SelectColony);
     solBank = new SolBank();
     player.playCorporationCard(solBank);
     player.megaCredits = 100;
     game.colonies.push(new Luna());
 
-    // Player is waiting for SelectColony. Popping it. The cast is just to ensure that if this changes, the test changes.
-    cast(player.popWaitingFor(), SelectColony);
+    
+    
   });
 
   it('paying for project card', () => {
@@ -51,7 +54,7 @@ describe('SolBank', () => {
   });
 
   it('discounted card does not trigger', () => {
-    player.playedCards = [new IndenturedWorkers()];
+    player.playedCards.push(new IndenturedWorkers());
     player.lastCardPlayed = CardName.INDENTURED_WORKERS; // 8 MC discount
     player.cardsInHand = [new MicroMills()];
     const spctp = new SelectProjectCardToPlay(player);

@@ -1,10 +1,8 @@
-import {ICorporationCard} from '../corporation/ICorporationCard';
 import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {digit} from '../Options';
 import {CardResource} from '../../../common/CardResource';
 import {IPlayer} from '../../IPlayer';
-import {IProjectCard} from '../IProjectCard';
 import {Tag} from '../../../common/cards/Tag';
 import {Size} from '../../../common/cards/render/Size';
 import {ICard} from '../../cards/ICard';
@@ -35,11 +33,9 @@ export class ArkNova extends CorporationCard {
     });
   }
 
-  public override resourceCount = 2;
 
-
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    if (player.isCorporation(this.name)) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard) {
+    if (player.playedCards.has(this.name)) {
       for (const tag of card.tags) {
         if (tag === Tag.BUILDING || tag === Tag.CITY) {
           player.addResourceTo(this, {log: true});
@@ -48,10 +44,6 @@ export class ArkNova extends CorporationCard {
     }
   }
 
-  public onCorpCardPlayed(player: IPlayer, card: ICorporationCard) {
-    this.onCardPlayed(player, card as unknown as IProjectCard);
-    return undefined;
-  }
 
   public onResourceAdded(player: IPlayer, playedCard: ICard) {
     const resourceNum = 3;

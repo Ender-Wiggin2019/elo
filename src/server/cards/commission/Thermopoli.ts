@@ -24,13 +24,14 @@ export class Thermopoli extends CorporationCard {
       behavior: {
         turmoil: {influenceBonus: 1},
       },
+      initialActionText: 'Place two delegates in one party',
       metadata: {
         cardNumber: 'XB12',
         description: 'You start with 48 M€. As your first action, place two delegates in one party.',
         renderData: CardRenderer.builder((b) => {
           b.br.br;
           b.megacredits(48).nbsp.delegates(2);
-          b.corpBox('effect', (ce) => {
+          b.corpBox('action', (ce) => {
             ce.vSpace(Size.LARGE);
             // ce.effect('When you send a delegate ,you gain 1 heat.', (eb) => {
             //   eb.delegates(1).startEffect.heat(1);
@@ -54,12 +55,12 @@ export class Thermopoli extends CorporationCard {
 
   public action(player: IPlayer) {
     if (player.game.turmoil) {
-      const bonus = player.game.turmoil.getPlayerInfluence(player);
+      const bonus = player.game.turmoil.getInfluence(player);
       player.stock.add(Resource.HEAT, 2 * bonus, {log: true});
     }
   }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     if (player.game.turmoil) {
       const title = 'First action - Select where to send two delegates';
       player.game.defer(new SendDelegateToArea(player, title, {count: 2}));

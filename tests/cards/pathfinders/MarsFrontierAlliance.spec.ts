@@ -9,10 +9,11 @@ import {SponsoredMohole} from '../../../src/server/cards/turmoil/SponsoredMohole
 import {OrOptions} from '../../../src/server/inputs/OrOptions';
 import {addOcean} from '../../TestingUtils';
 import {Phase} from '../../../src/common/Phase';
-import {TestPlayer} from 'tests/TestPlayer';
+import {TestPlayer} from '../../TestPlayer';
 import {IGame} from '../../../src/server/IGame';
+import {PolicyId} from '../../../src/common/turmoil/Types';
 
-describe('MarsFrontierAlliance', function() {
+describe('MarsFrontierAlliance', () => {
   let card: MarsFrontierAlliance;
   let turmoil: Turmoil;
   let player: TestPlayer;
@@ -20,22 +21,19 @@ describe('MarsFrontierAlliance', function() {
 
   beforeEach(() => {
     card = new MarsFrontierAlliance();
-    [game, player] = testGame(1, {
-      pathfindersExpansion: true,
-      turmoilExtension: true,
-    });
+    [game, player] = testGame(1, {pathfindersExpansion: true, turmoilExtension: true});
     turmoil = game.turmoil!;
   });
 
-  it('Asks for allied company at game start', () => {
+  it('Asks for allied party at game start', () => {
     game.phase = Phase.INITIALDRAFTING;
     player.playCorporationCard(card);
     runAllActions(game);
     const selectParty = getWaitingFor(player);
-    expect(selectParty.options.length).to.equal(6);
+    expect(selectParty.options).has.length(6);
   });
 
-  it('New generation - switch of allied party', function() {
+  it('New generation - switch of allied party', () => {
     player.corporations.push(card);
     game.generation = 10;
 
@@ -55,7 +53,7 @@ describe('MarsFrontierAlliance', function() {
     runAllActions(game);
 
     const selectBonus: OrOptions = getWaitingFor(player);
-    expect(selectBonus.options.length).to.eq(2);
+    expect(selectBonus.options).has.length(2);
     player.process({type: 'or', index: 0, response: {type: 'option'}});
     expect(game.turmoil!.rulingParty).to.eq(reds);
     expect(player.alliedParty?.partyName).to.eq(unity.name);
@@ -107,14 +105,14 @@ describe('MarsFrontierAlliance', function() {
     const reds = game.turmoil!.getPartyByName(PartyName.REDS);
     player.setAlliedParty(reds);
     player.megaCredits = 3;
-    const tr = player.getTerraformRating();
+    const tr = player.terraformRating;
     addOcean(player);
     runNextAction(game);
-    expect(player.getTerraformRating()).to.equal(tr + 1);
+    expect(player.terraformRating).to.equal(tr + 1);
     expect(player.megaCredits).to.equal(3);
     player.megaCredits = 0;
     addOcean(player);
-    expect(player.getTerraformRating()).to.equal(tr + 2);
+    expect(player.terraformRating).to.equal(tr + 2);
   });
 
   it('Passive effect from Greens party should be applied', () => {
@@ -149,6 +147,18 @@ describe('MarsFrontierAlliance', function() {
     const availableActions = player.getActions();
     const scientistsAction = availableActions.options.filter((o) => o.title === scientists.policies[0].description);
     expect(scientistsAction).to.be.empty;
+  });
+
+  it('Mars First test', () => {
+    const marsFirst = turmoil.getPartyByName(PartyName.MARS);
+    player.setAlliedParty(marsFirst);
+
+    expect(player.alliedParty?.agenda.policyId).eq('mp01');
+
+    player.alliedParty!.agenda.policyId = 'mfp01' as PolicyId;
+    game = game.loadFromJSON(game.serialize());
+
+    expect(player.alliedParty?.agenda.policyId).eq('mp01');
   });
 });
 

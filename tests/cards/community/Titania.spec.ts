@@ -29,8 +29,8 @@ describe('Titania', () => {
   });
 
   it('Should trade + bonus', () => {
-    titania.colonies.push(player.id);
-    titania.colonies.push(player2.id);
+    titania.colonies.push(player);
+    titania.colonies.push(player2);
     player.megaCredits = 10;
     player2.megaCredits = 1;
     titania.trackPosition = 2;

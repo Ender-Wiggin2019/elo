@@ -7,11 +7,10 @@
  */
 import {Tag} from '../../../common/cards/Tag';
 import {IPlayer} from '../../IPlayer';
-import {ICorporationCard} from '../corporation/ICorporationCard';
 import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
-import {IProjectCard} from '../../cards/IProjectCard';
 import {CorporationCard} from '../corporation/CorporationCard';
+import {ICard} from '../ICard';
 
 export class IntegratedMicroorganisms extends CorporationCard {
   constructor() {
@@ -37,21 +36,13 @@ export class IntegratedMicroorganisms extends CorporationCard {
     });
   }
 
-  public override bespokePlay(player: IPlayer) {
-    this.effectResolve(player, this as IProjectCard);
-    return undefined;
-  }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     player.drawCard(2, {tag: Tag.MICROBE});
     return undefined;
   }
 
-  public onCorpCardPlayed(player: IPlayer, card:ICorporationCard) {
-    this.onCardPlayed(player, card as unknown as IProjectCard);
-    return undefined;
-  }
-  private effectResolve(player: IPlayer, card: IProjectCard) {
+  private effectResolve(player: IPlayer, card: ICard) {
     const microbeTags = player.tags.cardTagCount(card, Tag.MICROBE);
     for (let i = 0; i < microbeTags; i++) {
       player.drawCard(1);
@@ -80,8 +71,8 @@ export class IntegratedMicroorganisms extends CorporationCard {
     }
     return undefined;
   }
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    if (player.isCorporation(this.name)) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard) {
+    if (player.playedCards.has(this.name)) {
       this.effectResolve(player, card);
     }
   }

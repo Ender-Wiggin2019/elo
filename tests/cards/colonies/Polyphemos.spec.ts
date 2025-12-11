@@ -7,17 +7,17 @@ import {SelectInitialCards} from '../../../src/server/inputs/SelectInitialCards'
 import {SelectCard} from '../../../src/server/inputs/SelectCard';
 import {testGame} from '../../TestingUtils';
 
-describe('Polyphemos', function() {
-  it('Should play', function() {
+describe('Polyphemos', () => {
+  it('Should play', () => {
     const card = new Polyphemos();
     const card2 = new PowerPlant();
     const card3 = new BusinessNetwork();
     const [/* game*/, player] = testGame(1, {skipInitialCardSelection: false});
-    const pi = cast(player.getWaitingFor(), SelectInitialCards);
+    const pi = cast(player.popWaitingFor(), SelectInitialCards);
     pi.options[0].cb([card]);
     pi.options[1].cb([card2, card2]);
     pi.cb(undefined);
-
+    player.popWaitingFor();
     // 50 starting MC - 5 for each card select at the start (total: 10)
     expect(player.megaCredits).to.eq(40);
     expect(player.production.megacredits).to.eq(5);

@@ -23,17 +23,10 @@ export class CityStandardProject extends StandardProjectCard {
     });
   }
 
-  protected override discount(player: IPlayer): number {
-    if (player.getPlayedCard(CardName.PREFABRICATION_OF_HUMAN_HABITATS)) {
-      return 2 + super.discount(player);
-    }
-    return super.discount(player);
-  }
-
   public override canPayWith(player: IPlayer) {
-    if (player.getPlayedCard(CardName.PREFABRICATION_OF_HUMAN_HABITATS)) {
+    if (player.tableau.get(CardName.PREFABRICATION_OF_HUMAN_HABITATS)) {
       return {steel: true};
-    } else if (player.isCorporation(CardName._MINING_GUILD_)) {/* 矿业公司突破：标动城市可以用铁 */
+    } else if (player.playedCards.has(CardName._MINING_GUILD_)) {/* 矿业公司突破：标动城市可以用铁 */
       return {steel: true};
     } else {
       return {};

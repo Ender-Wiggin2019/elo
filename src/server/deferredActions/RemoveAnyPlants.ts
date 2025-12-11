@@ -21,7 +21,7 @@ export class RemoveAnyPlants extends DeferredAction {
     let qtyToRemove = Math.min(target.plants, this.count);
 
     // Botanical Experience hook.
-    if (target.cardIsInEffect(CardName.BOTANICAL_EXPERIENCE)) {
+    if (target.tableau.has(CardName.BOTANICAL_EXPERIENCE)) {
       qtyToRemove = Math.ceil(qtyToRemove / 2);
     }
 
@@ -33,12 +33,7 @@ export class RemoveAnyPlants extends DeferredAction {
 
     return new SelectOption(
       message, 'Remove plants').andThen(() => {
-      target.maybeBlockAttack(this.player, (proceed) => {
-        if (proceed === true) {
-          target.stock.deduct(Resource.PLANTS, qtyToRemove, {log: true, from: this.player});
-        }
-        return undefined;
-      });
+      target.attack(this.player, Resource.PLANTS, qtyToRemove, {log: true});
       return undefined;
     });
   }
@@ -67,12 +62,12 @@ export class RemoveAnyPlants extends DeferredAction {
       }
     }
 
-    const candidates = player.getOpponents().filter((p) => !p.plantsAreProtected() && p.plants > 0);
+    const candidates = player.opponents.filter((p) => !p.plantsAreProtected() && p.plants > 0);
     removalOptions.push(...candidates.map((target) => {
       let qtyToRemove = Math.min(target.plants, this.count);
 
       // Botanical Experience hook.
-      if (target.cardIsInEffect(CardName.BOTANICAL_EXPERIENCE)) {
+      if (target.tableau.has(CardName.BOTANICAL_EXPERIENCE)) {
         qtyToRemove = Math.ceil(qtyToRemove / 2);
       }
 
@@ -87,12 +82,7 @@ export class RemoveAnyPlants extends DeferredAction {
           buttonLabel: 'Remove plants',
           warnings: (target === player) ? ['removeOwnPlants'] : undefined,
         }).andThen(() => {
-        target.maybeBlockAttack(player, (proceed) => {
-          if (proceed === true) {
-            target.stock.deduct(Resource.PLANTS, qtyToRemove, {log: true, from: this.player});
-          }
-          return undefined;
-        });
+        target.attack(player, Resource.PLANTS, qtyToRemove, {log: true});
         return undefined;
       });
     }));
@@ -111,8 +101,6 @@ export class RemoveAnyPlants extends DeferredAction {
       removalOptions.push(option);
     }
 
-    const orOptions = new OrOptions(...removalOptions);
-    orOptions.title = this.title;
-    return orOptions;
+    return new OrOptions(...removalOptions).setTitle(this.title);
   }
 }

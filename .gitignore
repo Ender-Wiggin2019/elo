@@ -34,5 +34,6 @@ build/assets/index_ca.html
 
 # misc
 .gitconfig
-logs/
+./logs/
 /pnpm-lock.yaml
+/.cursorignore

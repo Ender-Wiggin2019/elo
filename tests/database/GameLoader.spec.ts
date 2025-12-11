@@ -110,7 +110,7 @@ describe('GameLoader', function() {
   //   const workingGetGames = Database.getInstance().getGames;
   //   Database.getInstance().getGames = () => Promise.resolve([{'gameId': 'gfoobar'}]);
   //   (GameLoader.getInstance() as GameLoader).reset();
-  //   const game1 = await GameLoader.getInstance().getByParticipantId(game.getPlayersInGenerationOrder()[0].id);
+  //   const game1 = await GameLoader.getInstance().getByParticipantId(game.playersInGenerationOrder[0].id);
   //   expect(game1).is.not.undefined;
   //   Database.getInstance().getGames = workingGetGames;
   // });
@@ -138,7 +138,7 @@ describe('GameLoader', function() {
   // });
 
   // it('gets player when it exists in database', function(done) {
-  //   const players = game.getPlayersInGenerationOrder();
+  //   const players = game.playersInGenerationOrder;
   //   GameLoader.getInstance().getByParticipantId(players[Math.floor(Math.random() * players.length)].id, (game1) => {
   //     try {
   //       expect(game1!.id).to.eq(game.id);
@@ -155,9 +155,9 @@ describe('GameLoader', function() {
     GameLoader.getInstance().add(game);
     GameLoader.getInstance().getGameById('galpha', (game1) => {
       actualGame1 = game1;
+      expect(actualGame1).eq(game);
+      game.id = 'gfoobar';
     });
-    expect(actualGame1).is.undefined;
-    game.id = 'gfoobar';
   });
 
 

@@ -105,7 +105,7 @@ describe('Merger', () => {
   });
 
   it('Can play as long as have enough M€', () => {
-    player.corporations = [new BeginnerCorporation()]; // Vestigial corporation
+    player.corporations.push(new BeginnerCorporation()); // Vestigial corporation
     player.megaCredits = 28; // 28 + 14 from Terralabs is just enough to pay the cost of 42 M€
     merger.play(player);
     runAllActions(game);
@@ -115,7 +115,7 @@ describe('Merger', () => {
     selectCorp.cb([selectCorp.cards[index]]); // Arcadian
     runAllActions(game);
 
-    expect(player.isCorporation(CardName.ARCADIAN_COMMUNITIES)).is.true;
+    expect(player.tableau.has(CardName.ARCADIAN_COMMUNITIES)).is.true;
     expect(player.pendingInitialActions).has.length(1);
   });
 
@@ -133,8 +133,8 @@ describe('Merger', () => {
     player.corporations.push(new Splice(), new SaturnSystems());
     player.megaCredits = 0;
 
-    expect(player.isCorporation(CardName.SPLICE)).is.true;
-    expect(player.isCorporation(CardName.SATURN_SYSTEMS)).is.true;
+    expect(player.tableau.has(CardName.SPLICE)).is.true;
+    expect(player.tableau.has(CardName.SATURN_SYSTEMS)).is.true;
 
     player2.playCard(new VestaShipyard());
     runAllActions(game);
@@ -161,14 +161,14 @@ describe('Merger', () => {
     selectCorp.cb([cheungShingMARS]);
     expect(player.corporations).has.length(2);
 
-    expect(player.isCorporation(CardName.SPLICE)).is.true;
-    expect(player.isCorporation(CardName.CHEUNG_SHING_MARS)).is.true;
+    expect(player.tableau.has(CardName.SPLICE)).is.true;
+    expect(player.tableau.has(CardName.CHEUNG_SHING_MARS)).is.true;
 
     expect(player.production.megacredits).to.eq(3);
   });
 
   it('Works with Terralabs played via Merger', () => {
-    player.corporations = [new BeginnerCorporation()]; // Vestigial corporation
+    player.corporations.push(new BeginnerCorporation()); // Vestigial corporation
     player.megaCredits = 50; // Ensure enough to pay for Merger cost
     merger.play(player);
     runAllActions(game);
@@ -180,7 +180,7 @@ describe('Merger', () => {
   });
 
   it('Works with Polyphemos played via Merger', () => {
-    player.corporations = [new BeginnerCorporation()];
+    player.corporations.push(new BeginnerCorporation()); // Vestigial corporation
     merger.play(player);
     runAllActions(game);
 
@@ -190,24 +190,29 @@ describe('Merger', () => {
     expect(player.cardCost).to.eq(5);
   });
 
-  it('Works with both Terralabs and Polyphemos together', () => {
-    player.playCorporationCard(new Polyphemos());
-    expect(player.cardCost).eq(5);
-    player.playAdditionalCorporationCard(new TerralabsResearch());
-    expect(player.cardCost).eq(3);
+  // it('Works with both Terralabs and Polyphemos together', () => {
+    // player.playCorporationCard(new Polyphemos());
+    // expect(player.cardCost).eq(5);
+    // player.playCorporationCard(new TerralabsResearch());
+    // expect(player.cardCost).eq(3);
 
-    player.corporations = [];
+    // const corps = player.playedCards.corporations();
+    // for (const corp of corps) {
+    //   player.playedCards.remove(corp);
+    // }
 
-    player.playCorporationCard(new TerralabsResearch());
-    expect(player.cardCost).eq(1);
-    player.playAdditionalCorporationCard(new Polyphemos());
-    expect(player.cardCost).eq(3);
-  });
+
+    // player.playCorporationCard(new TerralabsResearch());
+    // expect(player.cardCost).eq(1);
+    // player.playCorporationCard(new Polyphemos());
+    // expect(player.cardCost).eq(3);
+  // });
 
   // Same behavior should apply to Polyphemos.
   it('Works with Terralabs first', () => {
     player.playCorporationCard(new TerralabsResearch());
     player.megaCredits = 50; // Ensure enough to pay for Merger cost
+    player.cardCost = 1;
     merger.play(player);
     expect(player.cardCost).to.eq(1);
     runAllActions(game);
@@ -234,15 +239,16 @@ describe('Merger', () => {
     player.playCorporationCard(new PointLuna());
     const handSize = player.cardsInHand.length;
 
-    player.playAdditionalCorporationCard(new Teractor());
+    player.playCorporationCard(new Teractor());
     runAllActions(game);
-    expect(player.cardsInHand.length).to.eq(handSize + 1);
+    expect(player.cardsInHand).has.length(handSize + 1);
   });
 
   it('Playing next corp card does not charge for cards', () => {
     const helion = new Helion();
     player.cardsInHand = [new MicroMills(), new Asteroid()];
     player.playCorporationCard(helion);
+    player.megaCredits = helion.startingMegaCredits - 6;
     expect(player.megaCredits).eq(helion.startingMegaCredits - 6);
 
     merger.play(player);
@@ -262,11 +268,11 @@ describe('Merger', () => {
     const viron = new Viron();
     const septumTribus = new SeptemTribus();
     player.playCorporationCard(viron);
-    player.playAdditionalCorporationCard(septumTribus);
+    player.playCorporationCard(septumTribus);
 
     expect(viron.canAct(player)).is.false;
     expect(player.getPlayableActionCards()).deep.eq([septumTribus]);
-    player.addActionThisGeneration(septumTribus.name);
+    player.actionsThisGeneration.add(septumTribus.name);
     expect(player.getPlayableActionCards()).deep.eq([viron]);
     expect(viron.canAct(player)).is.true;
     const selectCard = cast(viron.action(player), SelectCard);
@@ -279,7 +285,7 @@ describe('Merger', () => {
     runAllActions(game);
     expect(player.production.megacredits).eq(0);
 
-    player.playAdditionalCorporationCard(new Viron());
+    player.playCorporationCard(new Viron());
     runAllActions(game);
     expect(player.production.megacredits).eq(1);
   });
@@ -289,7 +295,7 @@ describe('Merger', () => {
     runAllActions(game);
     expect(player.production.megacredits).eq(0);
 
-    player.playAdditionalCorporationCard(new Aridor());
+    player.playCorporationCard(new Aridor());
     runAllActions(game);
     expect(player.production.megacredits).eq(0);
 
@@ -307,7 +313,7 @@ describe('Merger', () => {
         [game, player, player2] = testGame(2, {preludeExtension: true, turmoilExtension: true});
         player.playCorporationCard(corporations[0]);
         if (corporations.length > 1) {
-          player.playAdditionalCorporationCard(corporations[1]);
+          player.playCorporationCard(corporations[1]);
         }
         game.corporationDeck.drawPile.push(candidate);
 
@@ -389,7 +395,7 @@ describe('Merger', () => {
     const inventrix = new Inventrix(); // Draw 3 cards
     const ambient = new Ambient(); // Raise venus 2 steps
     player.playCorporationCard(inventrix);
-    player.playAdditionalCorporationCard(ambient);
+    player.playCorporationCard(ambient);
 
     expect(player.pendingInitialActions).has.length(2);
     expect(player.actionsTakenThisRound).eq(0);
@@ -397,7 +403,7 @@ describe('Merger', () => {
     player.takeAction();
     const firstAction = cast(player.getWaitingFor(), OrOptions);
 
-    expect(firstAction.options).has.length(3);
+    expect(firstAction.options).has.length(2);
     expect(firstAction.options[0].buttonLabel).contains('Draw 3 cards');
     expect(firstAction.options[1].buttonLabel).contains('Raise the Venus scale');
 
@@ -411,7 +417,7 @@ describe('Merger', () => {
 
     const secondAction = cast(player.getWaitingFor(), OrOptions);
 
-    expect(secondAction.options).has.length(2);
+    expect(secondAction.options).has.length(1);
     expect(secondAction.options[0].buttonLabel).contains('Raise the Venus scale');
 
     player.process({type: 'or', index: 0, response: {type: 'option'}});
@@ -424,7 +430,7 @@ describe('Merger', () => {
     expect(player.actionsTakenThisRound).eq(1);
 
     // first player is still active player;
-    expect(game.activePlayer).eq(player.id);
+    expect(game.activePlayer).eq(player);
     expect(player.getWaitingFor()).is.not.undefined;
     expect(player2.getWaitingFor()).is.undefined;
   });

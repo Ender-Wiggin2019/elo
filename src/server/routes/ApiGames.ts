@@ -59,7 +59,7 @@ export class ApiGames extends Handler {
     answer.sort((a: any, b: any) => {
       return a.updatetime > b.updatetime ? -1 : (a.updatetime === b.updatetime ? 0 : 1);
     });
-    responses.writeJson(res, answer);
+    responses.writeJson(res, ctx, answer);
     return Promise.resolve();
   }
 }

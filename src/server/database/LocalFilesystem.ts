@@ -24,14 +24,15 @@ export class LocalFilesystem implements IDatabase {
 
   }
 
-  private filename(gameId: string): string {
+  private filename(gameId: GameId): string {
     return path.resolve(this.dbFolder, `${gameId}.json`);
   }
 
-  private historyFilename(gameId: string, saveId: number) {
+  private historyFilename(gameId: GameId, saveId: number) {
     const saveIdString = saveId.toString().padStart(5, '0');
     return path.resolve(this.historyFolder, `${gameId}-${saveIdString}.json`);
   }
+
   saveSerializedGame(serializedGame: SerializedGame): void {
     const text = JSON.stringify(serializedGame, null, 2);
     fs.writeFileSync(this.filename(serializedGame.id), text);
@@ -184,6 +185,7 @@ export class LocalFilesystem implements IDatabase {
   updateUserRank(): Promise<void> {
     throw new Error('Method not implemented.');
   }
+
   saveUserGameResult(): Promise<void> {
     throw new Error('Method not implemented.');
   }

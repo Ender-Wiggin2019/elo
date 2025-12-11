@@ -52,7 +52,7 @@ export class Rda extends CorporationCard {
     });
   }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     return new SelectSpace('Select space on mars for city tile', player.game.board.getAvailableSpacesForCity(player) ).andThen((space: Space) => {
       player.game.addCity(player, space);
       player.game.log('${0} placed a City tile', (b) => b.player(player));

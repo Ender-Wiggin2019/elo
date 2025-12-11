@@ -7,9 +7,11 @@
  */
 import {AerospaceMission} from './AerospaceMission';
 import {AgricolaInc} from './AgricolaInc';
+import {Athena} from './Athena';
 import {ByElection} from './ByElection';
 import {CardName} from '../../../common/cards/CardName';
 import {CuriosityII} from './CuriosityII';
+import {Eris} from './Eris';
 import {ExecutiveOrder} from './ExecutiveOrder';
 import {GlobalEventName} from '../../../common/turmoil/globalEvents/GlobalEventName';
 import {Incite} from './Incite';
@@ -49,6 +51,8 @@ export const COMMUNITY_CARD_MANIFEST = new ModuleManifest({
     [CardName.ARISTARCHUS]: {Factory: Aristarchus},
     [CardName.LABOUR_UNION]: {Factory: LabourUnion},
     [CardName.UNITED_NATIONS_MISSION_ONE]: {Factory: UnitedNationsMissionOne},
+    [CardName.ERIS]: {Factory: Eris, compatibility: 'ares'},
+    [CardName.ATHENA]: {Factory: Athena, compatibility: 'ares'},
   },
   preludeCards: {
     // 粉丝扩的部分前序跟pf扩重合 先注释

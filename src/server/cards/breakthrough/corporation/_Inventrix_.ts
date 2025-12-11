@@ -29,7 +29,7 @@ export class _Inventrix_ extends CorporationCard {
     });
   }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     player.drawCard(3);
     return undefined;
   }

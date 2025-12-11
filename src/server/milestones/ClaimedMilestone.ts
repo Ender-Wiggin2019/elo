@@ -30,7 +30,7 @@ export function deserializeClaimedMilestones(
   milestones: Array<IMilestone>): Array<ClaimedMilestone> {
   return claimedMilestones.map((element: SerializedClaimedMilestone) => {
     const milestoneName = maybeRenamedMilestone(element.milestone.name);
-   
+
     const player = players.find((player) => player.id === element.player.id);
     const milestone = milestones.find((milestone) => milestone.name === milestoneName);
     if (player && milestone) {

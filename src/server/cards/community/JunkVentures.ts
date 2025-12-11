@@ -4,8 +4,9 @@ import {CardName} from '../../../common/cards/CardName';
 import {Size} from '../../../common/cards/render/Size';
 import {CorporationCard} from '../corporation/CorporationCard';
 import {ChooseCards} from '../../deferredActions/ChooseCards';
+import {ICorporationCard} from '../corporation/ICorporationCard';
 
-export class JunkVentures extends CorporationCard {
+export class JunkVentures extends CorporationCard implements ICorporationCard {
   constructor() {
     super({
       name: CardName.JUNK_VENTURES,
@@ -27,7 +28,7 @@ export class JunkVentures extends CorporationCard {
   }
 
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     const cards = player.game.projectDeck.drawN(player.game, 3);
     for (const card of cards) {
       player.game.projectDeck.discard(card);

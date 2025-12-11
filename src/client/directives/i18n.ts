@@ -43,6 +43,7 @@ export function translateMessage(message: Message): string {
 }
 
 let translated: Set<string> | undefined;
+let logtran = true;
 export function translateText(englishText: string): string {
   let translatedText = englishText;
   const lang = getPreferences().lang || 'cn';
@@ -81,7 +82,9 @@ export function translateText(englishText: string): string {
     }
     // 转小写匹配
     if (translatedText === undefined && temp.length > 10 && temp !== temp.toLocaleLowerCase() ) {
+      logtran = false;
       const t = translateText(temp.toLocaleLowerCase());
+      logtran = true;
       if (t !== temp.toLocaleLowerCase()) {
         translatedText = t;
       }
@@ -100,7 +103,7 @@ export function translateText(englishText: string): string {
         if (translations.hasOwnProperty(k)) translated.add(translations[k]);
       }
     }
-    if (!translated.has(englishText)) {
+    if (!translated.has(englishText) && logtran) {
       translated.add(englishText);// 避免重复打印
       console.log(`${lang} - please translate: "${englishText}"`);
     }
@@ -128,23 +131,28 @@ function normalizeText(text: string): string {
   return text.replace(/[\n\r]/g, '').replace(/[ ]+/g, ' ').trim();
 }
 
-function translateChildren(node: Node) {
+function translateChildren(node: Node, params: string[] | undefined) {
   for (let i = 0, length = node.childNodes.length; i < length; i++) {
     const child = node.childNodes[i];
     if (child.nodeType === Node.TEXT_NODE) {
       const text = child as Text;
-      const translatedText = translateText(text.data);
+      const translatedText = params ? translateTextWithParams(text.data, params) : translateText(text.data);
       if (translatedText !== text.data) {
         text.data = translatedText;
       }
     } else {
-      translateChildren(child);
+      if (child.nodeType === Node.ELEMENT_NODE && (child as HTMLElement).getAttribute('tm-has-i18n') === 'true') continue;
+      translateChildren(child, params);
     }
   }
 }
 
-export function translateTextNode(el: HTMLElement) {
-  translateChildren(el);
+export function translateTextNode(el: HTMLElement, binding: any) {
+  let params: string[] | undefined = undefined;
+  if (binding?.value) {
+    params = binding.value instanceof Array ? binding.value : [binding.value];
+  }
+  translateChildren(el, params);
 }
 
 export const $t = function(msg: string | Message | number | undefined) {

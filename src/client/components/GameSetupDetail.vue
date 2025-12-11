@@ -9,21 +9,21 @@
               <div v-if="gameOptions.rankTimeLimit && gameOptions.rankOption"  class="bg-yellow-600 game-config generic" v-i18n>{{gameOptions.rankTimeLimit + $t(' + every generation ') + gameOptions.rankTimePerGeneration + $t(' Min per Player')}}</div>
             </li>
             <li><div class="setup-item" v-i18n>Expansion:</div>
-              <div v-if="gameOptions.venusNextExtension" class="create-game-expansion-icon expansion-icon-venus"></div>
-              <div v-if="gameOptions.preludeExtension" class="create-game-expansion-icon expansion-icon-prelude"></div>
-              <div v-if="gameOptions.prelude2Expansion" class="create-game-expansion-icon expansion-icon-prelude2"></div>
-              <div v-if="gameOptions.coloniesExtension" class="create-game-expansion-icon expansion-icon-colony"></div>
-              <div v-if="gameOptions.turmoilExtension" class="create-game-expansion-icon expansion-icon-turmoil"></div>
-              <div v-if="gameOptions.promoCardsOption" class="create-game-expansion-icon expansion-icon-promo"></div>
-              <div v-if="gameOptions.aresExtension" class="create-game-expansion-icon expansion-icon-ares"></div>
-              <div v-if="gameOptions.moonExpansion" class="create-game-expansion-icon expansion-icon-themoon"></div>
-              <div v-if="gameOptions.pathfindersExpansion" class="create-game-expansion-icon expansion-icon-pathfinders"></div>
-              <div v-if="gameOptions.communityCardsOption" class="create-game-expansion-icon expansion-icon-community"></div>
-              <div v-if="gameOptions.erosCardsOption" class="create-game-expansion-icon expansion-icon-eros"></div>
-              <div v-if="gameOptions.commissionCardsOption" class="create-game-expansion-icon expansion-icon-commission"></div>
+              <div v-if="gameOptions.expansions.venus" class="create-game-expansion-icon expansion-icon-venus"></div>
+              <div v-if="gameOptions.expansions.prelude" class="create-game-expansion-icon expansion-icon-prelude"></div>
+              <div v-if="gameOptions.expansions.prelude2" class="create-game-expansion-icon expansion-icon-prelude2"></div>
+              <div v-if="gameOptions.expansions.colonies" class="create-game-expansion-icon expansion-icon-colony"></div>
+              <div v-if="gameOptions.expansions.turmoil" class="create-game-expansion-icon expansion-icon-turmoil"></div>
+              <div v-if="gameOptions.expansions.promo" class="create-game-expansion-icon expansion-icon-promo"></div>
+              <div v-if="gameOptions.expansions.ares" class="create-game-expansion-icon expansion-icon-ares"></div>
+              <div v-if="gameOptions.expansions.moon" class="create-game-expansion-icon expansion-icon-themoon"></div>
+              <div v-if="gameOptions.expansions.pathfinders" class="create-game-expansion-icon expansion-icon-pathfinders"></div>
+              <div v-if="gameOptions.expansions.community" class="create-game-expansion-icon expansion-icon-community"></div>
+              <div v-if="gameOptions.expansions.eros" class="create-game-expansion-icon expansion-icon-eros"></div>
+              <div v-if="gameOptions.expansions.commission" class="create-game-expansion-icon expansion-icon-commission"></div>
               <div v-if="isPoliticalAgendasOn" class="create-game-expansion-icon expansion-icon-agendas"></div>
-              <div v-if="gameOptions.ceoExtension" class="create-game-expansion-icon expansion-icon-ceo"></div>
-              <div v-if="gameOptions.underworldExpansion" class="create-game-expansion-icon expansion-icon-underworld"></div>
+              <div v-if="gameOptions.expansions.ceo" class="create-game-expansion-icon expansion-icon-ceo"></div>
+              <div v-if="gameOptions.expansions.underworld" class="create-game-expansion-icon expansion-icon-underworld"></div>
             </li>
 
             <li><div class="setup-item" v-i18n>Board:</div>
@@ -45,7 +45,6 @@
               <div v-if="gameOptions.randomMA === RandomMAOptionType.NONE" class="game-config generic" v-i18n>Board-defined</div>
               <div v-if="gameOptions.randomMA === RandomMAOptionType.LIMITED" class="game-config generic" v-i18n>Randomized with limited synergy</div>
               <div v-if="gameOptions.randomMA === RandomMAOptionType.UNLIMITED" class="game-config generic" v-i18n>Full randomized</div>
-              <div v-if="gameOptions.venusNextExtension && gameOptions.includeVenusMA" class="game-config generic" v-i18n>Venus Milestone/Award</div>
               <div v-if="gameOptions.randomMA !== RandomMAOptionType.NONE && gameOptions.includeFanMA" class="game-config generic" v-i18n>Include fan Milestones/Awards</div>
             </li>
 
@@ -63,7 +62,7 @@
               <span>{{escapeVelocityDescription}}</span>
             </li>
 
-            <li v-if="gameOptions.turmoilExtension && gameOptions.removeNegativeGlobalEventsOption">
+            <li v-if="gameOptions.expansions.turmoil && gameOptions.removeNegativeGlobalEventsOption">
               <div class="setup-item" v-i18n>Turmoil:</div>
               <div class="game-config generic" v-i18n>No negative Turmoil event</div>
             </li>
@@ -84,7 +83,7 @@
               <div v-if="gameOptions.breakthrough" class="game-config generic" v-i18n>BreakThrough</div>
               <div v-if="gameOptions.doubleCorp" class="game-config generic" v-i18n>Double Corp</div>
             </li>
-            <li v-if="gameOptions.twoCorpsVariant"><div class="setup-item" v-i18n>Merger</div></li>
+            <!-- <li v-if="gameOptions.twoCorpsVariant"><div class="setup-item" v-i18n>Merger</div></li> -->
             <li v-if="gameOptions.bannedCards.length > 0"><div class="setup-item" v-i18n>Banned cards:</div>{{ gameOptions.bannedCards.join(', ') }}</li>
           </ul>
         </div>
@@ -95,9 +94,8 @@
 import Vue from 'vue';
 import {BoardName} from '@/common/boards/BoardName';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
-import {AgendaStyle} from '@/common/turmoil/Types';
 import {translateTextWithParams} from '@/client/directives/i18n';
-import {GameOptions} from '../../server/game/GameOptions';
+import {GameOptionsModel} from '../../common/models/GameOptionsModel';
 
 const boardColorClass: Record<BoardName, string> = {
   [BoardName.THARSIS]: 'game-config board-tharsis map',
@@ -119,16 +117,15 @@ export default Vue.extend({
       type: Number,
     },
     gameOptions: {
-      type: Object as () => GameOptions,
+      type: Object as () => GameOptionsModel,
     },
     lastSoloGeneration: {
       type: Number,
     },
   },
   computed: {
-
     isPoliticalAgendasOn(): boolean {
-      return (this.gameOptions.politicalAgendasExtension !== AgendaStyle.STANDARD);
+      return (this.gameOptions.politicalAgendasExtension !== 'Standard');
     },
     boardColorClass(): string {
       return boardColorClass[this.gameOptions.boardName];

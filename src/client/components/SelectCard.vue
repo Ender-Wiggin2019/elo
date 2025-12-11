@@ -16,7 +16,8 @@
         </label>
         <div v-if="hasCardWarning()" class="card-warning">{{ $t(warning) }}</div>
         <warnings-component :warnings="warnings"></warnings-component>
-        <div v-if="showsave === true" class="nofloat">
+        <!-- 部分卡牌会覆盖确认按钮， my-4（margin-top）把按钮下移-->
+        <div v-if="showsave === true" class="nofloat my-4">
         <AppButton :disabled="disabled()" type="submit" @click="saveData" :title="buttonLabel()" />
             <AppButton :disabled="isOptionalToManyCards && cardsSelected() > 0" v-if="isOptionalToManyCards" @click="saveData" type="submit" :title="$t('Skip this action')" />
         </div>
@@ -125,29 +126,22 @@ export default Vue.extend({
       }
       return cards;
     },
+    getData(): Array<CardName> {
+      return Array.isArray(this.$data.cards) ? this.$data.cards.map((card) => card.name) : [this.$data.cards.name];
+    },
     hasCardWarning() {
       // This is pretty clunky, to be honest.
       if (Array.isArray(this.cards)) {
         if (this.cards.length === 1) {
           this.warnings = this.cards[0].warnings;
-          if (this.cards[0].warning !== undefined) {
-            this.warning = this.cards[0].warning;
-            return true;
-          }
         }
         return false;
       } else if (typeof this.cards === 'object') {
         this.warnings = this.cards.warnings;
-        if (this.cards.warning !== undefined) {
-          this.warning = this.cards.warning;
-          return true;
-        }
       }
       return false;
     },
-    getData(): Array<CardName> {
-      return Array.isArray(this.$data.cards) ? this.$data.cards.map((card) => card.name) : [this.$data.cards.name];
-    },
+
     canSave() {
       const len = this.getData().length;
       if (len > this.playerinput.min) {
@@ -180,7 +174,7 @@ export default Vue.extend({
       return undefined;
     },
     getOwner(card: CardModel): Owner {
-      return this.owners.get(card.name) ?? {name: 'unknown', color: Color.NEUTRAL};
+      return this.owners.get(card.name) ?? {name: 'unknown', color: 'neutral'};
     },
     isCardActivated(card: CardModel): boolean {
       // Copied from PlayerMixin.

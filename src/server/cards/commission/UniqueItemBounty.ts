@@ -32,7 +32,7 @@ export class UniqueItemBounty extends Card implements IProjectCard {
         renderData: CardRenderer.builder((b) => {
           b.wild(1).asterix().colon().text('3X').heat(1).slash().text('2X').plants(1);
         }),
-        description: `你每有1种非标准资源，拿2叶或3热 (最多${MAX_COUNT})`,
+        description: `你每有1种非标准资源，拿2叶或3热 (最多计算${MAX_COUNT}种非标准资源)`,
       },
     });
   }
@@ -40,8 +40,8 @@ export class UniqueItemBounty extends Card implements IProjectCard {
   public override bespokePlay(player: IPlayer) {
     const nonStandardResources = new Set(player.getCardsWithResources().map((card) => card.resourceType));
     let count = nonStandardResources.size;
-    count = Math.max(count, MAX_COUNT);
-    if (count > 1) {
+    count = Math.min(count, MAX_COUNT);
+    if (count >= 1) {
       const heatCount = 3 * count;
       const plantCount = 2 * count;
       const options = new OrOptions(

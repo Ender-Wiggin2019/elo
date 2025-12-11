@@ -11,7 +11,8 @@ import {PathfindersModel} from './PathfindersModel';
 import {SpectatorId} from '../Types';
 import {ColonyName} from '../colonies/ColonyName';
 import {GlobalParameter} from '../GlobalParameter';
-import {GameOptions} from '../../server/game/GameOptions';
+import {Tag} from '../cards/Tag';
+import {GameOptionsModel} from './GameOptionsModel';
 
 // Common data about a game not assocaited with a player (eg the temperature.)
 export type GameModel = {
@@ -23,7 +24,7 @@ export type GameModel = {
   expectedPurgeTimeMs: number;
   experimentalReset?: boolean;
   gameAge: number;
-  gameOptions: GameOptions;
+  gameOptions: GameOptionsModel;
   generation: number;
   globalsPerGeneration: ReadonlyArray<Partial<Record<GlobalParameter, number>>>,
   isSoloModeWin: boolean;
@@ -38,6 +39,7 @@ export type GameModel = {
   spaces: ReadonlyArray<SpaceModel>;
   spectatorId?: SpectatorId;
   step: number;
+  tags: ReadonlyArray<Tag>;
   temperature: number;
   isTerraformed: boolean;
   turmoil: TurmoilModel | undefined;

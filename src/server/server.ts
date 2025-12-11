@@ -83,6 +83,9 @@ export const server = createServer();
 //       metrics.startDatabase.set(v.duration);
 //     });
 
+// Initialize the session manager after initializing the database.
+// await SessionManager.getInstance().initialize();
+
 GameLoader.getInstance().start(() => {
   console.log(`Starting ${raw_settings.head}, built at ${raw_settings.builtAt}`);
 

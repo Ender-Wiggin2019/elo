@@ -9,6 +9,7 @@ import {IPlayer} from '../../IPlayer';
 import {CardResource} from '../../../common/CardResource';
 import {SelectCard} from '../../inputs/SelectCard';
 import {Resource} from '../../../common/Resource';
+import {SimpleDeferredAction} from '../../deferredActions/DeferredAction';
 
 export class SoilEnrichment extends Card implements IProjectCard {
   constructor() {
@@ -36,13 +37,16 @@ export class SoilEnrichment extends Card implements IProjectCard {
     return this.eligibleCards(player).length > 0;
   }
 
-  public override play(player: IPlayer) {
-    return new SelectCard('Select card to remove 1 microbe from', 'Select', this.eligibleCards(player))
-      .andThen(([card]) => {
-        player.removeResourceFrom(card);
-        player.stock.add(Resource.PLANTS, 5);
-        player.game.log('${0} removed 1 microbe from ${1} to gain 5 plants', (b) => b.player(player).card(card));
-        return undefined;
-      });
+  public override bespokePlay(player: IPlayer) {
+    player.game.defer(new SimpleDeferredAction(player, () => {
+      return new SelectCard('Select card to remove 1 microbe from', 'Select', this.eligibleCards(player))
+        .andThen(([card]) => {
+          player.removeResourceFrom(card);
+          player.stock.add(Resource.PLANTS, 5);
+          player.game.log('${0} removed 1 microbe from ${1} to gain 5 plants', (b) => b.player(player).card(card));
+          return undefined;
+        });
+    }));
+    return undefined;
   }
 }

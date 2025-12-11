@@ -7,6 +7,9 @@ import {Request} from '../Request';
 import {Response} from '../Response';
 import {IGame} from '../IGame';
 
+/**
+ * Returns a light view of a game.
+ */
 export class ApiGame extends Handler {
   public static readonly INSTANCE = new ApiGame();
   private constructor() {
@@ -37,7 +40,7 @@ export class ApiGame extends Handler {
         }
 
         const model = Server.getSimpleGameModel(game, userId);
-        responses.writeJson(res, model);
+        responses.writeJson(res, ctx, model);
         resolve();
       });
     });

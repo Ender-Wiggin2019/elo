@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {PriceWars} from '../../../src/server/cards/underworld/PriceWars';
 import {testGame} from '../../TestGame';
 import {cast, forceGenerationEnd, runAllActions} from '../../TestingUtils';
-import {deserializeProjectCard, serializePlayedCard} from '../../../src/server/cards/CardSerialization';
+import {deserializeProjectCard, serializeProjectCard} from '../../../src/server/cards/CardSerialization';
 
 describe('PriceWars', () => {
   it('canPlay', () => {
@@ -66,14 +66,14 @@ describe('PriceWars', () => {
     const [game, player] = testGame(1, {underworldExpansion: true});
     game.generation = 3;
 
-    const unplayed = serializePlayedCard(card);
+    const unplayed = serializeProjectCard(card);
     expect(unplayed.generationUsed).is.undefined;
     expect(deserializeProjectCard(unplayed).generationUsed).is.undefined;
 
     player.playCard(card);
     expect(card.generationUsed).eq(3);
 
-    const serialized = serializePlayedCard(card);
+    const serialized = serializeProjectCard(card);
     expect(serialized.generationUsed).eq(3);
 
     const deserialized = deserializeProjectCard(serialized);

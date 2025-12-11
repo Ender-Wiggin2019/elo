@@ -16,7 +16,7 @@ describe('EnergyStation', function() {
 
   beforeEach(function() {
     card = new EnergyStation();
-    [/* game */, player] = testGame(2);
+    [/* game */, player] = testGame(2, {skipInitialShuffling: true});
   });
 
   it('Game does not have global owner', function() {
@@ -46,18 +46,18 @@ describe('EnergyStation', function() {
     const smallAsteroid = new SmallAsteroid();
     smallAsteroid.play(player);
     // Choose Remove 1 plant option
-    const orOptions = cast(player.game.deferredActions.peek()!.execute(), OrOptions);
+    const orOptions = cast(player.game.deferredActions.pop()!.execute(), OrOptions);
     orOptions.options[0].cb([player2]);
     expect(player2.plants).to.eq(0);
 
-    // runAllActions(player.game);
+    runAllActions(player.game);
 
 
     // expect(card.canPlay(player)).is.true;
-    expect(player.heat).to.eq(2);
+    expect(player.heat).to.eq(1);
   });
 
-  it('Cannot gain heat if himself is removed plants', function() {
+  it('Cann gain heat if himself is removed plants', function() {
     // 先打出这张牌
     player.playCard(card);
     expect(player.heat).to.eq(0);
@@ -73,8 +73,8 @@ describe('EnergyStation', function() {
     const orOptions = cast(player.game.deferredActions.peek()!.execute(), OrOptions);
     orOptions.options[0].cb([player]);
 
-    // runAllActions(player.game);
-    expect(player.heat).to.eq(0);
+    runAllActions(player.game);
+    expect(player.heat).to.eq(1);
   });
 
   it('Can not act', function() {

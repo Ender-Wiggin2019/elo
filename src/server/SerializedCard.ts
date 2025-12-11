@@ -18,11 +18,11 @@ export type SerializedCard = {
   // for project card
   bonusResource?: OneOrArray<Resource>; // For Robotic Workforce / Mining Area / Mining Rights / Specialized Settlement
   cloneTag?: Tag; // For Pathfinders' clone tag
+  data?: JSONValue;
+  generationUsed?: number; // For CEO and Underworld Cards.
 
   opgActionIsActive?: boolean; // For CEO Cards.
-  generationUsed?: number; // For CEO and Underworld Cards.
   targetCards?: Array<SerializedRobotCard>;
-  data?: JSONValue;
 }
 
 export type SerializedRobotCard = {

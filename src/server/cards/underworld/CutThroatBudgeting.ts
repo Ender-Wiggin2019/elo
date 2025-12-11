@@ -3,14 +3,17 @@ import {IProjectCard} from '../IProjectCard';
 import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Card} from '../Card';
+import {Tag} from '../../../common/cards/Tag';
 
 export class CutThroatBudgeting extends Card implements IProjectCard {
   constructor() {
     super({
       name: CardName.CUT_THROAT_BUDGETING,
-      type: CardType.EVENT,
+      type: CardType.AUTOMATED,
       cost: 2,
-      victoryPoints: -2,
+      tags: [Tag.CRIME],
+
+      victoryPoints: -1,
 
       requirements: {corruption: 1},
       behavior: {

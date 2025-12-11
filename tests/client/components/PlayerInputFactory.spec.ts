@@ -11,7 +11,7 @@ import {PlayerViewModel, PublicPlayerModel} from '@/common/models/PlayerModel';
 import {PartyName} from '@/common/turmoil/PartyName';
 import {RecursivePartial} from '@/common/utils/utils';
 
-describe('PlayerInputFactory', function() {
+describe('PlayerInputFactory', () => {
   it('AndOptions', async () => {
     runTest({
       type: 'and',
@@ -157,7 +157,7 @@ function runTest(playerInput: Partial<PlayerInputModel>) {
       players: [],
       playerView: playerView,
       playerinput: fullInput,
-      onsave: function() {
+      onsave: () => {
       },
       showsave: true,
       showtitle: true,

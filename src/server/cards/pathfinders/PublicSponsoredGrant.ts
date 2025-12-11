@@ -5,7 +5,7 @@ import {CardType} from '../../../common/cards/CardType';
 import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Resource} from '../../../common/Resource';
-import {ALL_TAGS, Tag} from '../../../common/cards/Tag';
+import {Tag} from '../../../common/cards/Tag';
 import {PartyName} from '../../../common/turmoil/PartyName';
 import {OrOptions} from '../../inputs/OrOptions';
 import {SelectOption} from '../../inputs/SelectOption';
@@ -26,7 +26,7 @@ export class PublicSponsoredGrant extends Card implements IProjectCard {
           b.minus().megacredits(2, {all}).br;
           b.cards(1, {secondaryTag: Tag.WILD}).cards(1, {secondaryTag: Tag.WILD}).asterix();
         }),
-        description: 'Requires Scientists are ruling or that you have 2 delegates there. All players lose 2M€. Choose a tag (NOT CITY, ? OR PLANETARY TRACK) and draw 2 cards with that tag.',
+        description: 'Requires Scientists are ruling or that you have 2 delegates there. Every other player lose 2M€. Choose a tag (NOT JOVIAN, CITY, ? OR PLANETARY choice) and draw 2 cards with that tag.',
       },
     });
   }
@@ -36,16 +36,11 @@ export class PublicSponsoredGrant extends Card implements IProjectCard {
   }
 
   public override bespokePlay(player: IPlayer) {
-    player.getOpponents().forEach((target) => {
-      target.maybeBlockAttack(player, (proceed) => {
-        if (proceed) {
-          target.stock.deduct(Resource.MEGACREDITS, Math.min(target.megaCredits, 2), {log: true, from: player});
-        }
-        return undefined;
-      });
+    player.game.players.forEach((target) => {
+      target.attack(player, Resource.MEGACREDITS, Math.min(target.megaCredits, 2), {log: true});
     });
 
-    const tags = [...ALL_TAGS];
+    const tags = [...player.game.tags, Tag.EVENT];
     inplaceRemove(tags, Tag.CITY);
     inplaceRemove(tags, Tag.WILD);
     inplaceRemove(tags, Tag.CLONE);

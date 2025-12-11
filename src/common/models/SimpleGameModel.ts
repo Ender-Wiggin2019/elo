@@ -2,7 +2,7 @@
 import {Color} from '../Color';
 import {GameId, PlayerId, SpectatorId} from '../Types';
 import {Phase} from '../Phase';
-import {GameOptions} from '../../server/game/GameOptions';
+import {GameOptionsModel} from './GameOptionsModel';
 
 export type SimpleGameModel = {
     activePlayer: Color;
@@ -21,7 +21,7 @@ export type SimpleGameModel = {
     breakthrough: boolean ;
 
     spectatorId: SpectatorId | undefined;
-    gameOptions: GameOptions;
+    gameOptions: GameOptionsModel;
     lastSoloGeneration: number;
     expectedPurgeTimeMs: number;
 }

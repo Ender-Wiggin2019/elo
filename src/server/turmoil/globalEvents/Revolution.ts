@@ -26,12 +26,12 @@ export class Revolution extends GlobalEvent implements IGlobalEvent {
     });
   }
   public resolve(game: IGame, turmoil: Turmoil) {
-    if (game.isSoloMode() || game.getPlayers().length === 1 ) {
-      if (this.getScore(game.getPlayersInGenerationOrder()[0], turmoil) >= 4 ) {
-        game.getPlayersInGenerationOrder()[0].decreaseTerraformRating(2, {log: true});
+    if (game.isSoloMode() || game.players.length === 1 ) {
+      if (this.getScore(game.playersInGenerationOrder[0], turmoil) >= 4 ) {
+        game.playersInGenerationOrder[0].decreaseTerraformRating(2, {log: true});
       }
     } else {
-      const players = [...game.getPlayersInGenerationOrder()].sort(
+      const players = [...game.playersInGenerationOrder].sort(
         (p1, p2) => this.getScore(p2, turmoil) - this.getScore(p1, turmoil),
       );
 
@@ -70,6 +70,6 @@ export class Revolution extends GlobalEvent implements IGlobalEvent {
     }
   }
   public getScore(player: IPlayer, turmoil: Turmoil) {
-    return player.tags.count(Tag.EARTH, 'raw') + turmoil.getPlayerInfluence(player);
+    return player.tags.count(Tag.EARTH, 'raw') + turmoil.getInfluence(player);
   }
 }

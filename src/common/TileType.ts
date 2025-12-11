@@ -59,8 +59,13 @@ export enum TileType {
   // Underworld
   MAN_MADE_VOLCANO, // 42
 
+  // Promo
+  NEW_HOLLAND, // 43
   // EROS 新增版块放这里，避免影响历史数据
-  WASTE_INCINERATOR = 50,
+  WASTE_INCINERATOR_OLD = 50,
+  // 为避免后续版块数量增加过度， 将自定义版块数值增加到150
+  WASTE_INCINERATOR =150,
+  EMPTY = 151,
   }
 
 export const tileTypeToString: Record<TileType, string> = {
@@ -107,15 +112,18 @@ export const tileTypeToString: Record<TileType, string> = {
 
   [TileType.HOT_SPRING]: CardName.HOTSPRINGS,
   [TileType.WASTE_INCINERATOR]: CardName.WASTE_INCINERATOR,
+  [TileType.WASTE_INCINERATOR_OLD]: CardName.WASTE_INCINERATOR,
   [TileType.CRASHLANDING]: CardName.CRASHLANDING,
   [TileType.MARS_NOMADS]: CardName.MARS_NOMADS,
   [TileType.REY_SKYWALKER]: CardName.REY_SKYWALKER,
   [TileType.MAN_MADE_VOLCANO]: CardName.MAN_MADE_VOLCANO,
+  [TileType.NEW_HOLLAND]: CardName.NEW_HOLLAND,
+  [TileType.EMPTY]: 'Any tile',
 } as const;
 
 export const HAZARD_TILES = new Set([TileType.DUST_STORM_MILD, TileType.DUST_STORM_SEVERE, TileType.EROSION_MILD, TileType.EROSION_SEVERE]);
-export const OCEAN_UPGRADE_TILES = new Set([TileType.OCEAN_CITY, TileType.OCEAN_FARM, TileType.OCEAN_SANCTUARY]);
-export const CITY_TILES = new Set([TileType.CITY, TileType.CAPITAL, TileType.OCEAN_CITY, TileType.RED_CITY]);
-export const OCEAN_TILES = new Set([TileType.OCEAN, TileType.OCEAN_CITY, TileType.OCEAN_FARM, TileType.OCEAN_SANCTUARY, TileType.WETLANDS]);
+export const OCEAN_UPGRADE_TILES = new Set([TileType.OCEAN_CITY, TileType.OCEAN_FARM, TileType.OCEAN_SANCTUARY, TileType.NEW_HOLLAND]);
+export const CITY_TILES = new Set([TileType.CITY, TileType.CAPITAL, TileType.OCEAN_CITY, TileType.RED_CITY, TileType.NEW_HOLLAND]);
+export const OCEAN_TILES = new Set([TileType.OCEAN, TileType.OCEAN_CITY, TileType.OCEAN_FARM, TileType.OCEAN_SANCTUARY, TileType.WETLANDS, TileType.NEW_HOLLAND]);
 export const BASE_OCEAN_TILES = new Set([TileType.OCEAN, TileType.WETLANDS]);
 export const GREENERY_TILES = new Set([TileType.GREENERY, TileType.WETLANDS]);

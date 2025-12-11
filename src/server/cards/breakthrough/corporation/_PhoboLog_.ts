@@ -10,7 +10,10 @@ export class _PhoboLog_ extends PhoboLog {
   public override get name() {
     return CardName._PHOBOLOG_;
   }
-  public initialAction(player: IPlayer) {
+  public override get initialActionText() {
+    return 'Draw 2 space cards';
+  }
+  public override initialAction(player: IPlayer) {
     player.drawCard(2, {tag: Tag.SPACE});
     return undefined;
   }

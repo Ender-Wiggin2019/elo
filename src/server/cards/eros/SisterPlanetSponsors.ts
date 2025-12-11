@@ -32,7 +32,7 @@ export class SisterPlanetSponsors extends Card implements IProjectCard {
   }
   public override bespokePlay(player: IPlayer) {
     player.production.add(Resource.MEGACREDITS, 3);
-    for (const everyPlayer of player.game.getPlayers()) {
+    for (const everyPlayer of player.game.players) {
       everyPlayer.production.add(Resource.MEGACREDITS, 1);
     }
     return undefined;

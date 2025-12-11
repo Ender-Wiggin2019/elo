@@ -1,10 +1,3 @@
-/*
- * @Author: Ender-Wiggin
- * @Date: 2024-10-26 12:57:01
- * @LastEditors: Ender-Wiggin
- * @LastEditTime: 2025-01-29 13:37:56
- * @Description:
- */
 import {CorporationCard} from '../corporation/CorporationCard';
 import {Tag} from '../../../common/cards/Tag';
 import {IPlayer} from '../../IPlayer';
@@ -22,12 +15,13 @@ import {SelectOption} from '../../inputs/SelectOption';
 import {SelectPaymentDeferred} from '../../deferredActions/SelectPaymentDeferred';
 import {TITLES} from '../../inputs/titles';
 
+const SPEND = 3;
 export class GreenLeafDance extends CorporationCard {
   constructor() {
     super({
       name: CardName.GREEN_LEAF_DANCE,
       tags: [Tag.PLANT],
-      startingMegaCredits: 45,
+      startingMegaCredits: 41,
 
       firstAction: {
         text: 'Place your initial ocean.',
@@ -36,16 +30,16 @@ export class GreenLeafDance extends CorporationCard {
 
       metadata: {
         cardNumber: 'XB21',
-        description: 'You start with 45 M€. As your first action, place an ocean tile.',
+        description: 'You start with 41 M€. As your first action, place an ocean tile.',
         renderData: CardRenderer.builder((b) => {
           b.br;
-          b.megacredits(45).oceans(1);
+          b.megacredits(41).oceans(1);
           b.corpBox('effect', (ce) => {
             ce.vSpace();
             ce.effect(
-              'When you place a tile on an area that has a plant placement bonus, you can spend 2 MC to increase plant production 1 step.',
+              'When you place a tile on an area that has a plant placement bonus, you can spend 3 MC to increase plant production 1 step.',
               (eb) => {
-                eb.emptyTile('normal', {size: Size.SMALL}).nbsp.asterix().colon().megacredits(2).empty().startAction.production((pb) => pb.plants(1));
+                eb.emptyTile('normal', {size: Size.SMALL}).nbsp.asterix().colon().megacredits(SPEND).empty().startAction.production((pb) => pb.plants(1));
               });
           });
         }),
@@ -67,11 +61,11 @@ export class GreenLeafDance extends CorporationCard {
       return;
     }
 
-    if (cardOwner.canAfford({cost: 2})) {
+    if (cardOwner.canAfford({cost: SPEND})) {
       const orOptions = new OrOptions();
       orOptions.options.push(
-        new SelectOption('Pay 2 M€ to increase a plant production').andThen(() => {
-          cardOwner.game.defer(new SelectPaymentDeferred(cardOwner, 2, {title: TITLES.payForCardAction(this.name)}))
+        new SelectOption('Pay 3 M€ to increase a plant production').andThen(() => {
+          cardOwner.game.defer(new SelectPaymentDeferred(cardOwner, SPEND, {title: TITLES.payForCardAction(this.name)}))
             .andThen(() => cardOwner.production.add(Resource.PLANTS, 1, {log: true}));
           return undefined;
         }),

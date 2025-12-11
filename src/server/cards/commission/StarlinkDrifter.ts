@@ -12,13 +12,12 @@ import {Size} from '../../../common/cards/render/Size';
 import {IPlayer} from '../../IPlayer';
 import {ICard} from '../ICard';
 import {Tag} from '../../../common/cards/Tag';
-import {IProjectCard} from '../IProjectCard';
 import {CardType} from '../../../common/cards/CardType';
-import {ICorporationCard} from '../corporation/ICorporationCard';
-import {PlayerInput} from '../../PlayerInput';
 
 export class StarlinkDrifter extends CorporationCard implements ICard {
-  public data: {tags: Array<Tag>, count:number } = {tags: [], count: 0};
+  // tags 是上一张卡的标记,Event标记为对任何卡不触发
+  // count 是摸牌次数
+  public data: {tags: ReadonlyArray<Tag>, count:number } = {tags: [Tag.EVENT], count: 0};
 
   constructor() {
     super({
@@ -41,14 +40,9 @@ export class StarlinkDrifter extends CorporationCard implements ICard {
     });
   }
 
-  public onCorpCardPlayed(player: IPlayer, card: ICorporationCard) :PlayerInput | undefined {
-    this.onCardPlayed(player, card as unknown as IProjectCard);
-    return undefined;
-  }
 
-
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    if (player.corporations.filter((corp) => corp === this).length === 0) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard) {
+    if (!player.playedCards.has(this.name)) {
       return;
     }
     if (this.data === undefined || this.data.tags === undefined) {
@@ -57,12 +51,18 @@ export class StarlinkDrifter extends CorporationCard implements ICard {
     } else if (card.type !== CardType.EVENT) {
       const tags = card.tags.filter((tag) => tag !== Tag.WILD);
       // 问号接任意标  问号接无标 无标接问号  触发摸牌
-      if (JSON.stringify(this.data.tags.sort()) === JSON.stringify(tags.sort()) || (this.data.tags.length ===1 && this.data.tags[0] === Tag.WILD && tags.length <= 1)) {
+      const prevTags = Array.from(this.data.tags).filter((tag) => tag !== Tag.WILD);
+      const isSameTags = JSON.stringify(prevTags.sort()) === JSON.stringify(tags.sort());
+      // 考虑到多wild标的卡牌， 这里兼容前一张牌为多wild,  后续如果存在wild+其他tag的牌需要单独处理
+      const wildtagnum = this.data.tags.filter((tag) => tag === Tag.WILD).length;
+      if (
+        isSameTags || (this.data.tags.length === wildtagnum && tags.length <= wildtagnum)
+      ) {
         player.drawCard(1);
-        this.data.count ++;
+        this.data.count++;
         player.game.log('${0} get ${1} cards from 🌸StarlinkDrifter🌸 in this game', (b) => b.player(player).number(this.data.count || 0));
       }
-      this.data.tags= card.tags;
+      this.data.tags = card.tags;
     } else {
       this.data.tags = [Tag.EVENT];
     }

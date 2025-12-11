@@ -11,10 +11,11 @@ import {MarsBoard} from '../../../src/server/boards/MarsBoard';
 import {TileType} from '../../../src/common/TileType';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {Philares} from '../../../src/server/cards/promo/Philares';
-import {EmptyBoard} from '../../ares/EmptyBoard';
+import {EmptyBoard} from '../../testing/EmptyBoard';
 import {LandClaim} from '../../../src/server/cards/base/LandClaim';
 import {MiningGuild} from '../../../src/server/cards/corporation/MiningGuild';
 import {intersection} from '../../../src/common/utils/utils';
+import {Game} from '../../../src/server/Game';
 
 describe('MarsNomads', () => {
   let card: MarsNomads;
@@ -147,14 +148,14 @@ describe('MarsNomads', () => {
     selectSpace.cb(space3);
     runAllActions(game);
     cast(player.popWaitingFor(), undefined);
-    expect(player.getTerraformRating()).eq(20);
+    expect(player.terraformRating).eq(20);
 
     space3.bonus = [SpaceBonus.TEMPERATURE];
     selectSpace.cb(space3);
     runAllActions(game);
     cast(player.popWaitingFor(), undefined);
     expect(game.getTemperature()).eq(-30);
-    expect(player.getTerraformRating()).eq(20);
+    expect(player.terraformRating).eq(20);
   });
 
   it('Compatible with Land Claim on placement', () => {
@@ -270,5 +271,21 @@ describe('MarsNomads', () => {
       expect(player.steel).eq(1);
       expect(player.production.steel).eq(0);
     });
+  });
+
+  it('undo should restore nomad space correctly', () => {
+    const serialized = game.serialize();
+    
+    const space = board.getAvailableSpacesOnLand(player)[0];
+    const selectSpace = cast(card.play(player), SelectSpace);
+    selectSpace.cb(space);
+    expect(game.nomadSpace).eq(space.id);
+
+    // Simulate undo by serializing and deserializing
+    
+    const newGame = Game.rebuild('gtest', [player, player2], player);
+    newGame.loadFromJSON(serialized);
+
+    expect(newGame.nomadSpace).eq(undefined);
   });
 });

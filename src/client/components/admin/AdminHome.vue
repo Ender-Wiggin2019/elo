@@ -23,8 +23,6 @@ export default Vue.extend({
         paths.API_METRICS,
         paths.LOAD,
         paths.API_IPS,
-        'users',
-        'exec',
       ],
     };
   },

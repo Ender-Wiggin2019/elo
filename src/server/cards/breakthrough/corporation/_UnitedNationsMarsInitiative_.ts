@@ -48,7 +48,7 @@ export class _UnitedNationsMarsInitiative_ extends UnitedNationsMarsInitiative i
     };
   }
 
-  public onIncreaseTerraformRating(player: IPlayer, cardOwner: IPlayer, steps: number) {
+  public onIncreaseTerraformRatingByAnyPlayer(player: IPlayer, cardOwner: IPlayer, steps: number) {
     const game = player.game;
     if (player !== cardOwner) {
       return;

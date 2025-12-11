@@ -1,13 +1,12 @@
 import {IPlayer} from '../../../IPlayer';
-import {IProjectCard} from '../../IProjectCard';
 import {CardRenderer} from '../../render/CardRenderer';
 import {CardName} from '../../../../common/cards/CardName';
 import {CardType} from '../../../../common/cards/CardType';
 import {Tag} from '../../../../common/cards/Tag';
 import {Resource} from '../../../../common/Resource';
-import {ICorporationCard} from '../../corporation/ICorporationCard';
 import {SerializedCard} from '../../../SerializedCard';
 import {CorporationCard} from '../../corporation/CorporationCard';
+import {ICard} from '../../ICard';
 
 export class IdoFront extends CorporationCard {
   public allTags = new Set<Tag>();
@@ -34,8 +33,8 @@ export class IdoFront extends CorporationCard {
     });
   }
 
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    if (card.tags.filter((tag) => tag !== Tag.WILD ).length === 0 || !player.isCorporation(this.name)) return undefined;
+  public onCardPlayedForCorps?(player: IPlayer, card: ICard) {
+    if (card.tags.filter((tag) => tag !== Tag.WILD ).length === 0 || !player.playedCards.has(this.name)) return undefined;
     let count = 0;
     for (const tag of card.tags.filter((tag) => tag !== Tag.WILD )) {
       if (this.allTags.has(tag)) {
@@ -53,9 +52,6 @@ export class IdoFront extends CorporationCard {
     return undefined;
   }
 
-  public onCorpCardPlayed(player: IPlayer, card:ICorporationCard) {
-    return this.onCardPlayed(player, card as unknown as IProjectCard);
-  }
 
   public serialize(serialized: SerializedCard) {
     serialized.allTags = Array.from(this.allTags);

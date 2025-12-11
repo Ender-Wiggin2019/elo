@@ -2,18 +2,14 @@ import {BoardName} from '../boards/BoardName';
 import {RandomMAOptionType} from '../ma/RandomMAOptionType';
 import {AgendaStyle} from '../turmoil/Types';
 import {CardName} from '../cards/CardName';
+import {Expansion} from '../cards/GameModule';
 
-export interface GameOptionsModel_ {
-  aresExtension: boolean,
+export interface GameOptionsModel {
+  aresExtremeVariant: boolean,
   altVenusBoard: boolean,
   boardName: BoardName,
-  bannedCards: Array<CardName>;
-  includedCards: Array<CardName>;
-  ceoExtension: boolean,
-  coloniesExtension: boolean,
-  communityCardsOption: boolean,
-  commissionCardsOption: boolean,
-  corporateEra: boolean,
+  bannedCards: ReadonlyArray<CardName>;
+  expansions: Record<Expansion, boolean>,
   draftVariant: boolean,
   escapeVelocityMode: boolean,
   escapeVelocityThreshold?: number,
@@ -21,15 +17,11 @@ export interface GameOptionsModel_ {
   escapeVelocityPeriod?: number,
   escapeVelocityPenalty?: number,
   fastModeOption: boolean,
+  includedCards: ReadonlyArray<CardName>;
   includeFanMA: boolean,
-  includeVenusMA: boolean,
   initialDraftVariant: boolean,
-  moonExpansion: boolean,
-  pathfindersExpansion: boolean,
-  prelude2Expansion: boolean,
   preludeDraftVariant: boolean,
-  preludeExtension: boolean,
-  promoCardsOption: boolean,
+  ceosDraftVariant: boolean,
   politicalAgendasExtension: AgendaStyle,
   removeNegativeGlobalEventsOption: boolean,
   showOtherPlayersVP: boolean,
@@ -40,9 +32,11 @@ export interface GameOptionsModel_ {
   randomMA: RandomMAOptionType,
   requiresMoonTrackCompletion: boolean,
   requiresVenusTrackCompletion: boolean,
-  turmoilExtension: boolean,
-  twoCorpsVariant: boolean,
-  venusNextExtension: boolean,
+  // twoCorpsVariant: boolean,
   undoOption: boolean,
-  underworldExpansion: boolean;
+  rankOption: boolean; // 天梯
+  rankTimeLimit?: number; // 天梯 玩家超时限制
+  rankTimePerGeneration?: number; // 天梯 每时代额外加成
+  doubleCorp: boolean; // 双将
+  heatFor: boolean; //  七热升温
 }

@@ -1,11 +1,11 @@
 import {IPlayer} from '../../../IPlayer';
-import {IProjectCard} from '../../IProjectCard';
 import {Arklight} from '../../colonies/Arklight';
 import {CardRenderer} from '../../render/CardRenderer';
 import {CardName} from '../../../../common/cards/CardName';
 import {CardType} from '../../../../common/cards/CardType';
 import {Tag} from '../../../../common/cards/Tag';
 import {CardResource} from '../../../../common/CardResource';
+import {ICard} from '../../ICard';
 
 export class _Arklight_ extends Arklight {
   constructor() {
@@ -34,8 +34,8 @@ export class _Arklight_ extends Arklight {
   }
 
 
-  public override onCardPlayed(player: IPlayer, card: IProjectCard): void {
-    if (player.isCorporation(CardName._ARKLIGHT_)) {
+  public override onCardPlayedForCorps(player: IPlayer, card: ICard): void {
+    if (player.playedCards.has(CardName._ARKLIGHT_)) {
       const count = card.tags.filter((cardTag) => cardTag === Tag.ANIMAL || cardTag === Tag.PLANT).length;
       if (count > 0 ) {
         player.addResourceTo(this, count);

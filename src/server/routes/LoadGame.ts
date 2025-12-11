@@ -1,6 +1,5 @@
 import * as responses from '../server/responses';
 import {Database} from '../database/Database';
-import {GameLoader} from '../database/GameLoader';
 import {Server} from '../models/ServerModel';
 import {Handler} from './Handler';
 import {Context} from './IHandler';
@@ -8,6 +7,7 @@ import {LoadGameFormModel} from '../../common/models/LoadGameFormModel';
 import {Request} from '../Request';
 import {Response} from '../Response';
 import {GameId, isGameId, isPlayerId, isSpectatorId} from '../../common/Types';
+import {GameLoader} from '../database/GameLoader';
 
 export class LoadGame extends Handler {
   public static readonly INSTANCE = new LoadGame();
@@ -26,7 +26,7 @@ export class LoadGame extends Handler {
     return undefined;
   }
 
-  public override put(req: Request, res: Response, _ctx: Context): Promise<void> {
+  public override put(req: Request, res: Response, ctx: Context): Promise<void> {
     return new Promise((resolve) => {
       let body = '';
       req.on('data', function(data) {
@@ -52,7 +52,7 @@ export class LoadGame extends Handler {
               responses.notFound(req, res, 'game_id not found');
               return;
             }
-            responses.writeJson(res, Server.getSimpleGameModel(game));
+            responses.writeJson(res, ctx, Server.getSimpleGameModel(game));
           });
         } catch (error) {
           console.warn(error);

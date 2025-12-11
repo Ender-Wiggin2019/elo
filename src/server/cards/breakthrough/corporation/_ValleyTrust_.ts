@@ -39,7 +39,7 @@ export class _ValleyTrust_ extends CorporationCard {
     return player.tags.cardTagCount(card, Tag.SCIENCE) * 2;
   }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     const game:IGame = player.game;
     if (game.gameOptions.preludeExtension) {
       const cardsDrawn: Array<IPreludeCard > = [

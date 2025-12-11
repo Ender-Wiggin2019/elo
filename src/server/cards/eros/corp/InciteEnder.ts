@@ -14,6 +14,7 @@ export class InciteEnder extends CorporationCard {
       name: CardName.INCITE_ENDER,
       tags: [Tag.SCIENCE],
       startingMegaCredits: 54,
+      initialActionText: 'Place two delegates in one party',
 
       metadata: {
         cardNumber: 'Q24',
@@ -36,7 +37,7 @@ export class InciteEnder extends CorporationCard {
   }
 
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     if (player.game.turmoil) {
       const title = 'Incite first action - Select where to send two delegates';
       player.game.defer(new SendDelegateToArea(player, title, {count: 2}));

@@ -4,18 +4,17 @@ import {CardName} from '../../../../common/cards/CardName';
 import {Size} from '../../../../common/cards/render/Size';
 import {Pristar} from '../../../cards/turmoil/Pristar';
 import {digit} from '../../../cards/Options';
-import {CardRenderDynamicVictoryPoints} from '../../render/CardRenderDynamicVictoryPoints';
 import {CardResource} from '../../../../common/CardResource';
-// import {SelectCard} from '../../../inputs/SelectCard';
-// import {IProjectCard} from '../../../cards/IProjectCard';
-
+import * as DynamicVictoryPoints from '../../render/DynamicVictoryPoints';
 export class _Pristar_ extends Pristar {
   public override get name() {
     return CardName._PRISTAR_;
   }
-  public initialAction(player: IPlayer) {
-    // player.game.defer(new SimpleDeferredAction(player, () => player.drawCardKeepSome(10, {keepMax: 10, logDrawnCard: true, paying: true})));
-    // TODO  jiang
+
+  public override get initialActionText() {
+    return 'Draw 10 cards and spend 3 MC to keep each card';
+  }
+  public override initialAction(player: IPlayer) {
     player.drawCardKeepSome(10, {keepMax: 10, paying: true});
     player.pass();
     player.game.log('${0} passed', (b) => b.player(player));
@@ -27,7 +26,7 @@ export class _Pristar_ extends Pristar {
       cardNumber: 'R07',
       description: 'You start with 53 M€. Decrease your TR 2 steps. As your first action, draw 10 cards and spend 3 MC to keep each card. 1 VP per preservation resource here.',
 
-      victoryPoints: CardRenderDynamicVictoryPoints.resource(CardResource.PRESERVATION, 1, 1),
+      victoryPoints: DynamicVictoryPoints.resource(CardResource.PRESERVATION, 1, 1),
 
       renderData: CardRenderer.builder((b) => {
         b.megacredits(53).nbsp.nbsp.minus().tr(2, {size: Size.SMALL}).br;

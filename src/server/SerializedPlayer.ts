@@ -3,8 +3,9 @@ import {Color} from '../common/Color';
 import {SerializedCard} from './SerializedCard';
 import {SerializedTimer} from '../common/SerializedTimer';
 import {PlayerId} from '../common/Types';
-import {UnderworldPlayerData} from './underworld/UnderworldData';
-import {AlliedParty} from './turmoil/AlliedParty';
+import {SerializedUnderworldPlayerData} from './underworld/UnderworldData';
+import {AlliedParty} from '../common/turmoil/Types';
+import {GlobalParameter} from '../common/GlobalParameter';
 
 export interface SerializedPlayerId {
     id: PlayerId;
@@ -17,83 +18,80 @@ interface DeprecatedFields {
 }
 
 export interface SerializedPlayer extends DeprecatedFields{
-    actionsTakenThisGame: number;
-    actionsTakenThisRound: number;
-    actionsThisGeneration: Array<CardName>;
-    alliedParty: AlliedParty | undefined;
-    // TODO(kberg): remove ? by 2024-10-01
-    autoPass?: boolean;
-    beginner: boolean;
-    canUseCorruptionAsMegacredits: boolean;
-    canUseHeatAsMegaCredits: boolean;
-    canUseTitaniumAsMegacredits: boolean;
-    canUsePlantsAsMegacredits: boolean;
-    cardCost: number;
-    cardDiscount: number;
-    cardsInHand: Array<SerializedCard>;
-    colonyTradeDiscount: number;
-    colonyTradeOffset: number;
-    colonyVictoryPoints: number;
-    color: Color;
-    // corporationCard:ICorporationCard | undefined;
-    corporations: Array<SerializedCard>;
-    corpCard?: SerializedCard | undefined; // 已换成corporations
-    corpCard2?: SerializedCard | undefined; // 已换成corporations
-    corpInitialActionDone?: boolean, // 已换成pendingInitialActions
-    corp2InitialActionDone?: boolean, // 已换成pendingInitialActions
-    dealtCorporationCards: Array<SerializedCard>;
-    dealtCeoCards: Array<CardName>;
-    dealtPreludeCards: Array<SerializedCard>;
-    dealtProjectCards: Array<SerializedCard>;
-    draftedCards: Array<SerializedCard>;
-    draftHand: Array<CardName>,
-    energy: number;
-    energyProduction: number;
-    fleetSize: number;
-    handicap: number;
-    hasIncreasedTerraformRatingThisGeneration: boolean;
-    hasTurmoilScienceTagBonus: boolean;
-    heat: number;
-    heatProduction: number;
-    heatProductionStepsIncreasedThisGeneration: number;
-    id: PlayerId;
-    lastCardPlayed?: CardName;
-    ceoCardsInHand: Array<CardName>;
-    megaCreditProduction: number;
-    megaCredits: number;
-    name: string;
-    oceanBonus: number;
-    pendingInitialActions: Array<CardName> | undefined;
-    pickedCorporationCard: SerializedCard | undefined;
-    pickedCorporationCard2?: SerializedCard | undefined;
-    plantProduction: number;
-    plants: number;
-    plantsNeededForGreenery: number;
-    playedCards: Array<SerializedCard>;
-    politicalAgendasActionUsedCount: number;
-    preludeCardsInHand: Array<SerializedCard>;
-    preservationProgram: boolean;
-    removedFromPlayCards: Array<SerializedCard>;
-    removingPlayers: Array<string>;
-    scienceTagCount: number;
-    steel: number;
-    steelProduction: number;
-    steelValue: number;
-    terraformRating: number;
-    timer: SerializedTimer;
-    titanium: number;
-    titaniumProduction: number;
-    titaniumValue: number;
-    totalDelegatesPlaced: number;
-    tradesThisGeneration: number;
-    turmoilPolicyActionUsed: boolean;
-    underworldData: UnderworldPlayerData;
-    victoryPointsByGeneration: Array<number>;
-    heatForTemperature: number;
-    undoing : boolean ;
-    exited : boolean ;// 是否体退
-    canExit : boolean ;// 能否体退： 行动阶段、当前行动玩家、没有未执行的拦截器
+  actionsTakenThisGame: number;
+  actionsTakenThisRound: number;
+  actionsThisGeneration: Array<CardName>;
+  alliedParty: AlliedParty | undefined;
+  autoPass: boolean;
+  beginner: boolean;
+  canUseHeatAsMegaCredits: boolean;
+  canUseTitaniumAsMegacredits: boolean;
+  canUsePlantsAsMegacredits: boolean;
+  cardCost: number;
+  cardDiscount: number;
+  cardsInHand: Array<SerializedCard>;
+  colonyTradeDiscount: number;
+  colonyTradeOffset: number;
+  colonyVictoryPoints: number;
+  color: Color;
+  corporations: Array<SerializedCard>;
+  dealtCorporationCards: Array<SerializedCard>;
+  dealtCeoCards: Array<CardName>;
+  dealtPreludeCards: Array<SerializedCard>;
+  dealtProjectCards: Array<SerializedCard>;
+  draftedCards: Array<SerializedCard>;
+  draftHand: Array<CardName>,
+  energy: number;
+  energyProduction: number;
+  fleetSize: number;
+  handicap: number;
+  hasIncreasedTerraformRatingThisGeneration: boolean;
+  hasTurmoilScienceTagBonus: boolean;
+  heat: number;
+  heatProduction: number;
+  heatProductionStepsIncreasedThisGeneration: number;
+  id: PlayerId;
+  lastCardPlayed?: CardName;
+  ceoCardsInHand: Array<CardName>;
+  megaCreditProduction: number;
+  megaCredits: number;
+  name: string;
+  oceanBonus: number;
+  pendingInitialActions: Array<CardName> | undefined;
+  pickedCorporationCard: SerializedCard | undefined;
+  pickedCorporationCard2?: SerializedCard | undefined;
+  plantProduction: number;
+  plants: number;
+  plantsNeededForGreenery: number;
+  // TODO(kberg): Remove ? by 2025-08-01
+  plantTagCount?: number;
+  playedCards: Array<SerializedCard>;
+  politicalAgendasActionUsedCount: number;
+  preludeCardsInHand: Array<SerializedCard>;
+  preservationProgram: boolean;
+  removedFromPlayCards: Array<SerializedCard>;
+  removingPlayers: Array<string>;
+  scienceTagCount: number;
+  standardProjectsThisGeneration: Array<CardName>;
+  steel: number;
+  steelProduction: number;
+  steelValue: number;
+  terraformRating: number;
+  timer: SerializedTimer;
+  titanium: number;
+  titaniumProduction: number;
+  titaniumValue: number;
+  totalDelegatesPlaced: number;
+  tradesThisGeneration: number;
+  turmoilPolicyActionUsed: boolean;
+  underworldData: SerializedUnderworldPlayerData;
+  victoryPointsByGeneration: Array<number>;
+  heatForTemperature: number;
+  undoing : boolean ;
+  exited : boolean ;// 是否体退
+  canExit : boolean ;// 能否体退： 行动阶段、当前行动玩家、没有未执行的拦截器
 
-    _game:SerializedGameId;
-    userId?:string;
+  _game:SerializedGameId;
+  userId?:string;
+  globalParameterSteps: Record<GlobalParameter, number>;
 }

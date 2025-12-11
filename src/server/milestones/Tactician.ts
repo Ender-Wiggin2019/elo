@@ -12,7 +12,7 @@ export class Tactician extends BaseMilestone {
   }
   public getScore(player: IPlayer): number {
     // 事件公司判断
-    if (player.isCorporation(CardName._INTERPLANETARY_CINEMATICS_) || player.isCorporation(CardName.ODYSSEY) ) {
+    if (player.playedCards.has(CardName._INTERPLANETARY_CINEMATICS_) || player.playedCards.has(CardName.ODYSSEY) ) {
       return player.playedCards.filter((card) => card.type !== CardType.PRELUDE &&
         card.requirements.length > 0).length;
     } else {

@@ -115,31 +115,31 @@ export default Vue.extend({
       // 去除当前玩家之后，体退玩家放到最后一位
       return result.filter((p) => !p.exited).concat(result.filter((p) => p.exited));
     },
-    getActionLabel(player: PublicPlayerModel): string {
+    getActionLabel(player: PublicPlayerModel): ActionLabel {
       if (player.exited) {
-        return ActionLabel.RESIGNED;
+        return 'resigned';
       }
       // 天梯 TODO: 异常结束游戏的`ActionLabel`等价于体退的状态？
       if (this.playerView.game.phase === Phase.TIMEOUT || this.playerView.game.phase === Phase.ABANDON) {
-        return ActionLabel.RESIGNED;
+        return 'resigned';
       }
       if (this.playerView.game.phase === Phase.DRAFTING) {
         if (player.waitingFor !== undefined) {
-          return ActionLabel.DRAFTING;
+          return 'drafting';
         } else {
-          return ActionLabel.NONE;
+          return 'none';
         }
       } else if (this.playerView.game.phase === Phase.RESEARCH) {
         if (player.waitingFor !== undefined) {
-          return ActionLabel.RESEARCHING;
+          return 'researching';
         } else {
-          return ActionLabel.NONE;
+          return 'none';
         }
       }
       if (this.playerView.game.passedPlayers.includes(player.color)) {
-        return ActionLabel.PASSED;
+        return 'passed';
       }
-      if (player.isActive) return ActionLabel.ACTIVE;
+      if (player.isActive) return 'active';
       const notPassedPlayers = this.players.filter(
         (p: PublicPlayerModel) => !this.playerView.game.passedPlayers.includes(p.color),
       );
@@ -150,7 +150,7 @@ export default Vue.extend({
       );
 
       if (currentPlayerIndex === -1) {
-        return ActionLabel.NONE;
+        return 'none';
       }
 
       const prevPlayerIndex =
@@ -160,10 +160,10 @@ export default Vue.extend({
       const isNext = notPassedPlayers[prevPlayerIndex].isActive;
 
       if (isNext && this.players.length > SHOW_NEXT_LABEL_MIN) {
-        return ActionLabel.NEXT;
+        return 'next';
       }
 
-      return ActionLabel.NONE;
+      return 'none';
     },
     getClasses: function(player: PublicPlayerModel): string {
       const classes = [];

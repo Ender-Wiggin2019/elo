@@ -14,7 +14,7 @@ import {TileType} from '../../../common/TileType';
 import {CardManifest} from '../ModuleManifest';
 import {CorporationCard} from '../corporation/CorporationCard';
 import {IGame} from '../../IGame';
-import {isHazardTileType} from '../../../common/AresTileType';
+import {AresHandler} from '../../ares/AresHandler';
 
 
 export class Eris extends CorporationCard {
@@ -41,7 +41,7 @@ export class Eris extends CorporationCard {
     });
   }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     if (player.game.gameOptions.aresExtension) {
       this.drawAresCard(player);
     }
@@ -111,7 +111,7 @@ export class Eris extends CorporationCard {
 
   private getAllUnprotectedHazardSpaces(game: IGame): Array<Space> {
     return game.board.spaces.filter(
-      (space) => space.tile && isHazardTileType(space.tile.tileType) && space.tile.protectedHazard === false,
+      (space) => space.tile && AresHandler.hasHazardTile(space) && space.tile.protectedHazard === false,
     );
   }
 }

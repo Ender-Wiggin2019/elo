@@ -39,6 +39,6 @@ export class ApiPlayer extends Handler {
     }
 
     const playerBlockModel = Server.getPlayerBlock(player, userId);
-    responses.writeJson(res, Server.getPlayerModel(player, playerBlockModel));
+    responses.writeJson(res, ctx, Server.getPlayerModel(player, playerBlockModel));
   }
 }

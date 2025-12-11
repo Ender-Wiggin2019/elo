@@ -12,7 +12,7 @@ export class ImperialStarDestroyer extends CorporationCard {
       startingMegaCredits: 53,
       metadata: {
         cardNumber: 'Q031',
-        description: 'You start with 53 M€',
+        description: 'You start with 53 M€ and 1 extra trade fleet',
         renderData: CardRenderer.builder((b) => {
           b.br.br.br.br;
           b.megacredits(53).tradeFleet();

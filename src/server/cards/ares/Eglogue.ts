@@ -55,12 +55,12 @@ export class Eglogue extends CorporationCard {
       '获得热资源')
       .andThen(() => {
         player.stock.add(Resource.HEAT, 4, {log: true});
-        player.game.getPlayers().filter((p) => p !== player).forEach((p) => p.stock.add(Resource.HEAT, 2, {log: true}));
+        player.game.players.filter((p) => p !== player).forEach((p) => p.stock.add(Resource.HEAT, 2, {log: true}));
         return undefined;
       });
 
     let plants = 0;
-    player.game.getPlayers().filter((p) => p !== player).forEach((p) => {
+    player.game.players.filter((p) => p !== player).forEach((p) => {
       if (p.heat > plants) {
         plants = p.heat;
       }

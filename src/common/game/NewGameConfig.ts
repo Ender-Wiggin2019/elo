@@ -6,6 +6,7 @@ import {Color} from '../Color';
 import {RandomMAOptionType} from '../ma/RandomMAOptionType';
 import {AgendaStyle} from '../turmoil/Types';
 import {GameId} from '../Types';
+import {Expansion} from '../cards/GameModule';
 
 export type BoardNameType = BoardName | RandomBoardOption;
 
@@ -22,10 +23,7 @@ export interface NewPlayerModel {
  */
 export interface NewGameConfig {
   players: Array<NewPlayerModel>;
-  prelude: boolean;
-  venusNext: boolean;
-  colonies: boolean;
-  turmoil: boolean;
+  expansions: Record<Expansion, boolean>,
   board: BoardNameType;
   seed: string|undefined;
   randomFirstPlayer: boolean;
@@ -41,37 +39,24 @@ export interface NewGameConfig {
   showOtherPlayersVP: boolean;
 
   // Extensions
-  corporateEra: boolean;
-  // venusNextExtension: boolean;
-  // coloniesExtension: boolean;
-  // preludeExtension: boolean;
-  // turmoilExtension: boolean;
-  prelude2Expansion: boolean;
-  promoCardsOption: boolean;
-  communityCardsOption: boolean;
-  commissionCardsOption: boolean;
-  erosCardsOption: boolean;
-  aresExtension: boolean;
   // aresHazards: boolean;
+  aresExtremeVariant: boolean;
   politicalAgendasExtension: AgendaStyle;
   solarPhaseOption: boolean;
   removeNegativeGlobalEventsOption: boolean;
-  includeVenusMA: boolean;
-  moonExpansion: boolean;
-  pathfindersExpansion: boolean;
-  ceoExtension: boolean;
+  modularMA: boolean;
 
   // jaing
   userId: string;
   initialCorpDraftVariant: boolean; // 双公司时初始轮抽公司
   heatFor: boolean; //  七热升温
-  breakthrough: boolean;// 界限突破
   doubleCorp: boolean; // 双将
 
   // Variants
   draftVariant: boolean;
   initialDraft: boolean; // initialDraftVariant: boolean;
   preludeDraftVariant: boolean;
+  ceosDraftVariant: boolean;
   startingCorporations: number;
   shuffleMapOption: boolean;
   randomMA: RandomMAOptionType;
@@ -98,6 +83,4 @@ export interface NewGameConfig {
   rankTimeLimit: number | undefined,
   rankTimePerGeneration: number | undefined;
   startingPreludes: number;
-  starWarsExpansion: boolean,
-  underworldExpansion: boolean,
 }

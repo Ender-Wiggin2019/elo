@@ -14,7 +14,7 @@ export class AirScrappingStandardProjectVariant extends AirScrappingStandardProj
       metadata: {
         cardNumber: 'SP1a',
         renderData: CardRenderer.builder((b) => {
-          b.standardProject('Spend 15M€, less 1M€ per Venus tag you have, to raise Venus 1 step.', (eb) => {
+          b.standardProject('Spend 15 M€, less 1M€ per Venus tag you have, to raise Venus 1 step.', (eb) => {
             eb.megacredits(15).text('(').megacredits(-1).slash().tag(Tag.VENUS).text(')').startAction.venus(1);
           });
           b.br.text('(max -5M€)', Size.SMALL);

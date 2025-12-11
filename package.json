@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Terraforming Mars Game",
   "engines": {
-    "node": ">=16.x <=20.x"
+    "node": ">=16.x <=22.x"
   },
   "private": true,
   "dependencies": {
@@ -11,8 +11,8 @@
     "@types/mocha": "^10.0.0",
     "chai-as-promised": "^7.1.1",
     "chai-deep-equal-ignore-undefined": "^1.1.1",
-    "chart.js": "^3.7.0",
-    "console-stamp": "3.0.0-rc4.2",
+    "chart.js": "^4.4.7",
+    "console-stamp": "3.1.2",
     "cross-env": "^7.0.3",
     "dialog-polyfill": "^0.5.1",
     "dotenv": "^8.2.0",
@@ -27,6 +27,7 @@
     "ts-node": "^10.9.1",
     "ts-trueskill": "^3.2.2",
     "typescript": "^4.8.4",
+    "uuid": "^11.0.5",
     "vti": "^0.1.8",
     "vue": "2.6.11",
     "vue-tailwind": "^2.5.1",
@@ -36,7 +37,6 @@
     "webpack-cli": "^4.5.0"
   },
   "devDependencies": {
-    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/ansi-escape-sequences": "^4.0.4",
     "@types/chai": "^4.3.1",
     "@types/chai-as-promised": "^7.1.5",
@@ -44,7 +44,8 @@
     "@types/mocha": "^9.1.1",
     "@types/node": "^10.17.47",
     "@types/pg": "^7.14.7",
-    "@types/sqlite3": "^3.1.6",
+    "@types/sqlite3": "^3.1.11",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "@vue/test-utils": "^1.1.1",
@@ -71,7 +72,6 @@
     "less-loader": "^10.0.0",
     "mocha": "^9.2.2",
     "mochapack": "^2.1.4",
-    "nyc": "^15.1.0",
     "postcss": "^8.4.21",
     "rimraf": "^3.0.2",
     "tailwindcss": "^3.2.7",
@@ -91,10 +91,7 @@
   },
   "optionalDependencies": {
     "pg": "^8.2.1",
-    "sqlite3": "^5.1.5"
-  },
-  "nyc": {
-    "extends": "@istanbuljs/nyc-config-typescript"
+    "sqlite3": "^5.1.7"
   },
   "scripts": {
     "start": "node build/src/server/server.js",
@@ -105,23 +102,24 @@
     "build:clientAll": "npm run make:cards && npm run test:client:HTML && cross-env NODE_ENV=production webpack",
     "build:server": "tsc --build src/tsconfig.json",
     "build:tests": "tsc --build tests/tsconfig.json",
-    "lint": "npm run lint:server && npm run lint:client",
+    "lint": "npm run lint:server && npm run lint:i18n && npm run lint:client",
     "lint:client": "vti diagnostics",
     "lint:server": "eslint --cache src tests --ext ts --ext vue",
+    "lint:i18n": "npx ts-node src/tools/translation_audit.ts",
     "lint:fix": "eslint --fix src tests --ext ts --ext vue",
     "make:cards": "ts-node src/server/tools/export_card_rendering.ts",
     "make:css": "lessc src/styles/common.less build/styles.css && npx tailwindcss -i ./src/styles/tailwindcss.css -o ./build/tailwindcss.css",
-    "make:json": "node make_static_json.js",
+    "watch:css": "node scripts/watchcss.js src/styles",
+    "make:json": "npx ts-node src/tools/make_static_json.ts",
     "make:static": "npm run make:css && npm run make:json",
     "test": "npm run test:server && npm run test:client",
-    "test:server": "ts-mocha -p tests/tsconfig.json --reporter-option maxDiffSize=256 -r tests/utils/setup.ts 'tests/*.spec.ts' \"tests/!(client|integration)/**/*.spec.ts\"",
-    "test:one": "ts-mocha  --timeout 1000000 -p tests/tsconfig.json --reporter-option maxDiffSize=256  -r tests/utils/setup.ts  \"tests/!(client|integration)/**/CloneTechnology.spec.ts\" ",
-    "test:integration": "ts-mocha --timeout 1000000 -p tests/tsconfig.json \"tests/integration/**/*.spec.ts\"",
+    "test:server": "ts-mocha -p tests/tsconfig.json --reporter-option maxDiffSize=256 -r tests/testing/setup.ts 'tests/*.spec.ts' \"tests/!(client|integration)/**/*.spec.ts\"",
+    "test:one": "ts-mocha  --timeout 1000000 -p tests/tsconfig.json --reporter-option maxDiffSize=256  -r tests/testing/setup.ts  \"tests/cards/**/*.spec.ts\" ",
+    "test:integration": "ts-mocha --no-timeouts -p tests/tsconfig.json \"tests/integration/**/*.spec.ts\"",
     "test:postgresql": "ts-mocha -p tests/tsconfig.json \"tests/integration/PostgreSQL.spec.ts\"",
     "test:client": "cross-env NODE_ENV=development mochapack --require tests/client/components/setup.ts \"tests/client/**/*.spec.ts\"",
     "test:client:watch": "cross-env NODE_ENV=development mochapack --watch --require tests/client/components/setup.ts \"tests/client/**/*.spec.ts\"",
     "test:client:HTML": "cross-env   mochapack --timeout 60000    --require tests/client/components/setup.ts   tests/client/components/Card_HTML.spec.ts",
-    "cover": "nyc ts-mocha -p tests/tsconfig.json -r tests/utils/setup.ts \"tests/*.spec.ts\" \"tests/!(client)/**/*.spec.ts\"",
     "dev:client": "cross-env NODE_ENV=development webpack --watch",
     "dev:server": "cross-env NODE_ENV=development tsnd src/server/server.ts",
     "tsc-w": "tsc --build -w src/tsconfig.json",

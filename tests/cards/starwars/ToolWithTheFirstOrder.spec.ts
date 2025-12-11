@@ -45,13 +45,15 @@ describe('ToolWithTheFirstOrder', () => {
     const playProjectCard = findOption(waitingFor!, 'Play project card');
     cast(playProjectCard, SelectProjectCardToPlay).payAndPlay(card, Payment.of({megaCredits: 5}));
     cb!();
+    player.popWaitingFor(); // cb会设置下一个take action 的 waitingfor
     runAllActions(game);
 
-    expect(player.getTerraformRating()).eq(21);
+    expect(player.terraformRating).eq(21);
 
     expect(player.actionsTakenThisRound).eq(1);
     expect(game.activePlayer).eq(player);
 
+    
     player.takeAction();
     const [waitingFor1, cb1] = player.popWaitingFor2();
     const patents1 = cast(findOption(waitingFor1!, 'Sell patents'), SelectCard);

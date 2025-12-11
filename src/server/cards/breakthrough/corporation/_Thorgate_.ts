@@ -1,11 +1,10 @@
 
 import {IPlayer} from '../../../IPlayer';
-import {IProjectCard} from '../../IProjectCard';
 import {CardRenderer} from '../../render/CardRenderer';
 import {CardName} from '../../../../common/cards/CardName';
 import {Tag} from '../../../../common/cards/Tag';
-import {Resource} from '../../../../common/Resource';
 import {CorporationCard} from '../../corporation/CorporationCard';
+import {IStandardProjectCard} from '../../IStandardProjectCard';
 
 export class _Thorgate_ extends CorporationCard {
   constructor() {
@@ -13,6 +12,10 @@ export class _Thorgate_ extends CorporationCard {
       name: CardName._THORGATE_,
       tags: [Tag.POWER, Tag.SCIENCE],
       startingMegaCredits: 44,
+
+      behavior: {
+        production: {energy: 2},
+      },
 
       cardDiscount: {tag: Tag.POWER, amount: 3},
       metadata: {
@@ -33,16 +36,11 @@ export class _Thorgate_ extends CorporationCard {
   }
 
 
-  public override getCardDiscount(_player: IPlayer, card: IProjectCard) {
-    if (card.tags.includes(Tag.POWER)) {
+  public getStandardProjectDiscount(_player: IPlayer, card: IStandardProjectCard): number {
+    if (card.name === CardName.POWER_PLANT_STANDARD_PROJECT) {
       return 3;
     }
     return 0;
-  }
-  /* Start with 2 energy prod and 1 extra science tag */
-  public override bespokePlay(player: IPlayer) {
-    player.production.add(Resource.ENERGY, 2);
-    return undefined;
   }
 }
 

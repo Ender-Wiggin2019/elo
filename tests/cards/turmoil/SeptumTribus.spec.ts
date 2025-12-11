@@ -4,7 +4,7 @@ import {testGame} from '../../TestGame';
 import {SeptemTribus} from '../../../src/server/cards/turmoil/SeptemTribus';
 
 describe('SeptemTribus', function() {
-  it('Should play', function() {
+  it('Should play', () => {
     const card = new SeptemTribus();
     const [game, player] = testGame(1, {turmoilExtension: true});
     card.play(player);

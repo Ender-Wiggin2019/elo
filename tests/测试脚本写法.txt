@@ -1,0 +1,11 @@
+关于测试写法
+
+// 测试公司初始行动
+player.defer(card.initialAction(player));
+runAllActions(game);
+
+
+ai提示词
+所有流程完全贴合源码和真实流程、不能假定卡牌/殖民地一定存在、不能用 mock/fakeCard/require/tagsForTest/addTag,用例包含tag打出限制， 政党限制， 行动效果，分数， 打出效果等， 不用使用require， 要用文件开头使用import。如果遇到不确定的点， 要寻找tests和src目录下真实卡牌和测试文件作为参考， 不要假定。
+
+

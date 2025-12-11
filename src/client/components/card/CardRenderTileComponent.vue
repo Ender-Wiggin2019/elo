@@ -125,6 +125,12 @@ const TILE_CLASSES: Record<TileType, Classes> = {
   [TileType.WASTE_INCINERATOR]: {
     symbol: 'card-tile-symbol-waste',
   },
+  [TileType.WASTE_INCINERATOR_OLD]: {
+    symbol: 'card-tile-symbol-waste',
+  },
+  [TileType.EMPTY]: {
+    symbol: '',
+  },
   [TileType.WETLANDS]: {
     tile: 'card-tile-wetlands',
   },
@@ -145,6 +151,9 @@ const TILE_CLASSES: Record<TileType, Classes> = {
   [TileType.MARTIAN_NATURE_WONDERS]: {}, // This isn't shown on a card
   [TileType.MARS_NOMADS]: {}, // This isn't shown on a card
   [TileType.REY_SKYWALKER]: {}, // This isn't shown on a card
+  [TileType.NEW_HOLLAND]: {
+    tile: 'card-tile-new-holland',
+  },
 };
 
 export default Vue.extend({

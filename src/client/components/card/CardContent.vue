@@ -1,5 +1,5 @@
 <template>
-  <div v-i18n :class="getClasses()">
+  <div v-i18n class="card-content" :class="corporationClass">
     <CardRequirementsComponent v-if="requirements.length > 0" :requirements="requirements"/>
     <CardRenderData v-if="metadata.renderData" :renderData="metadata.renderData" />
     <CardDescription v-if="hasDescription" :item="metadata.description" />
@@ -17,6 +17,7 @@ import CardVictoryPoints from './CardVictoryPoints.vue';
 import CardDescription from './CardDescription.vue';
 import CardRenderData from './CardRenderData.vue';
 import {CardRequirementDescriptor} from '@/common/cards/CardRequirementDescriptor';
+import {ICardRenderRoot, isICardRenderRoot} from '@/common/cards/render/Types';
 
 export default Vue.extend({
   name: 'CardContent',
@@ -43,18 +44,32 @@ export default Vue.extend({
     CardRenderData,
   },
   methods: {
-    getClasses(): string {
-      const classes: Array<string> = ['card-content'];
-      if (this.isCorporation) {
-        classes.push('card-content-corporation');
-      }
-      return classes.join(' ');
-    },
   },
   computed: {
+    corporationClass(): string {
+      return this.isCorporation ? 'card-content-corporation' : '';
+    },
     hasDescription(): boolean {
       const description = this.metadata.description;
       return description !== undefined && (typeof(description) !== 'string' || description.length > 0);
+    },
+    firstRow(): ICardRenderRoot | undefined {
+      if (isICardRenderRoot(this.metadata.renderData) && this.metadata.renderData.rows.length > 0) {
+        return {
+          is: 'root',
+          rows: [this.metadata.renderData.rows[0]],
+        };
+      }
+      return undefined;
+    },
+    remainingRows(): ICardRenderRoot | undefined {
+      if (isICardRenderRoot(this.metadata.renderData) && this.metadata.renderData.rows.length > 1) {
+        return {
+          is: 'root',
+          rows: this.metadata.renderData.rows.slice(1),
+        };
+      }
+      return undefined;
     },
   },
 });

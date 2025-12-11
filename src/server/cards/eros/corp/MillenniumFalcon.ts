@@ -64,7 +64,7 @@ export class MillenniumFalcon extends CorporationCard {
     return undefined;
   }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     if (player.game.gameOptions.coloniesExtension) {
       player.game.defer(new BuildColony(player, {title: 'first action - Select where to build colony'}));
       return undefined;

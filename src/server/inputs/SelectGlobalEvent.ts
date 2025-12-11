@@ -13,7 +13,7 @@ export class SelectGlobalEvent extends BasePlayerInput<Array<IGlobalEvent>> {
     public maxCardsToSelect: number = 1,
     public minCardsToSelect: number = 1,
   ) {
-    super('card', title);
+    super('globalEvent', title);
     this.buttonLabel = buttonLabel;
   }
 

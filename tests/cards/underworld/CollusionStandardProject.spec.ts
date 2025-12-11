@@ -33,7 +33,7 @@ describe('CollusionStandardProject', () => {
   });
 
   it('play', () => {
-    expect(card.play(player)).is.undefined;
+    cast(card.play(player), undefined);
   });
 
   it('can act', () => {

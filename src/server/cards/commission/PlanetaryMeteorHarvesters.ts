@@ -31,7 +31,7 @@ export class PlanetaryMeteorHarvesters extends Card implements IProjectCard {
           b.effect('When you play a Space tag, including this, add 1 Asteroid to this card.', (eb)=> {
             eb.tag(Tag.SPACE).startEffect.resource(CardResource.ASTEROID);
           }).br;
-          b.action('Add 1 Asteroid to ANOTHER card.', (eb) => {
+          b.action('Move 1 Asteroid to ANOTHER card.', (eb) => {
             eb.empty().startAction.resource(CardResource.ASTEROID).asterix();
           });
           b.vpText('1 VP per 3 Asteroids on this card.');
@@ -69,7 +69,7 @@ export class PlanetaryMeteorHarvesters extends Card implements IProjectCard {
             ([card]) => {
               this.resourceCount--;
               player.addResourceTo(card, 1);
-              player.game.log('${0} moved 1 animal from Bioengineering Enclosure to ${1}.', (b) => b.player(player).card(card));
+              player.game.log('${0} moved 1 Asteroid from Planetary Meteor Harvesters to ${1}.', (b) => b.player(player).card(card));
               return undefined;
             },
           );

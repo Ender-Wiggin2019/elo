@@ -22,7 +22,7 @@ export class MirrorCoat extends CorporationCard implements ICard {
 
       metadata: {
         cardNumber: 'XB18',
-        description: 'You start with 49 M€.',
+        description: 'You start with 49 M€. Draw 3 cards.',
         renderData: CardRenderer.builder((b) => {
           b.megacredits(49).nbsp.cards(3);
           b.corpBox('action', (ce) => {
@@ -45,7 +45,7 @@ export class MirrorCoat extends CorporationCard implements ICard {
   }
 
   public canAct(player: IPlayer): boolean {
-    if (this.data.isUsed !== true && player.isCorporation(CardName.MIRRORCOAT) && this.getPlayableBuildingCards(player).length > 0) return true;
+    if (this.data.isUsed !== true && player.playedCards.has(CardName.MIRRORCOAT) && this.getPlayableBuildingCards(player).length > 0) return true;
     return false;
   }
 

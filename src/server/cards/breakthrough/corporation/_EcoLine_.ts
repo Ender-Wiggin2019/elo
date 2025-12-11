@@ -1,6 +1,5 @@
 
 import {IPlayer} from '../../../IPlayer';
-import {IProjectCard} from '../../IProjectCard';
 import {EcoLine} from '../../corporation/EcoLine';
 import {CardRenderer} from '../../render/CardRenderer';
 import {digit} from '../../Options';
@@ -9,8 +8,7 @@ import {CardMetadata} from '../../../../common/cards/CardMetadata';
 import {Size} from '../../../../common/cards/render/Size';
 import {Tag} from '../../../../common/cards/Tag';
 import {Resource} from '../../../../common/Resource';
-import {ICorporationCard} from '../../corporation/ICorporationCard';
-import {PlayerInput} from '../../../PlayerInput';
+import {ICard} from '../../ICard';
 
 export class _EcoLine_ extends EcoLine {
   public override get name() {
@@ -21,19 +19,14 @@ export class _EcoLine_ extends EcoLine {
     return 38;
   }
 
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    if (player.isCorporation(this.name)) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard) {
+    if (player.playedCards.has(this.name)) {
       for (const tag of card.tags) {
         if (tag === Tag.PLANT) {
           player.stock.add(Resource.MEGACREDITS, 2);
         }
       }
     }
-  }
-
-  public onCorpCardPlayed(player: IPlayer, card: ICorporationCard) :PlayerInput | undefined {
-    this.onCardPlayed(player, card as unknown as IProjectCard);
-    return undefined;
   }
 
   public override get metadata(): CardMetadata {

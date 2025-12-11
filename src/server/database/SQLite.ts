@@ -1,14 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import type * as sqlite3 from 'sqlite3';
 
 import {GameIdLedger, IDatabase, IGameShortData} from './IDatabase';
 import {IGame, Score} from '../IGame';
 import {GameOptions} from '../game/GameOptions';
 import {GameId, ParticipantId, PlayerId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
-
-import type * as sqlite3 from 'sqlite3';
-
 import {User} from '../User';
 import {Timer} from '../../common/Timer';
 import {MultiMap} from 'mnemonist';
@@ -60,6 +58,7 @@ export class SQLite implements IDatabase {
       game_id varchar not null,
       completed_time timestamp not null default (strftime('%s', 'now')),
       PRIMARY KEY (game_id))`);
+    await this.asyncRun('DROP TABLE IF EXISTS purges');
   }
 
   public async getPlayerCount(gameId: GameId): Promise<number> {
@@ -258,18 +257,6 @@ export class SQLite implements IDatabase {
     const prop = game.toShortJSON();
     // Insert
     await this.runQuietly('INSERT INTO games(game_id, save_id, game, prop) VALUES(?, ?, ?, ?)', [game.id, game.lastSaveId, gameJSON, prop]);
-    // Save IDs on the very first save for this game. That's when the incoming saveId is 0, and also
-    // when the database operation was an insert. (We should figure out why multiple saves occur and
-    // try to stop them. But that's for another day.)
-    // if (game.lastSaveId === 0) {
-    //   const participantIds: Array<ParticipantId> = game.getPlayers().map((p) => p.id);
-    //   if (game.spectatorId) participantIds.push(game.spectatorId);
-    //   try {
-    //     await this.storeParticipants({gameId: game.id, participantIds: participantIds});
-    //   } catch (e) {
-    //     console.error(e);
-    //   }
-    // }
   }
 
   deleteGameNbrSaves(gameId: GameId, rollbackCount: number): Promise<void> {
@@ -343,6 +330,7 @@ export class SQLite implements IDatabase {
     });
     return result;
   }
+
 
   protected asyncRun(sql: string, params?: any): Promise<sqlite3.RunResult> {
     return new Promise((resolve, reject) => {

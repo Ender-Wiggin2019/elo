@@ -4,11 +4,9 @@ import {CardRenderer} from '../render/CardRenderer';
 import {Tag} from '../../../common/cards/Tag';
 // import {Size} from '../../../common/cards/render/Size';
 import {digit} from '../Options';
-import {ICorporationCard} from '../corporation/ICorporationCard';
 import {Space} from '../../boards/Space';
 import {Board} from '../../boards/Board';
 import {SelectSpace} from '../../inputs/SelectSpace';
-import {IProjectCard} from '../../cards/IProjectCard';
 import {Resource} from '../../../common/Resource';
 import {ICard} from '../../cards/ICard';
 import {CardResource} from '../../../common/CardResource';
@@ -21,6 +19,7 @@ export class BuyNLarge extends CorporationCard {
       tags: [Tag.PLANT],
       startingMegaCredits: 35,
       resourceType: CardResource.SEED,
+      initialActionText: 'Place a greenery',
 
       metadata: {
         cardNumber: 'XB08',
@@ -38,8 +37,7 @@ export class BuyNLarge extends CorporationCard {
     });
   }
 
-  public override resourceCount = 1;
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     return new SelectSpace('Select space for greenery tile',
       player.game.board.getAvailableSpacesForGreenery(player) ).andThen((space: Space) => {
       player.game.addGreenery(player, space);
@@ -50,8 +48,8 @@ export class BuyNLarge extends CorporationCard {
     });
   }
 
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    if (player.isCorporation(this.name)) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard) {
+    if (player.playedCards.has(this.name)) {
       for (const tag of card.tags) {
         if (tag === Tag.ANIMAL || tag === Tag.PLANT || tag === Tag.MICROBE) {
           player.addResourceTo(this, {log: true});
@@ -60,10 +58,6 @@ export class BuyNLarge extends CorporationCard {
     }
   }
 
-  public onCorpCardPlayed(player: IPlayer, card:ICorporationCard) {
-    this.onCardPlayed(player, card as unknown as IProjectCard);
-    return undefined;
-  }
 
   public onTilePlaced(cardOwner: IPlayer, activePlayer: IPlayer, space: Space) {
     if (cardOwner.id !== activePlayer.id) {

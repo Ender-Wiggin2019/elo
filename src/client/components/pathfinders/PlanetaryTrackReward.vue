@@ -10,7 +10,7 @@
 
 import Vue from 'vue';
 import {Reward} from '@/common/pathfinders/Reward';
-import {GameOptions} from '@/server/game/GameOptions';
+import {GameOptionsModel} from '../../../common/models/GameOptionsModel';
 
 export default Vue.extend({
   name: 'PlanetaryTrackReward',
@@ -19,7 +19,7 @@ export default Vue.extend({
       type: String as () => Reward,
     },
     gameOptions: {
-      type: Object as () => GameOptions,
+      type: Object as () => GameOptionsModel,
     },
   },
   computed: {
@@ -36,7 +36,7 @@ export default Vue.extend({
       case 'city':
         return 'tag-city-count tag-size-big';
       case 'delegate':
-        return this.gameOptions.turmoilExtension ? 'delegate' : 'reward-3mc';
+        return this.gameOptions.expansions.turmoil ? 'delegate' : 'reward-3mc';
       case 'energy':
       case 'energy_production':
         return 'resource_icon resource_icon--energy';
@@ -82,7 +82,7 @@ export default Vue.extend({
       case '6mc':
         return 'reward-6mc';
       case 'delegate':
-        return this.gameOptions.turmoilExtension ? '' : 'reward-3mc';
+        return this.gameOptions.expansions.turmoil ? '' : 'reward-3mc';
       case 'energy_production':
       case 'heat_production':
       case 'plant_production':

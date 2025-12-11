@@ -6,26 +6,23 @@
           </div>
         </div>
         <div class="board-outer-spaces" id="colony_spaces">
-            <board-space :space="getSpaceById('01')" text="Ganymede Colony" :tileView="tileView"></board-space>
-            <board-space :space="getSpaceById('02')" text="Phobos Space Haven" :tileView="tileView"></board-space>
-            <board-space :space="getSpaceById('69')" text="Stanford Torus" :tileView="tileView"></board-space>
-            <template v-if="venusNextExtension">
-              <board-space :space="getSpaceById('70')" text="Luna Metropolis" :tileView="tileView"></board-space>
-              <board-space :space="getSpaceById('71')" text="Dawn City" :tileView="tileView"></board-space>
-              <board-space :space="getSpaceById('72')" text="Stratopolis" :tileView="tileView"></board-space>
-              <board-space :space="getSpaceById('73')" text="Maxwell Base" :tileView="tileView"></board-space>
-            </template>
-            <template v-if="pathfindersExpansion">
-              <!-- <board-space :space="getSpaceById('74')" text="Martian Transhipment Station" :tileView="tileView"></board-space> -->
-              <board-space :space="getSpaceById('75')" text="Ceres Spaceport" :tileView="tileView"></board-space>
-              <board-space :space="getSpaceById('76')" text="Dyson Screens" :tileView="tileView"></board-space>
-              <board-space :space="getSpaceById('77')" text="Lunar Embassy" :tileView="tileView"></board-space>
-              <board-space :space="getSpaceById('78')" text="Venera Base" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.GANYMEDE_COLONY)" text="Ganymede Colony" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.PHOBOS_SPACE_HAVEN)" text="Phobos Space Haven" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.STANFORD_TORUS)" text="Stanford Torus" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.LUNA_METROPOLIS)" text="Luna Metropolis" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.DAWN_CITY)" text="Dawn City" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.STRATOPOLIS)" text="Stratopolis" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.MAXWELL_BASE)" text="Maxwell Base" :tileView="tileView"></board-space>
+          <!-- <board-space :space="getSpaceOrUndefined('74')" text="Martian Transhipment Station" :tileView="tileView"></board-space> -->
+          <board-space :space="getSpaceOrUndefined(SpaceName.CERES_SPACEPORT)" text="Ceres Spaceport" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.DYSON_SCREENS)" text="Dyson Screens" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.LUNAR_EMBASSY)" text="Lunar Embassy" :tileView="tileView"></board-space>
+          <board-space :space="getSpaceOrUndefined(SpaceName.VENERA_BASE)" text="Venera Base" :tileView="tileView"></board-space>
 
-            </template>
-            <template v-if="erosCardsOption">
-              <board-space :space="getSpaceById('99')" text="Trantor" :tileView="tileView"></board-space>
-            </template>
+          <template  v-if="expansions.eros ">
+          <board-space :space="getSpaceOrUndefined(SpaceName.TRANTOR)" text="Trantor" :tileView="tileView"></board-space>
+          </template>
+
         </div>
 
         <div class="global-numbers">
@@ -37,20 +34,20 @@
                 <div :class="getScaleCSS(lvl)" v-for="(lvl, idx) in getValuesForParameter('oxygen')" :key="idx">{{ lvl.strValue }}</div>
             </div>
 
-            <div class="global-numbers-venus" v-if="venusNextExtension">
+            <div class="global-numbers-venus" v-if="expansions.venus">
                 <div :class="getScaleCSS(lvl)" v-for="(lvl, idx) in getValuesForParameter('venus')" :key="idx">{{ lvl.strValue }}</div>
             </div>
 
             <div class="global-numbers-oceans">
-              <span v-if="this.oceans_count === this.constants.MAX_OCEAN_TILES">
+              <span v-if="oceans_count === constants.MAX_OCEAN_TILES">
                 <img width="26" src="assets/misc/circle-checkmark.png" class="board-ocean-checkmark" :alt="$t('Completed!')">
               </span>
               <span v-else>
-                {{this.oceans_count}}/{{this.constants.MAX_OCEAN_TILES}}
+                {{oceans_count}}/{{constants.MAX_OCEAN_TILES}}
               </span>
             </div>
 
-            <div v-if="aresExtension && aresData !== undefined">
+            <div v-if="expansions.ares && aresData !== undefined">
                 <div v-if="aresData.hazardData.erosionOceanCount.available">
                     <div class="global-ares-erosions-icon"></div>
                     <div class="global-ares-erosions-val">{{aresData.hazardData.erosionOceanCount.threshold}}</div>
@@ -86,7 +83,7 @@
               v-for="curSpace in getAllSpacesOnMars()"
               :key="curSpace.id"
               :space="curSpace"
-              :aresExtension="aresExtension"
+              :aresExtension="expansions.ares"
               :tileView="tileView"
               data-test="board-space"
             />
@@ -369,6 +366,8 @@ import {SpaceId} from '@/common/Types';
 import {TileView} from '@/client/components/board/TileView';
 import {BoardName} from '@/common/boards/BoardName';
 import {LEGENDS} from '@/client/components/Legends';
+import {Expansion} from '@/common/cards/GameModule';
+import {SpaceName} from '@/common/boards/SpaceName';
 
 class GlobalParamLevel {
   constructor(public value: number, public isActive: boolean, public isDone: boolean, public strValue: string) {
@@ -380,9 +379,6 @@ export default Vue.extend({
   props: {
     spaces: {
       type: Array as () => Array<SpaceModel>,
-    },
-    venusNextExtension: {
-      type: Boolean,
     },
     venusScaleLevel: {
       type: Number,
@@ -402,14 +398,8 @@ export default Vue.extend({
     temperature: {
       type: Number,
     },
-    aresExtension: {
-      type: Boolean,
-    },
-    pathfindersExpansion: {
-      type: Boolean,
-    },
-    erosCardsOption: {
-      type: Boolean,
+    expansions: {
+      type: Object as () => Record<Expansion, boolean>,
     },
     aresData: {
       type: Object as () => AresData | undefined,
@@ -439,13 +429,8 @@ export default Vue.extend({
         return s.spaceType !== SpaceType.COLONY;
       });
     },
-    getSpaceById(spaceId: SpaceId): SpaceModel {
-      for (const space of this.spaces) {
-        if (space.id === spaceId) {
-          return space;
-        }
-      }
-      throw new Error('Board space not found by id \'' + spaceId + '\'');
+    getSpaceOrUndefined(spaceId: SpaceId): SpaceModel | undefined {
+      return this.spaces.find((space) => space.id === spaceId);
     },
     getValuesForParameter(targetParameter: string): Array<GlobalParamLevel> {
       const values = [];
@@ -506,7 +491,7 @@ export default Vue.extend({
       }
     },
     getGameBoardClassName(): string {
-      return this.venusNextExtension ? 'board-cont board-with-venus' : 'board-cont board-without-venus';
+      return this.expansions.venus ? 'board-cont board-with-venus' : 'board-cont board-without-venus';
     },
   },
   computed: {
@@ -515,6 +500,9 @@ export default Vue.extend({
     },
     LEGENDS(): typeof LEGENDS {
       return LEGENDS;
+    },
+    SpaceName(): typeof SpaceName {
+      return SpaceName;
     },
   },
 });

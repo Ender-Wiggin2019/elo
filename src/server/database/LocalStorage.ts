@@ -5,6 +5,7 @@ import {GameId, ParticipantId} from '../../common/Types';
 import {SerializedGame} from '../SerializedGame';
 import {User} from '../User';
 import {UserRank} from '../../common/rank/RankManager';
+import {toID} from '../../common/utils/utils';
 
 let storage: Storage;
 
@@ -194,7 +195,7 @@ export class LocalStorage implements IDatabase {
           continue;
         }
         const game: SerializedGame = JSON.parse(text.toString());
-        const participantIds: Array<ParticipantId> = game.players.map((p) => p.id);
+        const participantIds: Array<ParticipantId> = game.players.map(toID);
         if (game.spectatorId) participantIds.push(game.spectatorId);
         gameIds.push({gameId: game.id, participantIds});
       }

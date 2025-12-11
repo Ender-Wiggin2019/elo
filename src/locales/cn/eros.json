@@ -5,7 +5,7 @@
     "Requires Venus and Earth tags. Increase your M€ production 4 steps. ALL OPPONENTS increase their M€ production 1 step":"需要你有1个金星标记和1个地球标记。提升你的M€产能4格。所有对手各提升M€产能1格",
 
     "Mars Hot Spring":"火星温泉",
-    "Requires 3 ocean tiles. Increase your M€ and Heat production 2 steps. Place this tile ADJACENT TO an ocean tile":"需要有3块海洋。提升你的M€产能和热能产能各2格，放置此版块到与海洋相邻的位置",
+    "Requires 3 ocean tiles. Increase your M€ and Heat production 2 steps. Place this tile ADJACENT TO an ocean tile":"需要有3块海洋。提升你的M€产能和热能产能各2格，放置此板块到与海洋相邻的位置",
 
     "Solar Cosmic Rays":"太阳射线",
     "Increase your energy production 1 steps. For each energy production other player has, you increase your heat production 1 step[max 15].":"提升你的电力产能1格。全场其他每有1点电力产能，你提升你的热能产能1格（至多15）",
@@ -26,7 +26,7 @@
     "Cutting Edge Lab":"前沿实验室",
 
     "Respiration Enhance":"呼吸作用增强",
-    "Effect: When you place a greenery, you can choose to increase temperature 1 step, intead of oxygen":"效果：每当你放置一片绿化版块，你可以选择提升温度1格而不是提升氧气",
+    "Effect: When you place a greenery, you can choose to increase temperature 1 step, intead of oxygen":"效果：每当你放置一片绿化板块，你可以选择提升温度1格而不是提升氧气",
 
     "Electric Sheep":"电子羊",
     "Requires 4 Power tags. Decrease any Energy production 1 step":"需要你有4个电力标志。降低任意玩家电力产能1格",
@@ -36,7 +36,7 @@
     "Requires 6 science tags":"需要你有6个科学标志",
 
     "Large Ecological Reserve":"大型生态保护区",
-    "Requires a Plant tag, a Microbe tag, and an Animal tag. Place 2 greenery tiles and raise oxygen 2 steps":"需要你有1个植物标志，1个微生物标志，1个动物标志。放置2片绿化版块并提升氧气2格",
+    "Requires a Plant tag, a Microbe tag, and an Animal tag. Place 2 greenery tiles and raise oxygen 2 steps":"需要你有1个植物标志，1个微生物标志，1个动物标志。放置2片绿化板块并提升氧气2格",
 
 
     "Clone Technology":"克隆科技",
@@ -153,13 +153,13 @@
 
     "Action: Decrease 1 production (not MC), and Increase 1 production." : "行动：降低一点产能，不能是钱产。提升一点任意产能。",
 
+
     "Jovian Defense Department" : "木星防空署",
+    "Effect: When you play a Jovian tag, including this, add 1 Asteroid to this card." : "效果：每当你打出一个木星标记，在本卡上增加一个陨石标记。",
+    "1 VP per Asteroid on this card": "此牌上每有1个小行星，获得1 VP。",
 
     "Trantor" : "川陀",
-
-    "Effect: When you play a Jovian tag, including this, add 1 Asteroid to this card." : "效果：每当你打出一个木星标记，在本卡上增加一个陨石标记。",
-
-    "Increase your M€ production 2 steps. Place a city tile IN SPACE, outside and separate from the planet. At the end of the game, if you have most cities not on Mars, gain 3 VPs." : "提升2点钱产。放置一个城市到外太空。终局计分时，如果你拥有最多外太空城市，获得3分。",
+    "Increase your M€ production 2 steps. Place a city tile IN SPACE, outside and separate from the planet. At the end of the game, if you have the most cities not on Mars (including ties), gain 3 VPs." : "提升2点钱产。放置一个城市到外太空。终局计分时，如果你拥有最多(可以并列)外太空城市，获得3分。",
 
     "You start with 41 M€. As your first action, transform all Neutral delegates to your delegates." : "游戏开始时你获得41MC。作为第一个行动，将所有中立代表转化为你的代表。",
 
@@ -171,14 +171,24 @@
     "TeiAi Group":"帝爱赌场",
 
     "Energy Station": "能源站",
-    "Effect: When another player is removed a plant, gain 1 Heat": "效果：一名玩家叶子被其他玩家移除时，每移除一个叶子使你获得1热。",
+    "Effect: When a player 's plants are removed by another player,you gain 1 Heat for each plant removed.": "效果：一名玩家叶子被其他玩家移除时，每移除一个叶子使你获得1热。",
     "Action: Spend X Plant to gain 2X Heat": "行动：花费X个植物资源获得2X热能",
     "Action: Spend 2X Heat to gain X Plant": "行动：花费2X热能获得X植物资源",
     "Space Monster Park": "太空怪兽乐园",
-    "Decrease your titanium production 1 step. When you play a Space/Earth/Venus tag, including these, either add a floater resource to this card, or remove 2 floater resource from this card to draw a card.": "减少1点钛产。效果：每当你打出一个太空/地球/金星标记时，你可以选择在本卡上增加一个漂浮物资源，或者移除2个漂浮物资源抽一张牌。",
+    "Decrease your titanium production 1 step. When you play a Space/Earth/Venus tag, including these, either add a floater resource to this card, or remove 2 floater resource from this card to draw a card.": "减少1点钛产。效果：你每打出一个太空/地球/金星标志，你可以在本卡上增加一个漂浮物，或者移除2个漂浮物抽一张牌。",
+    "Effect: When you play a Space/Earth/Venus tag, including these, either add a floater resource to this card, or remove 2 floater resource from this card to draw a card.": "效果：你每打出一个太空/地球/金星标志，你可以在本卡上增加一个漂浮物，或者移除2个漂浮物抽一张牌。",
+    "Decrease your titanium production 1 step.": "减少1点钛产。",
     "Luna Chain": "连月",
     "Effect: After you pay for a card with the same amount as your last card, you gain 3 M€": "效果：当你打出的项目卡实际支付的M€与上一张项目卡相同时，你获得3M€",
     "WG Partnership": "世界政府小伙伴",
-    "You gain the bonus of world government.": "你获得世界政府的收益，包括轨道奖励和放海收益（但仍然由原本玩家执行世界政府）。"
+    "You gain the bonus of world government.": "你获得世界政府的收益，包括轨道奖励和放海收益（但仍然由原本玩家执行世界政府）。",
+
+    "You start with 53 M€ and 1 extra trade fleet": "您起始拥有 53 M€ 和 1 个额外贸易船队。",
+
+    "You start with 54 M€. As your first action, place two delegates in one party": "您起始拥有 54 M€。作为您的第一个行动，在一个政党中放置两个代表。",
+
+    "You start with 28 M€. As your first action, place a colony": "您起始拥有 28 M€。作为您的第一个行动，放置一个殖民地。"
+
+
 }
 

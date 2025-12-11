@@ -42,7 +42,7 @@ export class BrotherhoodOfMutants extends CorporationCard {
 
   public action(player: IPlayer) {
     if (player.game.turmoil) {
-      const bonus = player.game.turmoil.getPlayerInfluence(player);
+      const bonus = player.game.turmoil.getInfluence(player);
       player.game.defer(new SimpleDeferredAction(
         player,
         () => {
@@ -124,7 +124,7 @@ export class BrotherhoodOfMutants extends CorporationCard {
         return undefined;
       },
       );
-    selectResources.title = 'Philares effect: select ' + resourceCount + ' resource(s)';
+    selectResources.title = 'BrotherhoodOfMutants effect: select ' + resourceCount + ' resource(s)';
 
     return selectResources;
   }

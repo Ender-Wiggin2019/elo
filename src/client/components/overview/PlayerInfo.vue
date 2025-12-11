@@ -3,7 +3,7 @@
         <div class="player-status-and-res">
         <div class="player-status">
           <div class="player-info-details">
-            <div class="player-info-name"  @click="togglePlayerDetails">{{ player.name }} <em title="vip" v-if="player.isvip" :class="'icon_vip'+player.isvip" /></div>
+            <div class="player-info-name"  @click="togglePlayerDetails">{{ playerSymbol + player.name }} <em title="vip" v-if="player.isvip" :class="'icon_vip'+player.isvip" /></div>
             <span @click="togglePlayerDetails"   v-i18n>
               <div class="player-info-corp" :title="$t(corporationCardName())">
                 {{ corporationCardName() }}
@@ -56,7 +56,8 @@ import {CardType} from '@/common/cards/CardType';
 import {getCard} from '@/client/cards/ClientCardManifest';
 import {Phase} from '@/common/Phase';
 import {CardName} from '../../../common/cards/CardName';
-
+import {ActionLabel} from './ActionLabel';
+import {playerSymbol} from '@/client/utils/playerSymbol';
 
 export default Vue.extend({
   name: 'PlayerInfo',
@@ -72,7 +73,7 @@ export default Vue.extend({
       default: false,
     },
     actionLabel: {
-      type: String,
+      type: String as () => ActionLabel,
       default: '',
     },
     playerIndex: {
@@ -97,6 +98,9 @@ export default Vue.extend({
   computed: {
     tooltipCss(): string {
       return 'tooltip tooltip-' + (this.isTopBar ? 'bottom' : 'top');
+    },
+    playerSymbol(): string {
+      return playerSymbol(this.player.color, ' ');
     },
     Phase(): typeof Phase {
       return Phase;
@@ -178,7 +182,7 @@ export default Vue.extend({
     },
     corporationCardName(): CardName | undefined {
       const card = this.player.tableau[0];
-      if (getCard(card.name)?.type !== CardType.CORPORATION) return undefined;
+      if (card === undefined || getCard(card.name)?.type !== CardType.CORPORATION) return undefined;
       return card.name;
     },
   },

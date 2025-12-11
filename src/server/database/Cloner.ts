@@ -5,8 +5,8 @@ import {GameSetup} from '../GameSetup';
 import {IPlayer} from '../IPlayer';
 import {SerializedGame} from '../SerializedGame';
 import {SerializedPlayer} from '../SerializedPlayer';
-import {Color} from '../../common/Color';
 import {Player} from '../Player';
+import {toID} from '../../common/utils/utils';
 
 export class Cloner {
   public static clone(
@@ -15,8 +15,8 @@ export class Cloner {
     firstPlayerIndex: number,
     serialized: SerializedGame): IGame {
     const serializedGameId: GameId = serialized.id;
-    const serializedPlayerIds: Array<PlayerId> = serialized.players.map((player) => player.id);
-    const playerIds: Array<PlayerId> = players.map((player) => player.id);
+    const serializedPlayerIds: Array<PlayerId> = serialized.players.map(toID);
+    const playerIds: Array<PlayerId> = players.map(toID);
     if (serializedPlayerIds.length !== playerIds.length) {
       throw new Error(`Failing to clone from a ${serializedPlayerIds.length} game ${serializedGameId} to a ${playerIds.length} game.`);
     }
@@ -36,8 +36,8 @@ export class Cloner {
     serialized.first = serialized.players[firstPlayerIndex];
     serialized.clonedGamedId = '#' + serializedGameId;
     serialized.createdTimeMs = new Date().getTime();
-    const player = new Player('test', Color.BLUE, false, 0, 'p000');
-    const player2 = new Player('test2', Color.RED, false, 0, 'p111');
+    const player = new Player('test', 'blue', false, 0, 'p000');
+    const player2 = new Player('test2', 'red', false, 0, 'p111');
     const gameToRebuild = Game.rebuild('gtest', [player, player2], player);
     const game = gameToRebuild.loadFromJSON(serialized);
     return game;

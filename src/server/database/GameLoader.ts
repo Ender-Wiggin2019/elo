@@ -1,5 +1,4 @@
 
-import {Color} from '../../common/Color';
 // import * as prometheus from 'prom-client';
 import {Database} from './Database';
 import {Game, LoadState} from '../Game';
@@ -249,7 +248,7 @@ export class GameLoader implements IGameLoader {
 
   private onGameLoaded(game: IGame, err: boolean = false): void {
     const gameId = game.id;
-    console.log(`load game ${gameId}  ${err}`);
+    console.log(`load game ${gameId}  result:${err ? 'failed' : 'success'}`);
     if (err) {
       // 加载失败 移除game_id相关数据
       this.games.delete(gameId);
@@ -377,8 +376,8 @@ export class GameLoader implements IGameLoader {
           return;
         }
         console.log(`loading all games ${allGames.length}`);
-        const player = new Player('test', Color.BLUE, false, 0, 'p000');
-        const player2 = new Player('test2', Color.RED, false, 0, 'p111');
+        const player = new Player('test', 'blue', false, 0, 'p000');
+        const player2 = new Player('test2', 'red', false, 0, 'p111');
 
         allGames.forEach((gamedata) => {
           if (gamedata.shortData) {
@@ -422,8 +421,8 @@ export class GameLoader implements IGameLoader {
       cb();
       return;
     }
-    const player = new Player('test', Color.BLUE, false, 0, 'p000');
-    const player2 = new Player('test2', Color.RED, false, 0, 'p111');
+    const player = new Player('test', 'blue', false, 0, 'p000');
+    const player2 = new Player('test2', 'red', false, 0, 'p111');
     const gameToRebuild = Game.rebuild(game_id, [player, player2], player);
 
     console.log(`ready to load game ${game_id}`);
@@ -509,6 +508,6 @@ function parseConfigString(stringValue: string): CacheConfig {
   const evictMillis = durationToMilliseconds(parsed.eviction_age);
   if (!isNaN(evictMillis)) options.evictMillis = evictMillis;
   const sleepMillis = durationToMilliseconds(parsed.sweep_freq);
-  if (isNaN(sleepMillis)) options.sleepMillis = sleepMillis;
+  if (!isNaN(sleepMillis)) options.sleepMillis = sleepMillis;
   return options;
 }

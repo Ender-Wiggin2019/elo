@@ -3,7 +3,7 @@ import {ApiPlayer} from '../../src/server/routes/ApiPlayer';
 import {MockResponse} from './HttpMocks';
 import {RouteTestScaffolding} from './RouteTestScaffolding';
 
-describe('ApiPlayer', function() {
+describe('ApiPlayer', () => {
   let scaffolding: RouteTestScaffolding;
   let res: MockResponse;
 

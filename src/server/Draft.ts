@@ -9,8 +9,9 @@ import {message} from './logs/MessageBuilder';
 import {IPreludeCard} from './cards/prelude/IPreludeCard';
 import {ICorporationCard} from './cards/corporation/ICorporationCard';
 import {ICard} from './cards/ICard';
+import {ICeoCard} from './cards/ceos/ICeoCard';
 
-export type DraftType = 'none' | 'initial' | 'prelude' | 'corporation' | 'standard';
+export type DraftType = 'none' | 'initial' | 'prelude' | 'corporation' | 'standard' | 'ceos';
 
 /*
  * Drafting terminology:
@@ -47,11 +48,11 @@ export abstract class Draft {
     }
     const arrays: Array<Array<IProjectCard>> = [];
     if (this.game.draftRound === 1) {
-      for (const player of this.game.getPlayers()) {
+      for (const player of this.game.players) {
         arrays.push(this.draw(player));
       }
     } else {
-      arrays.push(...this.game.getPlayers().map((player) => player.draftHand));
+      arrays.push(...this.game.players.map((player) => player.draftHand));
       if (this.passDirection() === 'after') {
         arrays.unshift(arrays.pop()!); // eslint-disable-line @typescript-eslint/no-non-null-assertion
       } else {
@@ -59,7 +60,7 @@ export abstract class Draft {
       }
     }
 
-    for (const [player, draftHand] of zip(this.game.getPlayers(), arrays)) {
+    for (const [player, draftHand] of zip(this.game.players, arrays)) {
       player.draftHand = draftHand;
       player.needsToDraft = true;
       this.askPlayerToDraft(player);
@@ -73,7 +74,7 @@ export abstract class Draft {
    * stored after round. So restoring the draft is a bit tricky.
    */
   public restoreDraft() {
-    const players = this.game.getPlayers();
+    const players = this.game.players;
 
     // When restoring drafting, it might be that nothing was dealt yet.
     if (!players.some((p) => p.needsToDraft !== undefined)) {
@@ -134,7 +135,7 @@ export abstract class Draft {
     player.needsToDraft = false;
 
     // If anybody still needs to draft, stop here. 还有人没有选牌
-    if (this.game.getPlayers().some((p) => p.needsToDraft)) {
+    if (this.game.players.some((p) => p.needsToDraft)) {
       // this.game.save();  轮抽中间不保存
       return;
     }
@@ -148,7 +149,7 @@ export abstract class Draft {
     }
 
     // Push last cards for each player
-    for (const player of this.game.getPlayers()) {
+    for (const player of this.game.players) {
       player.draftedCards.push(...copyAndEmpty(this.takingFrom(player).draftHand));
       player.needsToDraft = undefined;
     }
@@ -171,10 +172,10 @@ class StandardDraft extends Draft {
     if (LunaProjectOffice.isActive(player)) {
       return 5;
     }
-    if (player.isCorporation(CardName._TERRALABS_RESEARCH_)) {
+    if (player.tableau.has(CardName._TERRALABS_RESEARCH_)) {
       return 5;
     }
-    if (player.isCorporation(CardName.MARS_MATHS)) {
+    if (player.tableau.has(CardName.MARS_MATHS)) {
       return 5;
     }
 
@@ -186,10 +187,10 @@ class StandardDraft extends Draft {
       if (LunaProjectOffice.isActive(player)) {
         return 2;
       }
-      if (player.isCorporation(CardName._TERRALABS_RESEARCH_)) {
+      if (player.playedCards.has(CardName._TERRALABS_RESEARCH_)) {
         return 2;
       }
-      if (player.isCorporation(CardName.MARS_MATHS)) {
+      if (player.tableau.has(CardName.MARS_MATHS)) {
         return 2;
       }
     }
@@ -234,7 +235,7 @@ class InitialDraft extends Draft {
       this.startDraft();
       break;
     case 3:
-      for (const player of this.game.getPlayers()) {
+      for (const player of this.game.players) {
         player.dealtProjectCards = player.draftedCards;
         player.draftedCards = [];
       }
@@ -270,7 +271,7 @@ class PreludeDraft extends Draft {
 
   override endRound() {
     this.game.draftRound = 1;
-    for (const player of this.game.getPlayers()) {
+    for (const player of this.game.players) {
       // TODO(kberg): player.draftedCards is not ideal here.
       player.dealtPreludeCards = player.draftedCards as Array<IPreludeCard>;
       player.draftedCards = [];
@@ -280,6 +281,34 @@ class PreludeDraft extends Draft {
     } else {
       this.game.gotoInitialResearchPhase();
     }
+  }
+}
+
+class CEOsDraft extends Draft {
+  constructor(game: IGame) {
+    super('ceos', game);
+  }
+
+  override draw(player: IPlayer) {
+    return player.dealtCeoCards;
+  }
+
+  override cardsToKeep(_player: IPlayer): number {
+    return 1;
+  }
+
+  override passDirection(): 'after' {
+    return 'after';
+  }
+
+  override endRound() {
+    for (const player of this.game.players) {
+      // TODO(kberg): player.draftedCards is not ideal here.
+      player.dealtCeoCards = player.draftedCards as Array<ICeoCard>;
+      player.draftedCards = [];
+    }
+
+    this.game.gotoInitialResearchPhase();
   }
 }
 
@@ -302,7 +331,7 @@ class CorporationDraft extends Draft {
   }
 
   override endRound() {
-    for (const player of this.game.getPlayers()) {
+    for (const player of this.game.players) {
       // TODO(kberg): player.draftedCards is not ideal here.
       player.dealtCorporationCards = player.draftedCards as Array<ICard> as Array<ICorporationCard>;
       player.draftedCards = [];
@@ -322,4 +351,8 @@ export function newInitialDraft(game: IGame) {
 
 export function newPreludeDraft(game: IGame) {
   return new PreludeDraft(game);
+}
+
+export function newCEOsDraft(game: IGame) {
+  return new CEOsDraft(game);
 }

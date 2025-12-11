@@ -14,6 +14,7 @@ import {Units} from '../Units';
 
 export type BaseInputModel = {
   title: string | Message;
+  warning?: string | Message;
   buttonLabel: string;
 }
 
@@ -51,7 +52,6 @@ export type SelectProjectCardToPlayModel = BaseInputModel & {
   seeds: number;
   graphene: number;
   kuiperAsteroids: number;
-  corruption: number;
 }
 
 export type SelectCardModel = BaseInputModel & {

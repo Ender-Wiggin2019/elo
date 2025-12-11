@@ -34,7 +34,7 @@ export class Deck<T extends ICard> {
   }
 
   // 自选公司卡优先抽卡， 非自选的放后面， 因为后面前序可能用到 不能全部移出
-  public shuffle(cardsOnTop: Array<CardName> = []) {
+  public shuffle(cardsOnTop: ReadonlyArray<CardName> = []) {
     const copy = [...this.drawPile, ...this.discardPile];
     this.drawPile.splice(0, this.drawPile.length);
     this.discardPile.splice(0, this.discardPile.length);

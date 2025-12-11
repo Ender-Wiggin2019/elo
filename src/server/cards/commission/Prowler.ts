@@ -14,8 +14,8 @@ import {Size} from '../../../common/cards/render/Size';
 import {IPlayer} from '../../IPlayer';
 import {Resource} from '../../../common/Resource';
 import {SelectProjectCardToPlay} from '../../inputs/SelectProjectCardToPlay';
-import {PlayableCard} from '../IProjectCard';
 import {digit} from '../Options';
+import {IProjectCard} from '../IProjectCard';
 
 export class Prowler extends CorporationCard implements ICard {
   public bonus: number = 0;
@@ -74,16 +74,13 @@ export class Prowler extends CorporationCard implements ICard {
     this.bonus = 50;
     player.stock.deduct(Resource.PLANTS, 1);
 
-    const playableCards: Array<PlayableCard> = [];
+    const playableCards: Array<IProjectCard> = [];
     for (const card of player.cardsInHand) {
       if (card.tags.indexOf(Tag.PLANT) > -1 ) {
         card.warnings.clear();
         const canPlay = player.canPlay(card);
         if (canPlay !== false) {
-          playableCards.push({
-            card,
-            details: canPlay,
-          });
+          playableCards.push(card);
         }
       }
     }

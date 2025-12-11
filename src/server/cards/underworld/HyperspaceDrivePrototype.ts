@@ -7,6 +7,7 @@ import {Tag} from '../../../common/cards/Tag';
 import {IPlayer} from '../../IPlayer';
 import {CardResource} from '../../../common/CardResource';
 import {AddResourcesToCard} from '../../deferredActions/AddResourcesToCard';
+import {Priority} from '../../deferredActions/Priority';
 
 export class HyperspaceDrivePrototype extends Card implements IProjectCard {
   constructor() {
@@ -41,7 +42,7 @@ export class HyperspaceDrivePrototype extends Card implements IProjectCard {
     }
     const scienceCards = player.getResourceCards(CardResource.SCIENCE);
     if (scienceCards.length > 0) {
-      player.game.defer(new AddResourcesToCard(player, CardResource.SCIENCE));
+      player.game.defer(new AddResourcesToCard(player, CardResource.SCIENCE), Priority.HYPERSPACE_DRIVE_PROTOTYPE);
     } else {
       player.game.log('${0} has no science cards and gained 1 TR.', (b) => b.player(player));
       player.increaseTerraformRating();

@@ -44,7 +44,7 @@ export class ApiGameLogs extends Handler {
     } else {
       const generation = searchParams.get('generation');
       const logs = this.gameLogs.getLogsForGameView(id, game, generation);
-      responses.writeJson(res, logs);
+      responses.writeJson(res, ctx, logs);
     }
     return Promise.resolve();
   }

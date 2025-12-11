@@ -26,7 +26,7 @@ export class EnergyStation extends Card implements IActionCard, IProjectCard {
       metadata: {
         cardNumber: 'Q60',
         renderData: CardRenderer.builder((b) => {
-          b.effect('When another player is removed a plant, gain 1 Heat.', (eb) => {
+          b.effect('When a player \'s plants are removed by another player,you gain 1 Heat for each plant removed.', (eb) => {
             eb.startEffect.plants(1, {all}).colon().heat(1);
           }).br;
           // b.plants(1, {all}).colon().heat(2).br;

@@ -39,13 +39,13 @@ import {testGame} from '../TestGame';
 import {MultiSet} from 'mnemonist';
 import {TurmoilUtil} from '../../src/server/turmoil/TurmoilUtil';
 
-describe('Turmoil', function() {
+describe('Turmoil', () => {
   let player: TestPlayer;
   let player2: TestPlayer;
   let game: IGame;
   let turmoil: Turmoil;
 
-  beforeEach(function() {
+  beforeEach(() => {
     [game, player, player2] = testGame(2, {turmoilExtension: true});
     game.phase = Phase.ACTION;
     turmoil = TurmoilUtil.getTurmoil(game);
@@ -55,12 +55,12 @@ describe('Turmoil', function() {
     turmoil.delegateReserve.set('NEUTRAL', constants.DELEGATES_FOR_NEUTRAL_PLAYER);
   });
 
-  it('Should initialize with right defaults', function() {
+  it('Should initialize with right defaults', () => {
     expect(turmoil.chairman).to.eq('NEUTRAL');
     expect(turmoil.rulingParty.name).to.eq(PartyName.GREENS);
   });
 
-  it('Correctly send delegate from the reserve', function() {
+  it('Correctly send delegate from the reserve', () => {
     const greens = turmoil.getPartyByName(PartyName.GREENS);
     greens.delegates.clear();
     expect(turmoil.usedFreeDelegateAction).does.not.contain(player);
@@ -71,7 +71,7 @@ describe('Turmoil', function() {
     expect(turmoil.usedFreeDelegateAction).does.not.contain(player);
   });
 
-  it('Correctly send delegate from the reserve', function() {
+  it('Correctly send delegate from the reserve', () => {
     const greens = turmoil.getPartyByName(PartyName.GREENS);
     greens.delegates.clear();
 
@@ -81,7 +81,7 @@ describe('Turmoil', function() {
   });
 
 
-  it('Do not send delegate from reserve when reserve is empty', function() {
+  it('Do not send delegate from reserve when reserve is empty', () => {
     const greens = turmoil.getPartyByName(PartyName.GREENS);
     greens.delegates.clear();
     turmoil.delegateReserve.clear();
@@ -90,7 +90,7 @@ describe('Turmoil', function() {
     expect(greens.delegates.size).eq(0);
   });
 
-  it('Counts influence correctly for dominant party', function() {
+  it('Counts influence correctly for dominant party', () => {
     turmoil.parties.forEach((party) => party.delegates.clear());
 
     const greens = turmoil.getPartyByName(PartyName.GREENS);
@@ -100,21 +100,21 @@ describe('Turmoil', function() {
     // 1 influence: Leader of dominant party
     expectDelegateMatch(greens.delegates, player);
     expect(greens.partyLeader).to.eq(player);
-    expect(turmoil.getPlayerInfluence(player)).to.eq(1);
+    expect(turmoil.getInfluence(player)).to.eq(1);
 
     // 2 influence: Leader of dominant party + at least 1 non-leader delegate in party
     turmoil.sendDelegateToParty(player, PartyName.GREENS, game);
     expect(greens.delegates.size).eq(2);
-    expect(turmoil.getPlayerInfluence(player)).to.eq(2);
+    expect(turmoil.getInfluence(player)).to.eq(2);
   });
 
-  it('Chairman gives 1 influence', function() {
+  it('Chairman gives 1 influence', () => {
     turmoil.parties.forEach((party) => party.delegates.clear());
     turmoil.chairman = player;
-    expect(turmoil.getPlayerInfluence(player)).to.eq(1);
+    expect(turmoil.getInfluence(player)).to.eq(1);
   });
 
-  it('Correctly set dominant party', function() {
+  it('Correctly set dominant party', () => {
     const greens = turmoil.getPartyByName(PartyName.GREENS);
     const reds = turmoil.getPartyByName(PartyName.REDS);
     greens.delegates.clear();
@@ -134,7 +134,7 @@ describe('Turmoil', function() {
     expect(turmoil.dominantParty).to.eq(reds);
   });
 
-  it('Correctly set party leader', function() {
+  it('Correctly set party leader', () => {
     const party = turmoil.getPartyByName(PartyName.GREENS);
     turmoil.sendDelegateToParty(player, party.name, game);
     turmoil.sendDelegateToParty(player, party.name, game);
@@ -142,7 +142,7 @@ describe('Turmoil', function() {
     expect(party.partyLeader).to.eq(player);
   });
 
-  it('Correctly run end of generation', function() {
+  it('Correctly run end of generation', () => {
     player.setTerraformRating(20);
     player2.setTerraformRating(21);
 
@@ -167,8 +167,8 @@ describe('Turmoil', function() {
 
     expect(turmoil.chairman).to.eq(player);
     // both players lose 1 TR; player gains 1 TR from Reds ruling bonus, 1 TR from chairman
-    expect(player.getTerraformRating()).to.eq(21);
-    expect(player2.getTerraformRating()).to.eq(20);
+    expect(player.terraformRating).to.eq(21);
+    expect(player2.terraformRating).to.eq(20);
 
     expect(turmoil.getAvailableDelegateCount(player)).eq(4);
     expect(turmoil.getAvailableDelegateCount(player2)).eq(6);
@@ -178,7 +178,7 @@ describe('Turmoil', function() {
     expect(turmoil.dominantParty).to.eq(turmoil.getPartyByName(PartyName.GREENS));
   });
 
-  it('Player that is chairman has one fewer delegate avaialble ', function() {
+  it('Player that is chairman has one fewer delegate avaialble ', () => {
     turmoil.sendDelegateToParty(player, PartyName.REDS, game);
     turmoil.sendDelegateToParty(player, PartyName.REDS, game);
 
@@ -192,7 +192,7 @@ describe('Turmoil', function() {
     expect(turmoil.getAvailableDelegateCount(player)).eq(6);
   });
 
-  it('Does not give Mars First bonus for World Government terraforming', function() {
+  it('Does not give Mars First bonus for World Government terraforming', () => {
     setRulingParty(turmoil, game, new MarsFirst());
     game.phase = Phase.SOLAR;
 
@@ -205,7 +205,7 @@ describe('Turmoil', function() {
     expect(player.steel).to.eq(0); // should not give ruling policy bonus
   });
 
-  it('Cannot raise TR via Standard Projects if Reds are ruling and player cannot pay', function() {
+  it('Cannot raise TR via Standard Projects if Reds are ruling and player cannot pay', () => {
     setRulingParty(turmoil, game, new Reds());
     player.megaCredits = 14;
     const standardProjects = player.getStandardProjectOption();
@@ -215,7 +215,7 @@ describe('Turmoil', function() {
     expect(standardProjects.config.enabled!.slice(1)).to.not.contain(true);
   });
 
-  it('Can do SP greenery at normal cost if Reds are ruling and oxygen is maxed', function() {
+  it('Can do SP greenery at normal cost if Reds are ruling and oxygen is maxed', () => {
     setRulingParty(turmoil, game, new Reds());
     player.megaCredits = 23;
     expect(new GreeneryStandardProject().canAct(player)).equal(false);
@@ -224,7 +224,7 @@ describe('Turmoil', function() {
     expect(new GreeneryStandardProject().canAct(player)).equal(true);
   });
 
-  it('Cannot play cards to raise TR directly if Reds are ruling and player cannot pay', function() {
+  it('Cannot play cards to raise TR directly if Reds are ruling and player cannot pay', () => {
     setRulingParty(turmoil, game, new Reds());
     player.megaCredits = 16;
     const releaseOfInertGases = new ReleaseOfInertGases();
@@ -239,7 +239,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(magneticFieldGeneratorsPromo)).is.not.true; // needs 31 MC
   });
 
-  it('Cannot play cards to raise TR via global parameters if Reds are ruling and player cannot pay', function() {
+  it('Cannot play cards to raise TR via global parameters if Reds are ruling and player cannot pay', () => {
     setRulingParty(turmoil, game, new Reds());
     // Both of these cards cost 23MC.
     const iceAsteroid = new IceAsteroid();
@@ -251,11 +251,12 @@ describe('Turmoil', function() {
 
     // can play if won't gain TR from raising global parameter
     maxOutOceans(player, 9);
-    expect(player.canPlay(protectedValley)).deep.eq({redsCost: 3});
+    expect(player.canPlay(protectedValley)).is.true;
+    expect(protectedValley.additionalProjectCosts).deep.eq({redsCost: 3});
     expect(player.canPlay(iceAsteroid)).is.true;
   });
 
-  it('Applies card discounts when checking canPlay while Reds are ruling', function() {
+  it('Applies card discounts when checking canPlay while Reds are ruling', () => {
     setRulingParty(turmoil, game, new Reds());
     const nitrogenFromTitan = new NitrogenFromTitan();
 
@@ -263,15 +264,17 @@ describe('Turmoil', function() {
     expect(player.canPlay(nitrogenFromTitan)).is.not.true; // needs 31 MC
 
     player.playedCards.push(new SpaceStation());
-    expect(player.canPlay(nitrogenFromTitan)).deep.eq({redsCost: 6}); // 25 + 6 - 2
+    expect(player.canPlay(nitrogenFromTitan)).is.true;
+    expect(nitrogenFromTitan.additionalProjectCosts).deep.eq({redsCost: 6}); // 25 + 6 - 2
 
     player.playedCards.push(new EarthCatapult(), new QuantumExtractor());
     player.megaCredits = 25;
-    expect(player.canPlay(nitrogenFromTitan)).deep.eq({redsCost: 6}); // 25 + 6 - 6
+    expect(player.canPlay(nitrogenFromTitan)).is.true;
+    expect(nitrogenFromTitan.additionalProjectCosts).deep.eq({redsCost: 6}); // 25 + 6 - 6
   });
 
 
-  it('canPlay: Reds tax applies by default when raising oxygen', function() {
+  it('canPlay: Reds tax applies by default when raising oxygen', () => {
   // Strip Mine raises the oxygen level two steps.
     const card = new StripMine();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -292,13 +295,15 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 5;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 6;
-    expect(player.canPlay(card)).deep.eq({redsCost: 6});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 6});
 
     setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL - 1);
     player.megaCredits = card.cost + 2;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 3;
-    expect(player.canPlay(card)).deep.eq({redsCost: 3});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 3});
 
     setOxygenLevel(game, constants.MAX_OXYGEN_LEVEL);
 
@@ -306,7 +311,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('canPlay: when paying reds tax for oxygen, include the cost for the 8% temperature bump.', function() {
+  it('canPlay: when paying reds tax for oxygen, include the cost for the 8% temperature bump.', () => {
   // Strip Mine raises the oxygen level two steps.
     const card = new StripMine();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -323,10 +328,11 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 8;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 9;
-    expect(player.canPlay(card)).deep.eq({redsCost: 9});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 9});
   });
 
-  it('canPlay: when paying reds tax for oxygen, include the cost for the 8% temperature bump, which triggers 0° ocean bump.', function() {
+  it('canPlay: when paying reds tax for oxygen, include the cost for the 8% temperature bump, which triggers 0° ocean bump.', () => {
     // Strip Mine raises the oxygen level two steps.
     const card = new StripMine();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -345,10 +351,11 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 11;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 12;
-    expect(player.canPlay(card)).deep.eq({redsCost: 12});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 12});
   });
 
-  it('canPlay: reds tax applies by default when raising temperature', function() {
+  it('canPlay: reds tax applies by default when raising temperature', () => {
     // LavaFlows raises the temperature two steps.
     const card = new LavaFlows();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -368,7 +375,8 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 5;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 6;
-    expect(player.canPlay(card)).deep.eq({redsCost: 6});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 6});
 
     // Set temperature so it only raises one step.
     setTemperature(game, constants.MAX_TEMPERATURE - 2);
@@ -376,7 +384,8 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 3;
-    expect(player.canPlay(card)).deep.eq({redsCost: 3});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 3});
 
     setTemperature(game, constants.MAX_TEMPERATURE);
 
@@ -384,7 +393,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('canPlay: when paying reds tax for temperature, include the cost for the 0° ocean bump.', function() {
+  it('canPlay: when paying reds tax for temperature, include the cost for the 0° ocean bump.', () => {
     // LavaFlows raises the temperature two steps.
     const card = new LavaFlows();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -400,10 +409,11 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 8;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 9;
-    expect(player.canPlay(card)).deep.eq({redsCost: 9});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 9});
   });
 
-  it('canPlay: reds tax applies by default when placing oceans', function() {
+  it('canPlay: reds tax applies by default when placing oceans', () => {
     // ArtificialLake uses trSource.
     const card = new ArtificialLake();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -422,7 +432,8 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.false;
 
     player.megaCredits = card.cost + 3;
-    expect(player.canPlay(card)).deep.eq({redsCost: 3});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 3});
 
     maxOutOceans(player);
     player.megaCredits = card.cost;
@@ -431,7 +442,7 @@ describe('Turmoil', function() {
 
   // TODO(kberg): Use Towing a Comet as an example of a multi-TR thing.
 
-  it('canPlay: reds tax applies by default when raising the venus scale.', function() {
+  it('canPlay: reds tax applies by default when raising the venus scale.', () => {
     // GiantSolarShade raises venus three steps.
     const card = new GiantSolarShade();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -451,7 +462,8 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 8;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 9;
-    expect(player.canPlay(card)).deep.eq({redsCost: 9});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 9});
 
     // Set Venus so it only raises one step.
     setVenusScaleLevel(game, constants.MAX_VENUS_SCALE - 2);
@@ -459,7 +471,8 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 3;
-    expect(player.canPlay(card)).deep.eq({redsCost: 3});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 3});
 
     setVenusScaleLevel(game, constants.MAX_VENUS_SCALE);
 
@@ -467,7 +480,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('canPlay: when paying reds tax for venus, include the cost for the 16% TR', function() {
+  it('canPlay: when paying reds tax for venus, include the cost for the 16% TR', () => {
     // GiantSolarShade raises venus three steps.
     const card = new GiantSolarShade();
     const [game, player] = testGame(1, {turmoilExtension: true});
@@ -483,10 +496,11 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 11;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 12;
-    expect(player.canPlay(card)).deep.eq({redsCost: 12});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 12});
   });
 
-  it('canPlay: reds tax applies by default when raising moon habitat rate', function() {
+  it('canPlay: reds tax applies by default when raising moon habitat rate', () => {
     // Raises the colony rate two steps.
     const card = new WaterTreatmentComplex();
     const [game, player] = testGame(1, {turmoilExtension: true, moonExpansion: true});
@@ -511,13 +525,15 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 5;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 6;
-    expect(player.canPlay(card)).deep.eq({redsCost: 6});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 6});
 
     moonData.habitatRate = 7;
     player.megaCredits = card.cost + 2;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 3;
-    expect(player.canPlay(card)).deep.eq({redsCost: 3});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 3});
 
     moonData.habitatRate = 8;
 
@@ -525,7 +541,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('canPlay: reds tax applies by default when raising moon mining rate', function() {
+  it('canPlay: reds tax applies by default when raising moon mining rate', () => {
     // Raises the mining rate two steps.
     const card = new DarksideMeteorBombardment();
     const [game, player] = testGame(1, {turmoilExtension: true, moonExpansion: true});
@@ -546,13 +562,15 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 5;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 6;
-    expect(player.canPlay(card)).deep.eq({redsCost: 6});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 6});
 
     moonData.miningRate = 7;
     player.megaCredits = card.cost + 2;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 3;
-    expect(player.canPlay(card)).deep.eq({redsCost: 3});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 3});
 
     moonData.miningRate = 8;
 
@@ -560,7 +578,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('canPlay: reds tax applies by default when raising moon logistic rate', function() {
+  it('canPlay: reds tax applies by default when raising moon logistic rate', () => {
     // Raises the logistic rate two steps.
     const card = new LunaStagingStation();
     const [game, player] = testGame(1, {turmoilExtension: true, moonExpansion: true});
@@ -585,13 +603,15 @@ describe('Turmoil', function() {
     player.megaCredits = card.cost + 5;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 6;
-    expect(player.canPlay(card)).deep.eq({redsCost: 6});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 6});
 
     moonData.logisticRate = 7;
     player.megaCredits = card.cost + 2;
     expect(player.canPlay(card)).is.false;
     player.megaCredits = card.cost + 3;
-    expect(player.canPlay(card)).deep.eq({redsCost: 3});
+    expect(player.canPlay(card)).is.true;
+    expect(card.additionalProjectCosts).deep.eq({redsCost: 3});
 
     moonData.logisticRate = 8;
 
@@ -599,7 +619,7 @@ describe('Turmoil', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('Reds: Cannot raise TR directly without the money to back it up', function() {
+  it('Reds: Cannot raise TR directly without the money to back it up', () => {
     const [game, player] = testGame(1, {turmoilExtension: true, moonExpansion: true});
     const turmoil = TurmoilUtil.getTurmoil(game);
     game.phase = Phase.ACTION;
@@ -607,14 +627,14 @@ describe('Turmoil', function() {
     turmoil.rulingParty = new Reds();
     PoliticalAgendas.setNextAgenda(turmoil, game);
 
-    expect(player.getTerraformRating()).eq(14);
+    expect(player.terraformRating).eq(14);
 
     player.megaCredits = 2;
     player.increaseTerraformRating();
     runAllActions(game);
 
     expect(player.megaCredits).eq(2); // No change
-    expect(player.getTerraformRating()).eq(14);
+    expect(player.terraformRating).eq(14);
 
     player.megaCredits = 3;
     player.increaseTerraformRating();
@@ -622,28 +642,28 @@ describe('Turmoil', function() {
     runAllActions(game);
 
     expect(player.megaCredits).eq(0);
-    expect(player.getTerraformRating()).eq(15);
+    expect(player.terraformRating).eq(15);
 
     player.megaCredits = 3;
     player.increaseTerraformRating(2);
     runAllActions(game);
 
     expect(player.megaCredits).eq(3); // No change
-    expect(player.getTerraformRating()).eq(15);
+    expect(player.terraformRating).eq(15);
 
     player.megaCredits = 5;
     player.increaseTerraformRating(2);
     runAllActions(game);
 
     expect(player.megaCredits).eq(5); // No change
-    expect(player.getTerraformRating()).eq(15);
+    expect(player.terraformRating).eq(15);
 
     player.megaCredits = 6;
     player.increaseTerraformRating(2);
     runAllActions(game);
 
     expect(player.megaCredits).eq(0);
-    expect(player.getTerraformRating()).eq(17);
+    expect(player.terraformRating).eq(17);
 
     // This doesn't apply outside of the ACTION phase
     game.phase = Phase.SOLAR;
@@ -653,7 +673,7 @@ describe('Turmoil', function() {
     runAllActions(game);
 
     expect(player.megaCredits).eq(6);
-    expect(player.getTerraformRating()).eq(19);
+    expect(player.terraformRating).eq(19);
   });
 
   it('deserialization', () => {

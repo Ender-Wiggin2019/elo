@@ -68,11 +68,11 @@ export abstract class SurveyCard extends Card implements IProjectCard {
       switch (resource) {
       case Resource.STEEL:
         grant = space.spaceType !== SpaceType.COLONY &&
-            PartyHooks.shouldApplyPolicy(cardOwner, PartyName.MARS, 'mfp01');
+            PartyHooks.shouldApplyPolicy(cardOwner, PartyName.MARS, 'mp01');
         break;
       case Resource.PLANTS:
         grant = Board.isUncoveredOceanSpace(space) &&
-          cardOwner.cardIsInEffect(CardName.ARCTIC_ALGAE);
+          cardOwner.tableau.has(CardName.ARCTIC_ALGAE);
       }
     }
     if (grant) {
@@ -85,7 +85,7 @@ export abstract class SurveyCard extends Card implements IProjectCard {
    */
   protected maybeRewardCardResource(cardOwner: IPlayer, space: Space, resource: CardResource, bonus: SpaceBonus) {
     const board = cardOwner.game.board;
-    if (cardOwner.playedCards.some((card) => card.resourceType === resource) &&
+    if (cardOwner.tableau.some((card) => card.resourceType === resource) &&
         (this.grantsBonusNow(space, bonus) || AresHandler.anyAdjacentSpaceGivesBonus(board, space, bonus))) {
       cardOwner.game.defer(new AddResourcesToCard(
         cardOwner,

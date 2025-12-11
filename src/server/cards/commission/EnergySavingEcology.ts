@@ -18,7 +18,12 @@ import {OrOptions} from '../../inputs/OrOptions';
 import {SelectOption} from '../../inputs/SelectOption';
 import {PlaceOceanTile} from '../../deferredActions/PlaceOceanTile';
 import {PlaceGreeneryTile} from '../../deferredActions/PlaceGreeneryTile';
-import {IProjectCard, isIProjectCard} from '../IProjectCard';
+import {isIProjectCard} from '../IProjectCard';
+import {ICard} from '../ICard';
+
+
+const PLACE_OCEAN_COUNT = 4;
+const PLACE_GREENERY_COUNT = 6;
 
 export class EnergySavingEcology extends CorporationCard {
   constructor() {
@@ -40,10 +45,10 @@ export class EnergySavingEcology extends CorporationCard {
           b.production((pb) => pb.heat(2)).nbsp.megacredits(47).br;
           b.minus().megacredits(10).slash().production((pb) => pb.heat(1)).colon().resource(CardResource.ASTEROID, 1).or().br; // asteroids
           b.effect(undefined, (eb) => {
-            eb.minus().resource(CardResource.ASTEROID, {amount: 4, digit}).startAction.oceans(1).or();
+            eb.minus().resource(CardResource.ASTEROID, {amount: PLACE_OCEAN_COUNT, digit}).startAction.oceans(1).or();
           }).br;
-          b.effect('当你打出费用10或更少的牌或每次提升热产（而不是每1热产）时，拿1陨石资源在此卡上，或移除此卡上的3陨石放1海，或移除此卡上的5陨石放1树,', (eb) => {
-            eb.minus().resource(CardResource.ASTEROID, {amount: 6, digit}).startAction.greenery();
+          b.effect('当你打出费用10或更少的牌或每次提升热产（而不是每1热产）时，拿1陨石资源在此卡上，或移除此卡上的4陨石放1海，或移除此卡上的6陨石放1树,', (eb) => {
+            eb.minus().resource(CardResource.ASTEROID, {amount: PLACE_GREENERY_COUNT, digit}).startAction.greenery();
           });
         }),
       },
@@ -56,7 +61,7 @@ export class EnergySavingEcology extends CorporationCard {
     const PLACE_GREENERY_COUNT = 6;
     player.defer(() => {
       // Can't remove a resource
-      if (this.resourceCount <= PLACE_OCEAN_COUNT) {
+      if (this.resourceCount < PLACE_OCEAN_COUNT) {
         player.addResourceTo(this, 1);
         return;
       }
@@ -87,8 +92,8 @@ export class EnergySavingEcology extends CorporationCard {
     return undefined;
   }
 
-  public onCardPlayed(player: IPlayer, card: IProjectCard): void {
-    if (player.isCorporation(this.name) && isIProjectCard(card) && card.cost <= 10) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard): void {
+    if (player.playedCards.has(this.name) && isIProjectCard(card) && card.cost <= 10) {
       this.effect(player);
     }
   }

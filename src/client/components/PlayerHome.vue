@@ -48,15 +48,12 @@
         <a name="board" class="player_home_anchor"></a>
         <board
           :spaces="game.spaces"
-          :venusNextExtension="game.gameOptions.venusNextExtension"
+          :expansions="game.gameOptions.expansions"
           :venusScaleLevel="game.venusScaleLevel"
           :boardName ="game.gameOptions.boardName"
           :oceans_count="game.oceans"
           :oxygen_level="game.oxygenLevel"
           :temperature="game.temperature"
-          :aresExtension="game.gameOptions.aresExtension"
-          :pathfindersExpansion="game.gameOptions.pathfindersExpansion"
-                :erosCardsOption="game.gameOptions.erosCardsOption"
           :altVenusBoard="game.gameOptions.altVenusBoard"
           :aresData="game.aresData"
           :tileView="tileView"
@@ -66,13 +63,13 @@
 
         <turmoil v-if="game.turmoil" :turmoil="game.turmoil"/>
 
-        <MoonBoard v-if="game.gameOptions.moonExpansion" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
+        <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView" id="shortkey-moonBoard"/>
 
-        <PlanetaryTracks v-if="game.gameOptions.pathfindersExpansion" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
+        <PlanetaryTracks v-if="game.gameOptions.expansions.pathfinders" :tracks="game.pathfinders" :gameOptions="game.gameOptions"/>
 
         <div v-if="playerView.players.length > 1" class="player_home_block--milestones-and-awards">
           <Milestones :milestones="game.milestones" />
-          <Awards :awards="game.awards" show-scores />
+          <Awards :awards="game.awards" />
         </div>
       </div>
 
@@ -201,12 +198,12 @@
                     <div v-if="playerView.pickedCorporationCard2.length === 1" class="cardbox">
                       <Card :card="playerView.pickedCorporationCard2[0]"/>
                     </div>
-          <template v-if="game.gameOptions.preludeExtension">
+          <template v-if="game.gameOptions.expansions.prelude">
             <div v-for="card in playerView.preludeCardsInHand" :key="card.name" class="cardbox">
               <Card :card="card"/>
             </div>
           </template>
-          <template v-if="game.gameOptions.ceoExtension">
+          <template v-if="game.gameOptions.expansions.ceo">
             <div v-for="card in playerView.ceoCardsInHand" :key="card.name" class="cardbox">
             <Card :card="card"/>
             </div>
@@ -248,11 +245,9 @@
         <div class="accordion-body">
           <board
             :spaces="game.spaces"
-            :venusNextExtension="game.gameOptions.venusNextExtension"
+            :expansions="game.gameOptions.expansions"
             :venusScaleLevel="game.venusScaleLevel"
             :boardName ="game.gameOptions.boardName"
-            :aresExtension="game.gameOptions.aresExtension"
-            :pathfindersExpansion="game.gameOptions.pathfindersExpansion"
             :aresData="game.aresData"
             :altVenusBoard="game.gameOptions.altVenusBoard">
           </board>
@@ -260,7 +255,7 @@
           <turmoil v-if="game.turmoil" :turmoil="game.turmoil"></turmoil>
 
           <a name="moonBoard" class="player_home_anchor"></a>
-          <MoonBoard v-if="game.gameOptions.moonExpansion" :model="game.moon" :tileView="tileView"></MoonBoard>
+          <MoonBoard v-if="game.gameOptions.expansions.moon" :model="game.moon" :tileView="tileView"></MoonBoard>
         </div>
       </details>
     </div>

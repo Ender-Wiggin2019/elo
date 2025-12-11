@@ -43,7 +43,7 @@ export class JovianExpedition extends Card implements IProjectCard {
 
     ColoniesHandler.addColonyTile(
       player,
-      {title: 'Select colony tile to add', filter: ColonyName.TITANIA, cb: () =>{
+      {title: 'Select colony tile to add', filterTile: [ColonyName.TITANIA], cb: () =>{
         game.defer(new BuildColony(player, {title: 'Select colony for Jovian Expedition'}));
       }},
     );

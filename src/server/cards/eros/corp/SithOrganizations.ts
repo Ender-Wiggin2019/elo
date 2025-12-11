@@ -1,3 +1,6 @@
+/**
+ * @deprecated 此卡牌已废弃，不再用于实际游戏流程。
+ */
 import {CardRenderer} from '../../render/CardRenderer';
 import {IPlayer} from '../../../IPlayer';
 import {CardName} from '../../../../common/cards/CardName';
@@ -11,10 +14,9 @@ export class SithOrganizations extends CorporationCard {
       name: CardName.SITH_ORGANIZATIONS,
       tags: [Tag.VENUS, Tag.JOVIAN],
       startingMegaCredits: 41,
-
+      initialActionText: 'Transform all Neutral delegates',
       metadata: {
         cardNumber: 'Q32',
-        // description: 'You start with 41 M€. As your first action, transform all Neutral delegates to your delegates.',
         renderData: CardRenderer.builder((b) => {
           b.br.br;
           b.megacredits(41, {size: Size.TINY}).nbsp.nbsp.chairman().br;
@@ -31,7 +33,7 @@ export class SithOrganizations extends CorporationCard {
   }
 
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     const game = player.game;
     if (game.turmoil !== undefined) {
       const turmoil = game.turmoil;

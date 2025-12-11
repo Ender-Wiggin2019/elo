@@ -5,7 +5,7 @@ import {Space} from '../boards/Space';
 import {IPlayer} from '../IPlayer';
 import {CardResource} from '../../common/CardResource';
 import {SpaceBonus} from '../../common/boards/SpaceBonus';
-import {HazardSeverity, hazardSeverity} from '../../common/AresTileType';
+import {HAZARD_STEPS, HazardSeverity, hazardSeverity} from '../../common/AresTileType';
 import {OCEAN_UPGRADE_TILES, TileType, tileTypeToString} from '../../common/TileType';
 import {Tile} from '../Tile';
 import {AresData, MilestoneCount} from '../../common/ares/AresData';
@@ -14,7 +14,7 @@ import {MultiSet} from 'mnemonist';
 import {Phase} from '../../common/Phase';
 import {SelectPaymentDeferred} from '../deferredActions/SelectPaymentDeferred';
 import {SelectProductionToLoseDeferred} from '../deferredActions/SelectProductionToLoseDeferred';
-import {_AresHazardPlacement} from './AresHazards';
+import {AresHazards} from './AresHazards';
 import {CrashlandingBonus} from '../pathfinders/CrashlandingBonus';
 import {Board} from '../boards/Board';
 
@@ -115,41 +115,53 @@ export class AresHandler {
 
     if (giveAresTileOwnerBonus) {
       let ownerBonus = 1;
-      if (adjacentPlayer.cardIsInEffect(CardName.MARKETING_EXPERTS)) {
+      if (adjacentPlayer.tableau.has(CardName.MARKETING_EXPERTS)) {
         ownerBonus = 2;
       }
-      if (adjacentPlayer.cardIsInEffect(CardName.EARTHCATCULT)) {
-        const card = adjacentPlayer.getCorporation(CardName.EARTHCATCULT);
-        if (card) {
-          adjacentPlayer.addResourceTo(card, {qty: 1, log: true});
-        }
-      }
+      // if (adjacentPlayer.cardIsInEffect(CardName.EARTHCATCULT)) {
+      //   const card = adjacentPlayer.playedCards.get(CardName.EARTHCATCULT);
+      //   if (card) {
+      //     adjacentPlayer.addResourceTo(card, {qty: 1, log: true});
+      //   }
+      // }
 
       adjacentPlayer.megaCredits += ownerBonus;
       player.game.log('${0} gains ${1} M€ for a tile placed next to ${2}', (b) => b.player(adjacentPlayer).number(ownerBonus).string(tileText));
     }
   }
 
-  public static maybeIncrementMilestones(aresData: AresData, player: IPlayer, space: Space) {
+  public static maybeIncrementMilestones(aresData: AresData, player: IPlayer, space: Space, hazardSeverity: HazardSeverity) {
+    const entry : MilestoneCount | undefined = aresData.milestoneResults.find((e) => e.id === player.id);
+    if (entry === undefined) {
+      throw new Error('Player ID not in the Ares milestone results map: ' + player.id);
+    }
+
     const hasAdjacencyBonus = player.game.board.getAdjacentSpaces(space).some((adjacentSpace) => {
       return (adjacentSpace.adjacency?.bonus?? []).length > 0;
     });
 
     if (hasAdjacencyBonus) {
-      const entry : MilestoneCount | undefined = aresData.milestoneResults.find((e) => e.id === player.id);
-      if (entry === undefined) {
-        throw new Error('Player ID not in the Ares milestone results map: ' + player.id);
-      }
-      entry.count++;
+      entry.networkerCount++;
+    }
+    if (hazardSeverity !== 'none') {
+      entry.purifierCount++;
     }
   }
 
+  public static incrementPurifier(aresData: AresData, player: IPlayer) {
+    const entry : MilestoneCount | undefined = aresData.milestoneResults.find((e) => e.id === player.id);
+    if (entry === undefined) {
+      throw new Error('Player ID not in the Ares milestone results map: ' + player.id);
+    }
+    entry.purifierCount++;
+  }
+
   public static hasHazardTile(space: Space): boolean {
-    return hazardSeverity(space.tile?.tileType) !== HazardSeverity.NONE;
+    return hazardSeverity(space.tile?.tileType) !== 'none';
   }
 
   private static computeAdjacencyCosts(player: IPlayer, space: Space, subjectToHazardAdjacency: boolean): AdjacencyCost {
-    if (player.isCorporation(CardName.ATHENA)) {
+    if (player.tableau.has(CardName.ATHENA)) {
       subjectToHazardAdjacency = false;
     }
 
@@ -162,26 +174,12 @@ export class AresHandler {
       megaCreditCost += adjacentSpace.adjacency?.cost || 0;
       if (subjectToHazardAdjacency === true) {
         const severity = hazardSeverity(adjacentSpace.tile?.tileType);
-        switch (severity) {
-        case HazardSeverity.MILD:
-          productionCost += 1;
-          break;
-        case HazardSeverity.SEVERE:
-          productionCost += 2;
-          break;
-        }
+        productionCost += HAZARD_STEPS[severity];
       }
     });
 
     const severity = hazardSeverity(space.tile?.tileType);
-    switch (severity) {
-    case HazardSeverity.MILD:
-      megaCreditCost += 8;
-      break;
-    case HazardSeverity.SEVERE:
-      megaCreditCost += 16;
-      break;
-    }
+    megaCreditCost += HAZARD_STEPS[severity] * 8;
 
     return {megacredits: megaCreditCost, production: productionCost};
   }
@@ -243,38 +241,26 @@ export class AresHandler {
   }
 
   public static onTemperatureChange(game: IGame, aresData: AresData) {
-    _AresHazardPlacement.onTemperatureChange(game, aresData);
+    AresHazards.onTemperatureChange(game, aresData);
   }
 
   public static onOceanPlaced(aresData: AresData, player: IPlayer) {
-    _AresHazardPlacement.onOceanPlaced(aresData, player);
+    AresHazards.onOceanPlaced(aresData, player);
   }
 
   public static onOxygenChange(game: IGame, aresData: AresData) {
-    _AresHazardPlacement.onOxygenChange(game, aresData);
+    AresHazards.onOxygenChange(game, aresData);
   }
 
-  public static grantBonusForRemovingHazard(player: IPlayer, initialTileType: TileType | undefined) {
+  public static grantBonusForRemovingHazard(player: IPlayer, initialTileType: TileType) {
     if (player.game.phase === Phase.SOLAR) {
       return;
     }
-    let steps: number;
-    switch (initialTileType) {
-    case TileType.DUST_STORM_MILD:
-    case TileType.EROSION_MILD:
-      steps = 1;
-      break;
-
-    case TileType.DUST_STORM_SEVERE:
-    case TileType.EROSION_SEVERE:
-      steps = 2;
-      break;
-
-    default:
-      return;
+    const steps = HAZARD_STEPS[hazardSeverity(initialTileType)];
+    if (steps > 0) {
+      player.increaseTerraformRating(steps);
+      player.game.log('${0}\'s TR increases ${1} step(s) for removing ${2}', (b) => b.player(player).number(steps).tileType(initialTileType));
     }
-    player.increaseTerraformRating(steps);
-    player.game.log('${0}\'s TR increases ${1} step(s) for removing ${2}', (b) => b.player(player).number(steps).tileType(initialTileType));
   }
 
   public static anyAdjacentSpaceGivesBonus(board: Board, space: Space, bonus: SpaceBonus): boolean {

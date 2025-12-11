@@ -1,13 +1,12 @@
 import {Tag} from '../../../common/cards/Tag';
 import {IPlayer} from '../../IPlayer';
-import {IProjectCard} from '../IProjectCard';
-import {ICorporationCard} from '../corporation/ICorporationCard';
 import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Size} from '../../../common/cards/render/Size';
 import {all} from '../Options';
 import {Resource} from '../../../common/Resource';
 import {CorporationCard} from '../corporation/CorporationCard';
+import {ICard} from '../ICard';
 
 export class WeylandYutani extends CorporationCard {
   constructor() {
@@ -15,6 +14,7 @@ export class WeylandYutani extends CorporationCard {
       name: CardName.WEYLAND_YUTANI,
       tags: [Tag.SCIENCE],
       startingMegaCredits: 50,
+      initialActionText: 'Draw 1 card with a science tag',
 
       metadata: {
         cardNumber: 'XB01',
@@ -39,25 +39,24 @@ export class WeylandYutani extends CorporationCard {
   }
 
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     player.drawCard(1, {tag: Tag.SCIENCE});
     return undefined;
   }
 
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    return this._onCardPlayed(player, card);
+  public onNonCardTagAdded(player: IPlayer, tag: Tag, cardOwner?: IPlayer) {
+    if (tag !== Tag.SCIENCE) {
+      return;
+    }
+    player.stock.add(Resource.MEGACREDITS, 1, {log: true});
+    cardOwner?.stock.add(Resource.MEGACREDITS, 1, {log: true});
   }
 
-  public onCorpCardPlayed(player: IPlayer, card: ICorporationCard) {
-    this._onCardPlayed(player, card);
-    return undefined;
-  }
-
-  private _onCardPlayed(player: IPlayer, card: IProjectCard | ICorporationCard) {
+  public onCardPlayedByAnyPlayer(owner: IPlayer, card: ICard, currentPlayer: IPlayer) {
     for (const tag of card.tags) {
       if (tag === Tag.SCIENCE) {
-        player.stock.add(Resource.MEGACREDITS, 1, {log: true});
-        player.game.getCardPlayerOrThrow(this.name)?.stock.add(Resource.MEGACREDITS, 1, {log: true});
+        owner.stock.add(Resource.MEGACREDITS, 1, {log: true});
+        currentPlayer.stock.add(Resource.MEGACREDITS, 1, {log: true});
       }
     }
   }

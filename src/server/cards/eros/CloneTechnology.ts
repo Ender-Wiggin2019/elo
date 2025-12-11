@@ -110,9 +110,9 @@ export class CloneTechnology extends Card implements IProjectCard {
     } else {
       const reserveUnits = (card as Card).reserveUnits ?? Units.EMPTY;
       if (player.plants < reserveUnits.plants) {
-        const viralEnhancers = player.playedCards.find((card) => card.name === CardName.VIRAL_ENHANCERS) !== undefined ? 1 : 0;
+        const viralEnhancers = player.playedCards.get( CardName.VIRAL_ENHANCERS) !== undefined ? 1 : 0;
         let manutech = 0;
-        if ( player.isCorporation(CardName.MANUTECH) && card.productionBox !== undefined) {
+        if ( player.playedCards.has(CardName.MANUTECH) && card.productionBox !== undefined) {
           manutech = card.productionBox(player).plants;
         }
         if (player.plants + viralEnhancers + manutech < reserveUnits.plants) {

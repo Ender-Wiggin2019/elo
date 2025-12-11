@@ -12,6 +12,7 @@ import {AppError} from '../server/AppError';
 import {statusCode} from '../../common/http/statusCode';
 import {InputError} from '../inputs/InputError';
 import {UnexpectedInput} from '../inputs/UnexpectedInput';
+import {isIProjectCard} from '../cards/IProjectCard';
 
 export class PlayerInput extends Handler {
   public static readonly INSTANCE = new PlayerInput();
@@ -49,9 +50,14 @@ export class PlayerInput extends Handler {
     return this.processInput(req, res, ctx, player, userId);
   }
 
-  private processInput(req: Request, res: Response, _ctx: Context, player: IPlayer, userId: string | null): Promise<void> {
+  private processInput(req: Request, res: Response, ctx: Context, player: IPlayer, userId: string | null): Promise<void> {
     // TODO(kberg): Find a better place for this optimization.
-    player.tableau.forEach((card) => card.warnings.clear());
+    for (const card of player.tableau) {
+      card.warnings.clear();
+      if (isIProjectCard(card)) {
+        card.additionalProjectCosts = undefined;
+      }
+    }
     return new Promise((resolve) => {
       let body = '';
       req.on('data', (data) => {
@@ -63,7 +69,7 @@ export class PlayerInput extends Handler {
           validateRunId(entity);
           player.process(entity);
           const playerBlockModel = Server.getPlayerBlock(player, userId);
-          responses.writeJson(res, Server.getPlayerModel(player, playerBlockModel));
+          responses.writeJson(res, ctx, Server.getPlayerModel(player, playerBlockModel));
           resolve();
         } catch (e :any ) {
           // TODO(kberg): use responses.ts, though that changes the output.

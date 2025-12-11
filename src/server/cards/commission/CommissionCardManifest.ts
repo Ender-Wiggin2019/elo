@@ -31,7 +31,14 @@ import {RaincatScientificProbe} from './RaincatScientificProbe';
 import {StrategicRetrieval} from './StrategicRetrieval';
 import {PlanetaryMeteorHarvesters} from './PlanetaryMeteorHarvesters';
 import {UniqueItemBounty} from './UniqueItemBounty';
-import {EarthCatCult} from './EarthCatCult';
+// import {EarthCatCult} from './EarthCatCult';
+import {CityPowerShift} from './CityPowerShift';
+import {DualOrbitLeap} from './DualOrbitLeap';
+import {FloralBloomSurge} from './FloralBloomSurge';
+import {UniversalResourceConverter} from './UniversalResourceConverter';
+import {LandHarvest} from './LandHarvest';
+import {ResearchAccelerator} from './ResearchAccelerator';
+import {ConstructionAid} from './ConstructionAid';
 
 export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
   module: 'commission',
@@ -57,7 +64,8 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.ENERGY_SAVING_ECOLOGY]: {Factory: EnergySavingEcology}, // XB20
     [CardName.GREEN_LEAF_DANCE]: {Factory: GreenLeafDance}, // XB21
     [CardName.RAINCAT_SCIENTIFIC_PROBE]: {Factory: RaincatScientificProbe}, // XB22
-    [CardName.EARTHCATCULT]: {Factory: EarthCatCult, compatibility: 'ares'}, // A29
+    // [CardName.EARTHCATCULT]: {Factory: EarthCatCult, compatibility: 'ares'}, // XB23
+    [CardName.DUAL_ORBIT_LEAP]: {Factory: DualOrbitLeap}, // XB24
   },
   preludeCards: {
   },
@@ -65,7 +73,12 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.STRATEGIC_RETRIEVAL]: {Factory: StrategicRetrieval}, // XB51
     [CardName.PLANETARY_METEOR_HARVESTERS]: {Factory: PlanetaryMeteorHarvesters}, // XB52
     [CardName.UNIQUE_ITEM_BOUNTY]: {Factory: UniqueItemBounty}, // XB53
-
+    [CardName.FLORAL_BLOOM_SURGE]: {Factory: FloralBloomSurge}, // XB54
+    [CardName.UNIVERSAL_RESOURCE_CONVERTER]: {Factory: UniversalResourceConverter}, // XB55
+    [CardName.CITY_POWER_SHIFT]: {Factory: CityPowerShift}, // XB56
+    [CardName.LAND_HARVEST]: {Factory: LandHarvest, compatibility: 'ares'}, // XB57
+    [CardName.RESEARCH_ACCELERATOR]: {Factory: ResearchAccelerator}, // XB58
+    [CardName.CONSTRUCTION_AID]: {Factory: ConstructionAid}, // XB59
   },
   globalEvents: {
   },

@@ -25,7 +25,7 @@ export default Vue.extend({
       type: Object as () => TimerModel,
     },
     actionLabel: {
-      type: String,
+      type: String as () => ActionLabel,
     },
     showTimer: {
       type: Boolean,
@@ -66,16 +66,16 @@ export default Vue.extend({
       if (this.rankTier!==undefined) {
         classes.push('player-action-status-container-rank');
       }
-      if (this.actionLabel === ActionLabel.PASSED || this.actionLabel === ActionLabel.RESIGNED) {
+      if (this.actionLabel === 'passed' || this.actionLabel === 'resigned' ) {
         classes.push(`${baseClass}--passed`);
-      } else if (this.actionLabel === ActionLabel.ACTIVE || this.actionLabel === ActionLabel.DRAFTING || this.actionLabel === ActionLabel.RESEARCHING) {
+      } else if (this.actionLabel === 'active' || this.actionLabel === 'drafting' || this.actionLabel === 'researching') {
         classes.push(`${baseClass}--active`);
       }
       return classes.join(' ');
     },
     getActionStatusClasses(): string {
       const classes: Array<string> = ['player-action-status'];
-      if (this.actionLabel === ActionLabel.NONE) {
+      if (this.actionLabel === 'none') {
         classes.push('visibility-hidden');
       }
       return classes.join(' ');

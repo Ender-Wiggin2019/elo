@@ -7,7 +7,7 @@ import {testGame} from '../../TestGame';
 import {fakeCard} from '../../TestingUtils';
 import {TurmoilUtil} from '../../../src/server/turmoil/TurmoilUtil';
 
-describe('FairTradeComplaint', function() {
+describe('FairTradeComplaint', () => {
   let card: FairTradeComplaint;
   let player: TestPlayer;
   let game: IGame;

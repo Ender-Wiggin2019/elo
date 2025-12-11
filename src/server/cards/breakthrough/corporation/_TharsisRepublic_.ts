@@ -54,7 +54,7 @@ export class _TharsisRepublic_ extends CorporationCard {
   }
 
   public override bespokePlay(player: IPlayer) {
-    if (player.game.getPlayers().length === 1) {
+    if (player.game.players.length === 1) {
       // Get bonus for 2 neutral cities
       player.production.add(Resource.MEGACREDITS, 2);
     }

@@ -1,11 +1,10 @@
 import {Tag} from '../../../common/cards/Tag';
 import {IPlayer} from '../../IPlayer';
-import {IProjectCard} from '../IProjectCard';
-import {ICorporationCard} from '../corporation/ICorporationCard';
 import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Resource} from '../../../common/Resource';
 import {CorporationCard} from '../corporation/CorporationCard';
+import {ICard} from '../ICard';
 
 export class ShinraTech extends CorporationCard {
   constructor() {
@@ -29,12 +28,8 @@ export class ShinraTech extends CorporationCard {
       },
     });
   }
-
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    return this._onCardPlayed(player, card);
-  }
-  private _onCardPlayed(player: IPlayer, card: IProjectCard | ICorporationCard) {
-    if (player.isCorporation(this.name)) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard) {
+    if (player.playedCards.has(this.name)) {
       for (const tag of card.tags) {
         if (tag === Tag.POWER) {
           player.production.add(Resource.MEGACREDITS, 2, {log: true});
@@ -43,14 +38,9 @@ export class ShinraTech extends CorporationCard {
     }
   }
 
-  public onCorpCardPlayed(player: IPlayer, card:ICorporationCard) {
-    this.onCardPlayed(player, card as unknown as IProjectCard);
-    return undefined;
-  }
-
   public override bespokePlay(player: IPlayer) {
     player.production.add(Resource.ENERGY, 2);
-    player.production.add(Resource.MEGACREDITS, 2);
+    // player.production.add(Resource.MEGACREDITS, 2);
     player.drawCard(1, {tag: Tag.POWER});
     return undefined;
   }

@@ -28,7 +28,6 @@ export class BoardOfDirectors extends PreludeCard implements IActionCard {
           b.plainText('ACTION: ').arrow().br;
           b.plainText('DRAW 1 PRELUDE CARD: EITHER DISCARD IT, OR PAY 12 M€ AND REMOVE 1 DIRECTOR RESOURCE HERE TO PLAY IT.').br;
           b.resource(CardResource.DIRECTOR, 4);
-          b.br.plainText('This is not the director icon yet.');
         }),
         description: 'Add 4 director resources here.',
       },
@@ -54,17 +53,43 @@ export class BoardOfDirectors extends PreludeCard implements IActionCard {
     const prelude = game.preludeDeck.drawOrThrow(player.game);
 
     if (player.canAfford(12)) {
+      
+      // 检查前序卡是否可以打出
       if (prelude.canPlay?.(player, {cost: 12}) === false) {
         prelude.warnings.add('preludeFizzle');
       }
+      // 获取卡片的支付选项，包括可能的TR增加所需的额外费用（红党规则）
+      const options = player.affordOptionsForCard(prelude);
+      options.cost = 12;
+      // 使用公开的canAfford方法检查玩家是否能够负担所有费用，包括红党执政下的额外费用
+      if (!player.canAfford(options)) {
+        // 如果不能负担全部费用，记录并终止操作
+        prelude.warnings.add('preludeFizzle');
+      }
+
 
       return new SelectCard(
         message('Would you like pay 12 M€ and one Director to play ${0}', (b)=> b.card(prelude)),
         'Buy', [prelude], {min: 0, max: 1}).andThen((selected) => {
         if (selected.length === 1) {
           const card = selected[0];
+          
           game.defer(new SelectPaymentDeferred(player, 12, {title: 'Select how to pay 12 M€'})).andThen(() => {
             player.removeResourceFrom(this, 1);
+            
+            // 支付12块之后，再检查一次
+            // 获取卡片的支付选项，包括可能的TR增加所需的额外费用（红党规则）
+            const options = player.affordOptionsForCard(card);
+      
+            // 使用公开的canAfford方法检查玩家是否能够负担所有费用，包括红党执政下的额外费用
+            if (!player.canAfford(options)) {
+              // 如果不能负担全部费用，记录并终止操作
+              game.log('${0} cannot afford to play ${1} due to additional costs (e.g., Reds policy)', (b) => b.player(player).card(card));
+              PreludesExpansion.fizzle(player, card);
+              return undefined;
+            }
+            
+            // 如果卡片不能打出，则fizzle
             if (card.canPlay?.(player) === false) {
               PreludesExpansion.fizzle(player, card);
             } else {
@@ -73,11 +98,13 @@ export class BoardOfDirectors extends PreludeCard implements IActionCard {
             return undefined;
           });
         } else {
+          // 付的起12 ， 但是选择弃掉
           this.discard(player, prelude);
         }
         return undefined;
       });
     } else {
+      // 12都付不起， 直接弃掉
       this.discard(player, prelude);
     }
 

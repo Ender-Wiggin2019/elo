@@ -17,7 +17,7 @@ export class _ArcadianCommunities_ extends ArcadianCommunities {
       return;
     }
     let bonusResource: number = 0;
-    if (space.player !== undefined && space.player.isCorporation && space.player.isCorporation(CardName._ARCADIAN_COMMUNITIES_)) {
+    if (space.player !== undefined && space.player.playedCards.has && space.player.playedCards.has(CardName._ARCADIAN_COMMUNITIES_)) {
       bonusResource = cardOwner.game.board.getAdjacentSpaces(space)
         .filter((space) => space.tile !== undefined && space.player !== undefined && space.player === cardOwner)
         .length;

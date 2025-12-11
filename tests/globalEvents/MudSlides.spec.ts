@@ -8,7 +8,7 @@ import {Space} from '../../src/server/boards/Space';
 import {TileType} from '../../src/common/TileType';
 import {TurmoilUtil} from '../../src/server/turmoil/TurmoilUtil';
 
-describe('MudSlides', function() {
+describe('MudSlides', () => {
   let card: MudSlides;
   let player: TestPlayer;
   let game: IGame;
@@ -20,7 +20,7 @@ describe('MudSlides', function() {
     turmoil = TurmoilUtil.getTurmoil(game);
   });
 
-  it('resolve play', function() {
+  it('resolve play', () => {
     const oceanTile = game.board.getAvailableSpacesForOcean(player)[0];
     game.addCity(player, game.board.getAdjacentSpaces(oceanTile)[0]);
     game.addOcean(player, oceanTile);
@@ -31,7 +31,7 @@ describe('MudSlides', function() {
     expect(player.megaCredits).to.eq(6);
   });
 
-  it('resolve play with overplaced tiles', function() {
+  it('resolve play with overplaced tiles', () => {
     [game, player] = testGame(2, {aresExtension: true, turmoilExtension: true});
 
     // Find two adjacent ocean spaces

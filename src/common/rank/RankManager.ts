@@ -14,11 +14,17 @@ const rankValueChangeRules = [
 export class UserRank {
   constructor(
       public userId: string,
-      public rankValue: number,
+      public rankValue: number, // 段位等级
       public mu: number,
       public sigma: number,
-      public trueskill: number = 0,
-  ) {}
+      public trueskill: number = 0, // 顶段后显示积分,由mu和sigma计算得出
+  ) {
+    if (this.userId.startsWith('u')) {
+      this.userId = userId.substring(0, 13);
+    } else {
+      this.userId = userId.substring(0, 12);
+    }
+  }
 
   public getRankValue() {
     return this.rankValue;

@@ -35,38 +35,40 @@ export class Prism extends CorporationCard {
 
   public override getCardDiscount(player: IPlayer, card: IProjectCard) {
     let cardDiscount = 0;
-    if (player.isCorporation(CardName.PRISM)) {
-      let wildNum = player.tags.count(Tag.WILD, 'raw');
-      let oneTagNum = 0; // 只有1个标志的数量
-      let twoTagNum = 0; // 只有2个标志的数量
-
-      //  标志去重  事件公司的事件标联动
-      const cardTags = Array.from(new Set(card.tags.filter((tag) => (tag !== Tag.EVENT || player.isCorporation(CardName._INTERPLANETARY_CINEMATICS_)) && tag !== Tag.WILD)));
-      if (cardTags.length === 0) {
-        // 避免无标志卡牌也能3问号减1费
-        return 0;
-      }
-      cardTags.forEach((tag) => {
-        const tagNum = player.tags.count(tag, 'raw'); // 不含问号的标志数量
-        cardDiscount += Math.floor(tagNum / 3);
-        if ( tagNum % 3 === 2) { // 如果只差1个标志
-          twoTagNum ++;
-        } else if ( tagNum % 3 === 1) { // 如果差2个标志
-          oneTagNum ++;
-        }
-      });
-
-      // 问号先分配给只差1个标志
-      cardDiscount += Math.min(wildNum, twoTagNum);
-      wildNum-= Math.min(wildNum, twoTagNum);
-
-      // 问号再分配给只差2个标志
-      cardDiscount += Math.min(Math.floor(wildNum / 2), oneTagNum);
-      wildNum-= 2 * Math.min(Math.floor(wildNum / 2), oneTagNum);
-
-      // 问号分配完还有剩
-      cardDiscount += Math.floor(wildNum / 3);
+    if (!player.playedCards.has(CardName.PRISM)) {
+      return 0;
     }
+
+    let wildNum = player.tags.count(Tag.WILD, 'raw');
+    let oneTagNum = 0; // 只有1个标志的数量
+    let twoTagNum = 0; // 只有2个标志的数量
+
+    //  标志去重  事件公司的事件标联动
+    const cardTags = Array.from(new Set(card.tags.filter((tag) => (tag !== Tag.EVENT || player.playedCards.has(CardName._INTERPLANETARY_CINEMATICS_)) && tag !== Tag.WILD)));
+    if (cardTags.length === 0) {
+      // 避免无标志卡牌也能3问号减1费
+      return 0;
+    }
+    cardTags.forEach((tag) => {
+      const tagNum = player.tags.count(tag, 'raw'); // 不含问号的标志数量
+      cardDiscount += Math.floor(tagNum / 3);
+      if ( tagNum % 3 === 2) { // 如果只差1个标志
+        twoTagNum ++;
+      } else if ( tagNum % 3 === 1) { // 如果差2个标志
+        oneTagNum ++;
+      }
+    });
+
+    // 问号先分配给只差1个标志
+    cardDiscount += Math.min(wildNum, twoTagNum);
+    wildNum-= Math.min(wildNum, twoTagNum);
+
+    // 问号再分配给只差2个标志
+    cardDiscount += Math.min(Math.floor(wildNum / 2), oneTagNum);
+    wildNum-= 2 * Math.min(Math.floor(wildNum / 2), oneTagNum);
+
+    // 问号分配完还有剩
+    cardDiscount += Math.floor(wildNum / 3);
     return cardDiscount;
   }
 }

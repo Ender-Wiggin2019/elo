@@ -3,7 +3,6 @@ import {IPlayer} from '../../IPlayer';
 import {Card} from '../Card';
 import {CardRenderer} from '../render/CardRenderer';
 import {IActionCard} from '../ICard';
-import {OrOptions} from '../../inputs/OrOptions';
 import {SimpleDeferredAction} from '../../deferredActions/DeferredAction';
 import {SelectColony} from '../../inputs/SelectColony';
 import {CardName} from '../../../common/cards/CardName';
@@ -40,17 +39,11 @@ export class EMDrive extends Card implements IActionCard, IProjectCard {
   }
 
 
-  public override onDiscard(player: IPlayer): void {
-    player.colonies.tradeOffset--;
-  }
   private getIncreasableColonies(game: IGame) {
     return game.colonies.filter((colony) => colony.trackPosition < 6 && colony.isActive);
   }
 
   public action(player: IPlayer) {
-    const selectColonies = new OrOptions();
-    selectColonies.title = 'Select colonies to increase and decrease tile track';
-
     const increasableColonies = this.getIncreasableColonies(player.game);
     if (increasableColonies.length === 0) {
       return undefined;

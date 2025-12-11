@@ -44,7 +44,7 @@ export class Ansible extends Card implements IActionCard, IProjectCard {
     const game = player.game;
     // game.defer(new DiscardCards(player));
     game.defer(DrawCards.keepAll(player, 3));
-    const otherPlayers = game.getPlayers().filter((p) => p.id !== player.id);
+    const otherPlayers = game.players.filter((p) => p.id !== player.id);
     for (const p of otherPlayers) {
       game.defer(DrawCards.keepAll(p));
     }

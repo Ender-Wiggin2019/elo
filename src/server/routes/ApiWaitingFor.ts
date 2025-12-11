@@ -21,7 +21,7 @@ export class ApiWaitingFor extends Handler {
   }
 
   private playersWithInputs(game: IGame) {
-    return game.getPlayersInGenerationOrder().filter((player) => player.getWaitingFor() !== undefined).map((player) => player.color);
+    return game.playersInGenerationOrder.filter((player) => player.getWaitingFor() !== undefined).map((player) => player.color);
   }
 
   private getPlayerWaitingForModel(player: IPlayer, game: IGame, gameAge: number, undoCount: number): WaitingForModel {
@@ -58,14 +58,14 @@ export class ApiWaitingFor extends Handler {
     }
     try {
       if (isPlayerId(id)) {
+        const player = game.getPlayerById(id);
         ctx.ipTracker.addParticipant(id, ctx.ip);
-        const player = game.getAllPlayers().find((player) => player.id === id);
         if (player !== undefined) {
-          responses.writeJson(res, this.getPlayerWaitingForModel(player, game, gameAge, undoCount));
+          responses.writeJson(res, ctx, this.getPlayerWaitingForModel(player, game, gameAge, undoCount));
           return;
         }
       } else if (isSpectatorId(id)) {
-        responses.writeJson(res, this.getSpectatorWaitingForModel(game, gameAge, undoCount));
+        responses.writeJson(res, ctx, this.getSpectatorWaitingForModel(game, gameAge, undoCount));
         return;
       }
       responses.notFound(req, res, 'player not found');

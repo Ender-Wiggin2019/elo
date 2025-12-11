@@ -1,6 +1,6 @@
 import {BaseMilestone} from '../IMilestone';
 import {IPlayer} from '../../IPlayer';
-import { TurmoilUtil } from '../../turmoil/TurmoilUtil';
+import {TurmoilUtil} from '../../turmoil/TurmoilUtil';
 
 export class Lobbyist extends BaseMilestone {
   constructor() {

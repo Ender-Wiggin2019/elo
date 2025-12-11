@@ -10,26 +10,25 @@ import {TestPlayer} from '../../TestPlayer';
 import {SelectOption} from '../../../src/server/inputs/SelectOption';
 import {IGame} from '../../../src/server/IGame';
 
-describe('Splice', function() {
+describe('Splice', () => {
   let card: Splice;
   let game: IGame;
   let player: TestPlayer;
   let player2: TestPlayer;
 
-  beforeEach(function() {
+  beforeEach(() => {
     card = new Splice();
     [game, player, player2] = testGame(2);
   });
 
-  it('Should play', function() {
+  it('Should play', () => {
     const tardigrades = new Tardigrades();
-    const play = card.play(player);
-    expect(play).is.undefined;
+    cast(card.play(player), undefined);
 
     player.corporations.push(card);
 
     player2.playedCards.push(tardigrades);
-    cast(card.onCardPlayed(player2, tardigrades), undefined);
+    cast(card.onCardPlayedByAnyPlayer(player, tardigrades, player2), undefined);
     runAllActions(game);
     const orOptions = cast(player2.popWaitingFor(), OrOptions);
 
@@ -44,7 +43,7 @@ describe('Splice', function() {
     expect(player.megaCredits).to.eq(2);
   });
 
-  it('Should play with multiple microbe tags', function() {
+  it('Should play with multiple microbe tags', () => {
     const pharmacyUnion = new PharmacyUnion();
     cast(card.play(player), undefined);
     player.corporations.push(card);
@@ -56,7 +55,7 @@ describe('Splice', function() {
     cast(pharmacyUnion.play(player), undefined);
     player2.corporations.push(pharmacyUnion);
 
-    cast(card.onCardPlayed(player2, pharmacyUnion), undefined);
+    cast(card.onCardPlayedByAnyPlayer(player, pharmacyUnion, player2), undefined);
 
     runAllActions(game);
     cast(player.popWaitingFor(), undefined);
@@ -66,11 +65,16 @@ describe('Splice', function() {
     expect(player2.megaCredits).to.eq(4);
   });
 
-  it('Should grant Recyclon a microbe or 2MC', function() {
+  it('Should grant Recyclon a microbe or 2MC', () => {
     const recyclon = new Recyclon();
 
+    player.megaCredits = 44;
     player.playCorporationCard(card);
+    runAllActions(game);
+    expect(player.megaCredits).eq(48);
+    player2.megaCredits = 38;
     player2.playCorporationCard(recyclon);
+    runAllActions(game);
 
     // Default resource on Recyclon and player2's M€
     expect(recyclon.resourceCount).to.eq(1);

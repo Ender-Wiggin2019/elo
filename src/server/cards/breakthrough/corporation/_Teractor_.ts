@@ -11,6 +11,7 @@ export class _Teractor_ extends CorporationCard {
       name: CardName._TERACTOR_,
       tags: [Tag.EARTH],
       startingMegaCredits: 55,
+      initialActionText: 'Draw 1 earth tag card',
 
       cardDiscount: {tag: Tag.EARTH, amount: 3},
       metadata: {
@@ -30,7 +31,7 @@ export class _Teractor_ extends CorporationCard {
     });
   }
   /* Start with 55 M€ and draw 1 earth card as first sction*/
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     player.drawCard(1, {tag: Tag.EARTH});
     return undefined;
   }

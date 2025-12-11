@@ -6,8 +6,9 @@ import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Resource} from '../../../common/Resource';
 import {TurmoilUtil} from '../../turmoil/TurmoilUtil';
+import {ICorporationCard} from '../corporation/ICorporationCard';
 
-export class SeptemTribus extends CorporationCard implements IActionCard {
+export class SeptemTribus extends CorporationCard implements ICorporationCard, IActionCard {
   constructor() {
     super({
       name: CardName.SEPTEM_TRIBUS,

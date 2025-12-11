@@ -4,6 +4,7 @@ import {CardType} from '../../../common/cards/CardType';
 import {IPlayer} from '../../IPlayer';
 import {OrOptions} from '../../inputs/OrOptions';
 import {Resource} from '../../../common/Resource';
+
 import {CardName} from '../../../common/cards/CardName';
 import {SelectOption} from '../../inputs/SelectOption';
 import {CardRenderer} from '../render/CardRenderer';
@@ -42,12 +43,12 @@ export class Sabotage extends Card implements IProjectCard {
 
     const availableActions = new OrOptions();
 
-    player.getOpponents().forEach((target) => {
+    player.opponents.forEach((target) => {
       if (target.titanium > 0 && !target.alloysAreProtected()) {
         const amountRemoved = Math.min(3, target.titanium);
         const optionTitle = this.title(amountRemoved, 'titanium', target);
         availableActions.options.push(new SelectOption(optionTitle).andThen(() => {
-          target.stock.deduct(Resource.TITANIUM, 3, {log: true, from: player});
+          target.attack(player, Resource.TITANIUM, 3, {log: true});
           return undefined;
         }));
       }
@@ -56,16 +57,16 @@ export class Sabotage extends Card implements IProjectCard {
         const amountRemoved = Math.min(4, target.steel);
         const optionTitle = this.title(amountRemoved, 'steel', target);
         availableActions.options.push(new SelectOption(optionTitle).andThen(() => {
-          target.stock.deduct(Resource.STEEL, 4, {log: true, from: player});
+          target.attack(player, Resource.STEEL, 4, {log: true});
           return undefined;
         }));
       }
 
-      if (target.megaCredits > 0 && !target.isCorporation(CardName.MIRRORCOAT)) {
+      if (target.megaCredits > 0 && !target.playedCards.has(CardName.MIRRORCOAT)) {
         const amountRemoved = Math.min(7, target.megaCredits);
         const optionTitle = this.title(amountRemoved, 'M€', target);
         availableActions.options.push(new SelectOption(optionTitle).andThen(() => {
-          target.stock.deduct(Resource.MEGACREDITS, 7, {log: true, from: player});
+          target.attack(player, Resource.MEGACREDITS, 7, {log: true});
           return undefined;
         }));
       }

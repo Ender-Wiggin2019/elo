@@ -17,7 +17,7 @@ describe('ProductiveOutpost', () => {
     const triton = new Triton();
 
     game.colonies.push(luna, triton);
-    game.colonies.forEach((colony) => colony.colonies.push(player.id));
+    game.colonies.forEach((colony) => colony.colonies.push(player));
 
     card.play(player);
     runAllActions(game);
@@ -35,7 +35,7 @@ describe('ProductiveOutpost', () => {
     player.megaCredits = 1;
     game.colonies.push(titania, luna, leavitt);
     inplaceShuffle(game.colonies, new UnseededRandom());
-    game.colonies.forEach((colony) => colony.colonies.push(player.id));
+    game.colonies.forEach((colony) => colony.colonies.push(player));
 
     card.play(player);
     runAllActions(game);

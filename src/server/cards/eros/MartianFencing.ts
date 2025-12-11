@@ -41,6 +41,8 @@ export class MartianFencing extends Card implements IProjectCard {
       player.game.defer(new ChooseCards(player, [drawnCard], {paying: true}));
       player.game.cardDrew = true;
       player.game.log('${0} drew ${1}', (b) => b.player(player).card(drawnCard));
+    } else {
+      player.game.log('No Eros card in draw pile.');
     }
 
     return undefined;

@@ -3,7 +3,6 @@ import {Database} from './database/Database';
 import {getDate, getDay} from './UserUtil';
 import {GameLoader} from './database/GameLoader';
 import {Server} from './models/ServerModel';
-import {PlayerBlockModel} from '../common/models/PlayerModel';
 import {Context} from './routes/IHandler';
 import * as crypto from 'crypto';
 import {UserRank} from '../common/rank/RankManager';
@@ -156,6 +155,7 @@ export function register(userReq: any, _req: Request, res: Response): void {
 }
 
 
+// 导出一个函数，用于判断用户是否为VIP
 export function isvip(req: Request, res: Response, ctx: Context): void {
   let userId = ctx.url.searchParams.get('userId');
   if (userId === undefined || userId === '' || userId === null) {
@@ -213,11 +213,7 @@ export function resign(userReq:any, req: Request, res: Response): void {
   }
   game.exitPlayer(player);
   res.setHeader('Content-Type', 'application/json');
-  const playerBlockModel : PlayerBlockModel ={
-    block: false,
-    isme: true,
-    showhandcards: user.showhandcards,
-  };
+  const playerBlockModel = Server.getPlayerBlock(player, userId);
   res.end(JSON.stringify(Server.getPlayerModel(player, playerBlockModel)));
 }
 

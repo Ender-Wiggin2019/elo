@@ -30,7 +30,7 @@ export class SolarCosmicRays extends Card implements IProjectCard {
   public override bespokePlay(player: IPlayer) {
     player.production.add(Resource.ENERGY, 1);
     let alllEnergyProd = 0;
-    for (const otherPlayer of player.game.getPlayers().filter((p) => p.id !== player.id)) {
+    for (const otherPlayer of player.game.players.filter((p) => p.id !== player.id)) {
       alllEnergyProd += otherPlayer.production.get(Resource.ENERGY);
     }
     alllEnergyProd= Math.min(alllEnergyProd, 15);

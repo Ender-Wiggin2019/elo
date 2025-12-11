@@ -1,24 +1,19 @@
 <template>
-  <div :class="getCardClasses(card)">
+  <div class="card-container filterDiv hover-hide-res" :class="cardClasses">
       <div class="card-content-wrapper"  @mouseover="hovering = true" @mouseleave="hovering = false">
-          <div v-if="!isStandardProject()" class="card-cost-and-tags">
-              <CardCost :amount="getCost()" :newCost="getReducedCost()" />
+          <div v-if="!isStandardProject" class="card-cost-and-tags">
+              <CardCost :amount="cost" :newCost="reducedCost" />
               <div v-if="showPlayerCube" :class="playerCubeClass"></div>
-              <card-help v-if="hasHelp" :name="card.name" />
-              <CardTags :tags="getTags()" />
+              <card-help v-show="hasHelp" :name="card.name" />
+              <CardTags :tags="tags" />
           </div>
 
-          <template v-if="getCardContent() === ''">
-            <CardTitle :title="card.name" :type="getCardType()"/>
-            <CardContent v-if="getCardMetadata() !== undefined" :metadata="getCardMetadata()" :requirements="getCardRequirements()" :isCorporation="isCorporationCard()" :padBottom="hasResourceType" />
-          </template>
-          <template v-else >
-            <div  v-html="getCardContent()"></div>
-          </template>
-        </div>
-      <CardExpansion :expansion="getCardExpansion()" :isCorporation="isCorporationCard()" :isResourceCard="isResourceCard()" :compatibility="getCardCompatibility()" />
-      <CardCustomizedContent v-if="isLunaChainCard" :amount="getLunaChainPay()" />
-      <CardResourceCounter v-if="hasResourceType" :amount="getResourceAmount()" :type="resourceType" />
+          <CardTitle :title="card.name" :type="cardType"/>
+          <CardContent :metadata="cardMetadata" :requirements="cardRequirements" :isCorporation="isCorporationCard" :padBottom="hasResourceType"  />
+      </div>
+      <CardExpansion :expansion="cardExpansion" :isCorporation="isCorporationCard" :isResourceCard="isResourceCard" :compatibility="cardCompatibility" />
+      <CardCustomizedContent v-if="isLunaChainCard" :amount="lunaChainPay" />
+      <CardResourceCounter v-if="hasResourceType" :amount="resourceAmount" :type="resourceType" />
       <CardExtraContent :card="card" />
       <slot/>
   </div>
@@ -47,16 +42,9 @@ import {CardResource} from '@/common/CardResource';
 import {getCardOrThrow} from '@/client/cards/ClientCardManifest';
 import {Color} from '@/common/Color';
 import {CardRequirementDescriptor} from '@/common/cards/CardRequirementDescriptor';
-// import * as HTML_DATA from '@/genfiles/cards-html-cn.json';
-import * as HTML_DATA from '@/genfiles/cards.json';
 import {GameModule} from '@/common/cards/GameModule';
 // import { newCard } from '@/server/createCard';
 
-function getCardContentCN(cardName: string): string {
-  let htmlData: string | undefined = '';
-  htmlData = (HTML_DATA as any)[cardName];
-  return htmlData || '';
-}
 
 export default Vue.extend({
   name: 'Card',
@@ -89,7 +77,7 @@ export default Vue.extend({
     cubeColor: {
       type: String as () => Color,
       required: false,
-      default: Color.NEUTRAL,
+      default: 'neutral',
     },
   },
   data() {
@@ -106,17 +94,11 @@ export default Vue.extend({
       hovering: false,
     };
   },
-  methods: {
-    getCardContent: function() {
-      if ((getPreferences().lang || 'cn') === 'cn') {
-        return getCardContentCN(this.card.name);
-      }
-      return '';
-    },
-    getCardExpansion(): GameModule {
+  computed: {
+    cardExpansion(): GameModule {
       return this.cardInstance.module;
     },
-    getCardCompatibility(): Array<GameModule> {
+    cardCompatibility(): Array<GameModule> {
       return this.cardInstance.compatibility;
     },
     isResourceCard(): boolean {
@@ -126,8 +108,8 @@ export default Vue.extend({
         return false;
       }
     },
-    getTags(): Array<string> {
-      const type = this.getCardType();
+    tags(): Array<Tag> {
+      const type = this.cardType;
       const tags = [...this.cardInstance.tags || []];
       tags.forEach((tag, idx) => {
         // Clone are changed on card implementations but that's not passed down directly through the
@@ -141,58 +123,56 @@ export default Vue.extend({
       }
       return tags;
     },
-    getCost(): number | undefined {
-      return this.isProjectCard() ? this.cardInstance.cost : undefined;
+    cost(): number | undefined {
+      return this.isProjectCard ? this.cardInstance.cost : undefined;
     },
-    getReducedCost(): number | undefined {
-      return this.isProjectCard() ? this.card.calculatedCost : undefined;
+    reducedCost(): number | undefined {
+      return this.isProjectCard ? this.card.calculatedCost : undefined;
     },
-    getCardType(): CardType {
+    cardType(): CardType {
       return this.cardInstance.type;
     },
-    getCardClasses(card: CardModel): string {
-      const classes = ['card-container', 'filterDiv', 'hover-hide-res'];
-      classes.push('card-' + card.name.toLowerCase().replace(/ /g, '-'));
+    cardClasses(): string {
+      const classes = [];
+      classes.push('card-' + this.card.name.toLowerCase().replace(/ /g, '-'));
 
-      if (card.isDisabled) {
+      if (this.card.isDisabled) {
         classes.push('card-unavailable');
       } else if (!getPreferences().experimental_ui && this.actionUsed) {
         classes.push('card-unavailable');
       }
 
-      if (this.isStandardProject()) {
+      if (this.isStandardProject) {
         classes.push('card-standard-project');
       }
       const learnerModeOff = !getPreferences().learner_mode;
-      if (learnerModeOff && this.isStandardProject() && card.isDisabled) {
+      if (learnerModeOff && this.isStandardProject && this.card.isDisabled) {
         classes.push('card-hide');
       }
       return classes.join(' ');
     },
-    getCardMetadata(): CardMetadata {
+    cardMetadata(): CardMetadata {
       return this.cardInstance.metadata;
     },
-    getCardRequirements(): Array<CardRequirementDescriptor> {
+    cardRequirements(): ReadonlyArray<CardRequirementDescriptor> {
       return this.cardInstance.requirements;
     },
-    getResourceAmount(): number {
+    resourceAmount(): number {
       return this.card.resources || this.robotCard?.resources || 0;
     },
     isCorporationCard() : boolean {
-      return this.getCardType() === CardType.CORPORATION;
+      return this.cardType === CardType.CORPORATION;
     },
     isProjectCard(): boolean {
-      const type = this.getCardType();
+      const type = this.cardType;
       return type !== CardType.PRELUDE && type !== CardType.CORPORATION && type !== CardType.CEO;
     },
     isStandardProject() : boolean {
-      return this.getCardType() === CardType.STANDARD_PROJECT || this.getCardType() === CardType.STANDARD_ACTION;
+      return this.cardType === CardType.STANDARD_PROJECT || this.cardType === CardType.STANDARD_ACTION;
     },
-    getLunaChainPay(): number {
-      return this.isCorporationCard() && this.card.data?.lastPay >=0 ? this.card.data.lastPay : -1;
+    lunaChainPay(): number {
+      return this.isCorporationCard && this.card.data?.lastPay >=0 ? this.card.data.lastPay : -1;
     },
-  },
-  computed: {
     hasResourceType(): boolean {
       return this.card.isSelfReplicatingRobotsCard === true || this.cardInstance.resourceType !== undefined || this.robotCard !== undefined;
     },
@@ -203,6 +183,15 @@ export default Vue.extend({
       if (this.robotCard !== undefined || this.card.isSelfReplicatingRobotsCard === true) return CardResource.RESOURCE_CUBE;
       // This last RESOURCE_CUBE is functionally unnecessary and serves to satisfy the type contract.
       return this.cardInstance.resourceType ?? CardResource.RESOURCE_CUBE;
+    },
+    bottomPadding(): string {
+      if (this.cardMetadata.victoryPoints !== undefined) {
+        return 'long';
+      }
+      if (this.hasResourceType) {
+        return 'short';
+      }
+      return '';
     },
     hasHelp(): boolean {
       return this.hovering && this.cardInstance.metadata.hasExternalHelp === true;

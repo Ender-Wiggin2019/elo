@@ -12,7 +12,7 @@ import {message} from '../../logs/MessageBuilder';
 import {Units} from '../../../common/Units';
 
 export class SolarFarm extends Card implements IProjectCard {
-  public data: number = -1; 
+  public data: number = -1;
   constructor() {
     super({
       type: CardType.AUTOMATED,
@@ -36,7 +36,7 @@ export class SolarFarm extends Card implements IProjectCard {
   }
 
   public productionBox(player: IPlayer) {
-    if(this.data === -1) {
+    if (this.data === -1) {
       // 历史没有设置data的已打出卡牌, 重新加载时, 需要重新初始化data;
       const space = player.game.board.getSpaceByTileCard(this.name);
       if (space === undefined) {
@@ -57,7 +57,6 @@ export class SolarFarm extends Card implements IProjectCard {
         title: message('Select space for ${0} tile', (b) => b.card(this)),
         adjacencyBonus: {bonus: [SpaceBonus.ENERGY, SpaceBonus.ENERGY]},
       }).andThen(() => {
-        
         const space = player.game.board.getSpaceByTileCard(this.name);
         if (space === undefined) {
           throw new Error('Solar Farm space not found');

@@ -13,8 +13,9 @@ import {ALL_MODULE_MANIFESTS} from './cards/AllManifests';
 
 const CARD_RENAMES = new Map<string, CardName>([
   // When renaming a card, add the old name here (like the example below), and add a TODO (like the example below)
-  // And remember to add a test in spec.ts.
+  // And remember to add a test in createCard.spec.ts.
 
+  // eg
   // TODO(yournamehere): remove after 2021-04-05
   // ['Earth Embasy', CardName.EARTH_EMBASSY],
   ['MAxwell Base', CardName.MAXWELL_BASE],
@@ -41,7 +42,8 @@ const CARD_RENAMES = new Map<string, CardName>([
   ['Venus First:Pathfinders', CardName.VENUS_FIRST],
 
   ['Space Corridors', CardName.SPACE_LANES],
-
+  ['City Park', CardName.CITY_PARKS],
+  ['Concession Rights', CardName.TUNNELING_LOOPHOLE],
 ]);
 
 function _createCard<T extends ICard>(cardName: CardName, cardManifestNames: Array<keyof ModuleManifest>): T | undefined {
@@ -90,7 +92,7 @@ export function newCeo(cardName: CardName): ICeoCard | undefined {
   return _createCard(cardName, ['ceoCards']);
 }
 
-function cfj<T extends ICard>(cards: Array<CardName>, resolver: (c: CardName) => T | undefined): Array<T> {
+function cfj<T extends ICard>(cards: ReadonlyArray<CardName>, resolver: (c: CardName) => T | undefined, cardType : string = ''): Array<T> {
   if (cards === undefined) {
     // console.warn('parameter of array of cards is undefined when calling cardsFromJSON');
     return [];
@@ -101,26 +103,26 @@ function cfj<T extends ICard>(cards: Array<CardName>, resolver: (c: CardName) =>
     if (card !== undefined) {
       result.push(card);
     } else {
-      console.warn(`ceo card ${element} not found while loading game.`);
-      throw new Error(`ceo card ${element} not found while loading game.`);
+      console.warn(`${cardType} card ${element} not found while loading game.`);
+      throw new Error(`${cardType} card ${element} not found while loading game.`);
     }
   });
   return result;
 }
 
-export function cardsFromJSON(cards: Array<CardName>): Array<IProjectCard> {
-  return cfj(cards, newProjectCard);
+export function cardsFromJSON(cards: ReadonlyArray<CardName>): Array<IProjectCard> {
+  return cfj(cards, newProjectCard, 'newProjectCard');
 }
 
-export function corporationCardsFromJSON(cards: Array<CardName>): Array<ICorporationCard> {
-  return cfj(cards, newCorporationCard);
+export function corporationCardsFromJSON(cards: ReadonlyArray<CardName>): Array<ICorporationCard> {
+  return cfj(cards, newCorporationCard, 'newCorporationCard');
 }
 
-export function ceosFromJSON(cards: Array<CardName>): Array<ICeoCard> {
-  return cfj(cards, newCeo);
+export function ceosFromJSON(cards: ReadonlyArray<CardName>): Array<ICeoCard> {
+  return cfj(cards, newCeo, 'newCeo');
 }
 
-export function preludesFromJSON(cards: Array<CardName>): Array<IPreludeCard> {
-  return cfj(cards, newPrelude);
+export function preludesFromJSON(cards: ReadonlyArray<CardName>): Array<IPreludeCard> {
+  return cfj(cards, newPrelude, 'newPrelude');
 }
 

@@ -31,48 +31,59 @@ export const awardNames = [
   'Lunar Magnate',
 
   // Amazonis Planitia
-  // NB: the fifth award for Amazonis Plantia is Coordinator, also part of Arabia Terra.
+  // NB: the fifth award for Amazonis Plantia is Promoter, also part of Arabia Terra.
   'Curator',
-  'Engineer',
+  'A. Engineer',
   'Tourist',
   'A. Zoologist',
 
   // Arabia Terra
   'Cosmic Settler',
   'Botanist',
-  'Coordinator',
+  'Promoter',
   'A. Manufacturer',
   'Zoologist',
 
   // Terra Cimmeria
   'Biologist',
-  'T. Economizer',
   'T. Politician',
   'Urbanist',
   'Warmonger',
+  // NB: the fifth award for Terra Cimmeria is Incorporator, a modular award.
 
   // Vastitas Borealis
-  'Adapter',
+  'Forecaster',
   'Edgedancer',
-  'Hoarder',
+  'Visionary',
   'Naturalist',
   'Voyager',
+
+  // Vastitas Borealis Novus
+  'Traveller',
+  'Landscaper',
+  'Highlander',
+  'Manufacturer',
 
   // Underworld
   'Kingpin',
   'EdgeLord',
 
-  // Modular awards
+  // Ares Extreme
+  'Rugged',
+
+  // Modular
   'Administrator',
+  'Collector',
   'Constructor',
+  'Electrician',
   'Founder',
+  'Incorporator',
   'Investor',
-  'Highlander',
-  'Landscaper',
   'Metropolist',
   'Mogul',
-  'Traveller',
-
+  'Politician', // New Most party leaders and influence compbined
+  // 'Suburbian', // NEW Most tiles on areas along the edges of the map.
+  // 'Zoologist', // Most animal and microbe resources. Currently Zoologist2
 ] as const;
 
 export type AwardName = typeof awardNames[number];
@@ -83,13 +94,19 @@ export const AWARD_RENAMES = new Map<string, AwardName>([
 
   // TODO(yournamehere): remove after 2021-04-05
   // TODO(kberg): remove after 2024-11-15
-  
+
   ['DesertSettler', 'Desert Settler'],
   ['EstateDealer', 'Estate Dealer'],
   ['Entrepeneur', 'Entrepreneur'],
   ['Manufacturer', 'A. Manufacturer'],
-  ['Politician', 'T. Politician'],
-  ['Historian', 'Coordinator'],
+  ['Historian', 'Promoter'],
+  ['T. Economizer', 'Incorporator'],
+  ['Engineer', 'A. Engineer'],
+
+  ['Adapter', 'Forecaster'],
+  ['Hoarder', 'Visionary'],
+  ['Coordinator', 'Promoter'],
+
 ]);
 
 export function maybeRenamedAward(name: string): AwardName {

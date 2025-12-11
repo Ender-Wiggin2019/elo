@@ -11,9 +11,9 @@ import {Size} from '../../../common/cards/render/Size';
 import {MoonExpansion} from '../../moon/MoonExpansion';
 import {all} from '../Options';
 import {SpecialDesignProxy} from './SpecialDesignProxy';
-import {inplaceRemove} from '../../../common/utils/utils';
+import {ICorporationCard} from '../corporation/ICorporationCard';
 
-export class Playwrights extends CorporationCard {
+export class Playwrights extends CorporationCard implements ICorporationCard {
   constructor() {
     super({
       name: CardName.PLAYWRIGHTS,
@@ -51,7 +51,7 @@ export class Playwrights extends CorporationCard {
   }
 
   public action(player: IPlayer): SelectCard<IProjectCard> | undefined {
-    const players = player.game.getPlayers();
+    const players = player.game.players;
     const replayableEvents = this.getReplayableEvents(player);
     if (replayableEvents.length === 0) {
       // 只有一张项目检测时 打出之后即移出
@@ -66,9 +66,8 @@ export class Playwrights extends CorporationCard {
 
           let ownPlayer:IPlayer;
           players.forEach((p) => {
-            const card = p.getPlayedCard(selectedCard.name);
-            if (card !== undefined) {
-              inplaceRemove(p.playedCards, card);
+            if (p.playedCards.get(selectedCard.name)) {
+              p.playedCards.remove(card);
               ownPlayer = p;
             }
           });
@@ -89,10 +88,10 @@ export class Playwrights extends CorporationCard {
                * Needs to be deferred to happen after Law Suit's `play()` method.
                */
                 player.defer(() => {
-                  player.game.getPlayers().some((p) => {
-                    const card = p.playedCards[p.playedCards.length - 1];
+                  player.game.players.some((p) => {
+                    const card = p.playedCards.last();
                     if (card?.name === selectedCard.name) {
-                      p.playedCards.pop();
+                      p.playedCards.remove(card);
                       return true;
                     }
                     return false;
@@ -115,20 +114,25 @@ export class Playwrights extends CorporationCard {
 
     this.checkLoops++;
     try {
-      player.game.getPlayers().forEach((p) => {
-        playedEvents.push(...p.playedCards.filter((card) => {
+      player.game.players.forEach((p) => {
+        for (const card of p.playedCards.projects()) {
           // Special case Price Wars, which is not easy to work with.
           if (card.name === CardName.PRICE_WARS) {
-            return false;
+            continue;
           }
+          if (card.type !== CardType.EVENT) {
+            continue;
+          }
+
           const canAffordOptions = {
             cost: player.getCardCost(card),
             reserveUnits: MoonExpansion.adjustedReserveCosts(player, card),
           };
-          return card.type === CardType.EVENT &&
           // Can player.canPlay(card) replace this?
-          player.canAfford(canAffordOptions) && card.canPlay(player, canAffordOptions);
-        }));
+          if (player.canAfford(canAffordOptions) && card.canPlay(player, canAffordOptions)) {
+            playedEvents.push(card);
+          }
+        }
       });
     } finally {
       this.checkLoops--;

@@ -38,6 +38,11 @@ export class AntiGravityExperiment extends Card implements IProjectCard {
 
   public override bespokePlay(player: IPlayer) {
     this.data = {generation: player.game.generation};
+    this.properties.cardDiscount = {amount: 2};
     return undefined;
+  }
+
+  public onProductionPhase(_player: IPlayer): void {
+    this.properties.cardDiscount = undefined;
   }
 }

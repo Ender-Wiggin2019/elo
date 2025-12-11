@@ -2,7 +2,7 @@ import {MAX_FLEET_SIZE} from '../../common/constants';
 import {CardName} from '../../common/cards/CardName';
 import {ColoniesHandler} from '../colonies/ColoniesHandler';
 import {AndOptions} from '../inputs/AndOptions';
-import {IPlayer} from '../IPlayer';
+import {CanAffordOptions, IPlayer} from '../IPlayer';
 import {ENERGY_TRADE_COST, MC_TRADE_COST, TITANIUM_TRADE_COST} from '../../common/constants';
 import {IColony} from '../colonies/IColony';
 import {SelectPaymentDeferred} from '../deferredActions/SelectPaymentDeferred';
@@ -72,9 +72,9 @@ export class Colonies {
 
     let selected: IColonyTrader | undefined = undefined;
 
-    const howToPayForTrade = new OrOptions();
-    howToPayForTrade.title = 'Pay trade fee';
-    howToPayForTrade.buttonLabel = 'Pay';
+    const howToPayForTrade = new OrOptions()
+      .setTitle('Pay trade fee')
+      .setButtonLabel('Pay');
     handlers.forEach((handler) => {
       if (handler.canUse()) {
         howToPayForTrade.options.push(new SelectOption(
@@ -98,14 +98,14 @@ export class Colonies {
         return undefined;
       });
 
-    const trade = new AndOptions(howToPayForTrade, selectColony);
-    trade.title = 'Trade with a colony tile';
-    trade.buttonLabel = 'Trade';
-
-    return trade;
+    return new AndOptions(howToPayForTrade, selectColony)
+      .setTitle('Trade with a colony tile')
+      .setButtonLabel('Trade');
   }
 
-  public getPlayableColonies(allowDuplicate: boolean = false, cost: number = 0) {
+  public getPlayableColonies(allowDuplicate: boolean = false, cost: number | CanAffordOptions = 0) {
+    const options: CanAffordOptions = typeof(cost) === 'number' ? {cost: cost} : {...cost};
+
     return this.player.game.colonies
       .filter((colony) => {
         if (colony.isActive === false) {
@@ -117,15 +117,15 @@ export class Colonies {
         if (!allowDuplicate && colony.colonies.includes(this.player)) {
           return false;
         }
-        if (colony.name === ColonyName.VENUS && !this.player.canAfford({cost: cost, tr: {venus: 1}})) {
+        if (colony.name === ColonyName.VENUS && !this.player.canAfford({...options, tr: {venus: 1}})) {
           return false;
         }
-        if (colony.name === ColonyName.EUROPA && !this.player.canAfford({cost: cost, tr: {oceans: 1}})) {
+        if (colony.name === ColonyName.EUROPA && !this.player.canAfford({...options, tr: {oceans: 1}})) {
           return false;
         }
         if (colony.name === ColonyName.LEAVITT) {
-          const pharmacyUnion = this.player.getCorporation(CardName.PHARMACY_UNION);
-          if ((pharmacyUnion?.resourceCount ?? 0) > 0 && !this.player.canAfford({cost: cost, tr: {tr: 1}})) {
+          const pharmacyUnion = this.player.tableau.get(CardName.PHARMACY_UNION);
+          if ((pharmacyUnion?.resourceCount ?? 0) > 0 && !this.player.canAfford({...options, tr: {tr: 1}})) {
             return false;
           }
         }
@@ -163,6 +163,14 @@ export class Colonies {
     if (syndicatePirateRaider === undefined) {
       this.tradesThisGeneration = 0;
     } else if (syndicatePirateRaider === this.player.id) {
+      // CEO effect: Disable all other players from trading next gen,
+      // but free up all colonies (don't leave their trade fleets stuck there)
+      if (this.player.tableau.has(CardName.HUAN)) {
+        for (const player of this.player.opponents) {
+          // Magic number high enough to disable other players' trading
+          player.colonies.tradesThisGeneration = 50;
+        }
+      }
       this.tradesThisGeneration = 0;
     }
   }
@@ -216,7 +224,7 @@ export class TradeWithMegacredits implements IColonyTrader {
 
   constructor(private player: IPlayer) {
     this.tradeCost = MC_TRADE_COST- player.colonies.tradeDiscount;
-    const adhai = player.getCorporation(CardName.ADHAI_HIGH_ORBIT_CONSTRUCTIONS);
+    const adhai = player.tableau.get(CardName.ADHAI_HIGH_ORBIT_CONSTRUCTIONS);
     if (adhai !== undefined) {
       const adhaiDiscount = Math.floor(adhai.resourceCount / 2);
       this.tradeCost = Math.max(0, this.tradeCost - adhaiDiscount);
@@ -248,7 +256,7 @@ export class TradeWithSteel implements IColonyTrader {
   }
 
   public canUse() {
-    return this.player.isCorporation(CardName._MINING_GUILD_ )&& this.player.steel >= this.tradeCost;
+    return this.player.playedCards.has(CardName._MINING_GUILD_ )&& this.player.steel >= this.tradeCost;
   }
   public optionText() {
     return 'Pay ' + this.tradeCost +' Steel';

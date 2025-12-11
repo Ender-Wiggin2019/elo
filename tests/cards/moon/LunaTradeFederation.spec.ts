@@ -25,6 +25,7 @@ describe('LunaTradeFederation', () => {
 
   it('play', () => {
     expect(player.canUseTitaniumAsMegacredits).is.false;
+    player.megaCredits = 15;
     player.playCorporationCard(lunaTradeFederation);
     runAllActions(game);
     expect(player.titanium).eq(10);
@@ -36,7 +37,7 @@ describe('LunaTradeFederation', () => {
   //   player.corporations.push(lunaTradeFederation);
   //   player.production.override(Units.EMPTY);
   //   expect(moonData.miningRate).eq(0);
-  //   expect(player.getTerraformRating()).eq(20);
+  //   expect(player.terraformRating).eq(20);
 
   //   player.runInitialAction(lunaTradeFederation);
 
@@ -46,7 +47,7 @@ describe('LunaTradeFederation', () => {
   //   runAllActions(game);
 
   //   expect(moonData.miningRate).eq(1);
-  //   expect(player.getTerraformRating()).eq(21);
+  //   expect(player.terraformRating).eq(21);
   //   expect(player.production.asUnits()).deep.eq(Units.of({titanium: 1}));
   // });
 

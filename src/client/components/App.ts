@@ -1,23 +1,20 @@
-import GameEnd from '@/client/components/GameEnd.vue';
+import * as constants from '@/common/constants';
+import * as raw_settings from '@/genfiles/settings.json';
+import CardList from '@/client/components/cardlist/CardList.vue';
 import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
+import GameEnd from '@/client/components/GameEnd.vue';
 import GameHome from '@/client/components/GameHome.vue';
 import GamesOverview from '@/client/components/GamesOverview.vue';
+import Help from '@/client/components/help/Help.vue';
+import LoadGameForm from '@/client/components/LoadGameForm.vue';
 import PlayerHome from '@/client/components/PlayerHome.vue';
 import PlayerInputFactory from '@/client/components/PlayerInputFactory.vue';
 import SpectatorHome from '@/client/components/SpectatorHome.vue';
-import {ViewModel, PlayerViewModel} from '@/common/models/PlayerModel';
 import StartScreen from '@/client/components/StartScreen.vue';
-import LoadGameForm from '@/client/components/LoadGameForm.vue';
-import CardList from '@/client/components/cardlist/CardList.vue';
-import {SimpleGameModel} from '@/common/models/SimpleGameModel';
-import Help from '@/client/components/help/Help.vue';
-import CardHTML from '@/client/components/card/Card_HTML.vue';
-
 import {$t, setTranslationContext} from '@/client/directives/i18n';
-
-import * as constants from '@/common/constants';
-import * as raw_settings from '@/genfiles/settings.json';
 import {paths} from '@/common/app/paths';
+import {PlayerViewModel, ViewModel} from '@/common/models/PlayerModel';
+import {SimpleGameModel} from '@/common/models/SimpleGameModel';
 import {SpectatorModel} from '@/common/models/SpectatorModel';
 import {isPlayerId, isSpectatorId} from '@/common/Types';
 import {hasShowModal, showModal, windowHasHTMLDialogElement} from './HTMLDialogElementCompatibility';
@@ -56,33 +53,37 @@ export interface MainAppData {
     isServerSideRequestInProgress: boolean;
     componentsVisibility: {[x: string]: boolean};
     game: SimpleGameModel | undefined;
+    isvip: boolean;
+    login: string | undefined;
 }
+
+const data: MainAppData = {
+  screen: 'empty',
+  playerkey: 0,
+  settings: raw_settings,
+  isServerSideRequestInProgress: false,
+  componentsVisibility: {
+    'milestones': true,
+    'awards_list': true,
+    'tags_concise': false,
+    'pinned_player_0': false,
+    'pinned_player_1': false,
+    'pinned_player_2': false,
+    'pinned_player_3': false,
+    'pinned_player_4': false,
+    'turmoil_parties': false,
+  } as {[x: string]: boolean},
+  game: undefined as SimpleGameModel | undefined,
+  isvip: false, // 页面加载时刷新isvip, 之后都可以根据这个值判断是否vip
+  oscreen: 'empty', // 跳转赞助页面前的页面
+  playerView: undefined,
+  spectator: undefined,
+  login: undefined,
+};
 
 export const mainAppSettings = {
   'el': '#app',
-  'data': {
-    screen: 'empty',
-    playerkey: 0,
-    settings: raw_settings,
-    isServerSideRequestInProgress: false,
-    componentsVisibility: {
-      'milestones': true,
-      'awards_list': true,
-      'tags_concise': false,
-      'pinned_player_0': false,
-      'pinned_player_1': false,
-      'pinned_player_2': false,
-      'pinned_player_3': false,
-      'pinned_player_4': false,
-      'turmoil_parties': false,
-    } as {[x: string]: boolean},
-    game: undefined as SimpleGameModel | undefined,
-    isvip: false, // 页面加载时刷新isvip, 之后都可以根据这个值判断是否vip
-    oscreen: 'empty', // 跳转赞助页面前的页面
-    playerView: undefined,
-    spectator: undefined,
-    logPaused: false,
-  } as MainAppData,
+  'data': data,
   'components': {
     // These component keys match the screen values, and their entries in index.html.
     'player-input-factory': PlayerInputFactory,
@@ -102,7 +103,7 @@ export const mainAppSettings = {
     'donate': Donate,
     'ranks': Ranks, // 天梯排行榜
     // 这里引入是为了统一编译进去，渲染 card 并在card_HTML.spec.ts中获取html 保存到json中
-    'cardHTML': CardHTML,
+    // 'cardHTML': CardHTML,
   },
   'methods': {
     showAlert(message: string, cb: () => void = () => {}): void {
@@ -266,7 +267,9 @@ export const mainAppSettings = {
   },
   mounted() {
     // document.title = constants.APP_NAME;
-    if (!windowHasHTMLDialogElement()) dialogPolyfill.default.registerDialog(document.getElementById('alert-dialog'));
+    if (!windowHasHTMLDialogElement()) {
+      dialogPolyfill.default.registerDialog(document.getElementById('alert-dialog'));
+    }
     const currentPathname = getLastPathSegment();
     const app = this as unknown as (MainAppData) & (typeof mainAppSettings.methods);
     const userId = PreferencesManager.load('userId');
@@ -289,7 +292,6 @@ export const mainAppSettings = {
         alert('Bad id URL parameter.');
       }
     } else if (currentPathname === paths.GAME) {
-      app.screen = 'game-home';
       const xhr = new XMLHttpRequest();
       xhr.open('GET', paths.API_GAME + window.location.search+'&userId='+ userId );
       xhr.onerror = function() {
@@ -303,6 +305,7 @@ export const mainAppSettings = {
             `${paths.GAME}?id=${xhr.response.id}`,
           );
           app.game = xhr.response as SimpleGameModel;
+          app.screen = 'game-home';
         } else {
           alert('Unexpected server response');
         }

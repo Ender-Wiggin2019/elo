@@ -1,6 +1,5 @@
 import {expect} from 'chai';
 import {NoctisFarming} from '../../../src/server/cards/base/NoctisFarming';
-import {IGame} from '../../../src/server/IGame';
 import {Resource} from '../../../src/common/Resource';
 import {addCity, cast, runAllActions} from '../../TestingUtils';
 import {TestPlayer} from '../../TestPlayer';
@@ -19,17 +18,23 @@ import {CloneTechnology} from '../../../src/server/cards/eros/CloneTechnology';
 import {Greenhouses} from '../../../src/server/cards/base/Greenhouses';
 import {DesignedOrganisms} from '../../../src/server/cards/pathfinders/DesignedOrganisms';
 import {ScolexIndustries} from '../../../src/server/cards/commission/ScolexIndustries';
+import {Lichen} from '../../../src/server/cards/base/Lichen';
+import {Moss} from '../../../src/server/cards/base/Moss';
+import {Potatoes} from '../../../src/server/cards/promo/Potatoes';
+
 
 describe('CloneTechnology', () => {
   let card: CloneTechnology;
   let player: TestPlayer;
-  let game: IGame;
   let player2: TestPlayer;
+  let game: ReturnType<typeof testGame>[0];
 
   beforeEach(() => {
     card = new CloneTechnology();
-    [game, player, player2] = testGame(2, {moonExpansion: true});
+    [game, player, player2] = testGame(2, {skipInitialShuffling: true});
+    player.megaCredits = 100;
   });
+
 
   it('Cannot play if no plant cards to copy', () => {
     expect(card.canPlay(player)).is.not.true;
@@ -57,7 +62,9 @@ describe('CloneTechnology', () => {
     const noctisFarming = new NoctisFarming();
     player.playedCards.push(noctisFarming);
 
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
     selectCard.cb([noctisFarming]);
     expect(player.production.megacredits).to.eq(1);
     expect(player.plants).to.eq(2);
@@ -68,14 +75,19 @@ describe('CloneTechnology', () => {
     const snowAlgae = new SnowAlgae();
     player.playedCards.push(freyjaBiodomes, snowAlgae);
 
-    const selectCard2 = cast(card.play(player), SelectCard);// Not enough energy production for FreyjaBiodomes
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard2 = cast(player.popWaitingFor(), SelectCard);
     selectCard2.cb([snowAlgae]);
 
     expect(player.production.plants).to.eq(1);
     expect(player.production.heat).to.eq(1);
 
     player.production.add(Resource.ENERGY, 1);
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playedCards.remove(card);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
     selectCard.cb([freyjaBiodomes]);
     expect(player.production.energy).to.eq(0);
     expect(player.production.megacredits).to.eq(2);
@@ -86,7 +98,9 @@ describe('CloneTechnology', () => {
     const corporationCard = new _EcoLine_();
     player.corporations.push(corporationCard);
 
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
     selectCard.cb([corporationCard]);
     runAllActions(game);
     expect(player.production.plants).to.eq(2);
@@ -102,7 +116,9 @@ describe('CloneTechnology', () => {
   it('Should work with Research Network', () => {
     const researchNetwork = new ResearchNetwork();
     player.playedCards.push(researchNetwork);
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
 
     expect(selectCard.cards[0]).eq(researchNetwork);
     expect(player.production.megacredits).to.eq(0);
@@ -118,7 +134,9 @@ describe('CloneTechnology', () => {
 
     player.stock.plants = 2;
     expect(card.canPlay(player)).is.true;
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
 
     expect(selectCard.cards[0]).eq(nitrophilicMoss);
     expect(player.production.plants).to.eq(0);
@@ -127,22 +145,34 @@ describe('CloneTechnology', () => {
     expect(player.production.plants).to.eq(2);
     expect(player.plants).to.eq(0);
 
-    player.stock.plants = 1;
+    // ViralEnhancers
     const viralEnhancers = new ViralEnhancers;
+    player.playedCards.remove(card);
+    player.stock.plants = 1;
+    player.production.override({plants: 0});
+    expect(card.canPlay(player)).is.false;
     player.playedCards.push(viralEnhancers);
     expect(card.canPlay(player)).is.true;
-    const selectCard2 = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard2 = cast(player.popWaitingFor(), SelectCard);
     selectCard2.cb([nitrophilicMoss]);
-    viralEnhancers.onCardPlayed(player, card);
-    expect(player.production.plants).to.eq(4);
+    expect(player.production.plants).to.eq(2);
     expect(player.plants).to.eq(0);
 
+    // Manutech
+    player.playedCards.remove(card);
+    player.playedCards.remove(viralEnhancers);
     player.stock.plants = 0;
-    player.corporations.push(new Manutech);
+    player.production.override({plants: 0});
+    expect(card.canPlay(player)).is.false;
+    player.playedCards.push(new Manutech);
     expect(card.canPlay(player)).is.true;
-    const selectCard3 = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard3 = cast(player.popWaitingFor(), SelectCard);
     selectCard3.cb([nitrophilicMoss]);
-    expect(player.production.plants).to.eq(6);
+    expect(player.production.plants).to.eq(2);
     expect(player.plants).to.eq(0);
   });
 
@@ -153,7 +183,9 @@ describe('CloneTechnology', () => {
     expect(card.canPlay(player)).is.true;
     addCity(player, '17');
     addCity(player, '19');
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
     expect(selectCard.cards[0]).eq(greenhouses);
     selectCard.cb([greenhouses]);
     expect(player.plants).to.eq(2);
@@ -164,7 +196,9 @@ describe('CloneTechnology', () => {
     const designedOrganisms = new DesignedOrganisms();
     player.playedCards.push(designedOrganisms);
     expect(card.canPlay(player)).is.true;
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
     expect(selectCard.cards[0]).eq(designedOrganisms);
     selectCard.cb([designedOrganisms]);
     expect(player.plants).to.eq(3);
@@ -176,12 +210,70 @@ describe('CloneTechnology', () => {
     const scolex = new ScolexIndustries();
     player.playedCards.push(scolex);
     expect(card.canPlay(player)).is.true;
-    const selectCard = cast(card.play(player), SelectCard);
+    player.playCard(card);
+    runAllActions(game);
+    const selectCard = cast(player.popWaitingFor(), SelectCard);
     expect(selectCard.cards[0]).eq(scolex);
     selectCard.cb([scolex]);
     expect(player.production.plants).to.eq(1);
     expect(player.production.energy).to.eq(1);
     expect(player.production.steel).to.eq(1);
     expect(player.production.titanium).to.eq(1);
+  });
+
+  it('play - 复制 Lichen 的生产力', () => {
+    const lichen = new Lichen();
+    player.playedCards.push(lichen);
+    // Lichen: 生产1植物
+    expect(player.production.plants).to.equal(0);
+    player.playCard(card);
+    runAllActions(game);
+    const select = cast(player.popWaitingFor(), SelectCard);
+    expect(select.cards.map((c) => c.name)).to.include(lichen.name);
+    // 选择 Lichen
+    select.cb([lichen]);
+    runAllActions(game);
+    expect(player.production.plants).to.equal(1);
+  });
+
+  it('play - 复制 Moss 的生产力和植物资源', () => {
+    const moss = new Moss();
+    player.playedCards.push(moss);
+    player.plants = 0;
+    expect(card.canPlay(player)).is.false;
+    player.plants = 1;
+    expect(card.canPlay(player)).is.true;
+    player.playCard(card);
+    runAllActions(game);
+    const select = cast(player.popWaitingFor(), SelectCard);
+    expect(select.cards.map((c) => c.name)).to.include(moss.name);
+    select.cb([moss]);
+    runAllActions(game);
+    expect(player.production.plants).to.equal(1);
+    expect(player.plants).to.equal(0);
+  });
+
+  it('play - 复制 Potatoes 的生产力和植物资源', () => {
+    const potatoes = new Potatoes();
+    player.playedCards.push(potatoes);
+    player.plants = 0;
+    expect(card.canPlay(player)).is.false;
+    player.plants = 2;
+    expect(card.canPlay(player)).is.true;
+    player.playCard(card);
+    runAllActions(game);
+    const select = cast(player.popWaitingFor(), SelectCard);
+    expect(select.cards.map((c) => c.name)).to.include(potatoes.name);
+    select.cb([potatoes]);
+    runAllActions(game);
+    expect(player.production.plants).to.equal(0);
+    expect(player.production.megacredits).to.equal(2);
+    expect(player.plants).to.equal(0);
+  });
+
+  it('getVictoryPoints 只在打出后获得1分', () => {
+    expect(player.getVictoryPoints().victoryPoints).to.equal(0);
+    player.playedCards.push(card);
+    expect(player.getVictoryPoints().victoryPoints).to.equal(1);
   });
 });

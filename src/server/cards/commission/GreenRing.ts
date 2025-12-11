@@ -5,7 +5,7 @@ import {ICard} from '../ICard';
 import {Size} from '../../../common/cards/render/Size';
 import {IPlayer} from '../../IPlayer';
 import {Tag} from '../../../common/cards/Tag';
-import {IProjectCard, PlayableCard} from '../IProjectCard';
+import {IProjectCard} from '../IProjectCard';
 import {CardType} from '../../../common/cards/CardType';
 import {isSpecialTile} from '../../boards/Board';
 import {AltSecondaryTag} from '../../../common/cards/render/AltSecondaryTag';
@@ -17,18 +17,18 @@ export class GreenRing extends CorporationCard implements ICard {
     super({
       name: CardName.GREENRING,
       tags: [Tag.EARTH],
-      startingMegaCredits: 53,
-      firstAction: {
-        text: 'Draw 2 green cards',
-        drawCard: {count: 2, type: CardType.AUTOMATED},
-      },
-      // 請問今天能開發這公司嗎? 綠環公司(Green Ring), 40MC,1鈦標, 行動:回收一张你已打出的绿卡或蓝卡到你手上(但不能已特殊板块或回手牌),之後付費打出,之後棄掉此卡,可以將重播公司
-      // 行動:回收一张已打出的绿卡或蓝卡到你手上(但不能已特殊板块或回手牌),之後付費打出,之後棄掉此卡,可以將重播公司
+      startingMegaCredits: 45,
+      // firstAction: {
+      //   text: 'Draw 2 green cards',
+      //   drawCard: {count: 2, type: CardType.AUTOMATED},
+      // },
+      //   綠環公司(Green Ring), 40MC,1鈦標,
+      // 行動:回收一张你已打出的绿卡或蓝卡到你手上(但不能已特殊板块或回手牌),之後付費打出,之後棄掉此卡,可以將重播公司
       metadata: {
         cardNumber: 'XB19',
-        description: 'You start with 53 M€. As your first action, draw a green card',
+        description: 'You start with 45 M€.',
         renderData: CardRenderer.builder((b) => {
-          b.megacredits(53).cards(2, {secondaryTag: AltSecondaryTag.GREEN});
+          b.megacredits(45);
           b.corpBox('action', (ce) => {
             ce.vSpace(Size.SMALL);
             ce.action('付费重新打出一张你已打出的蓝卡或绿卡,不能是放置特殊版块或者回手牌的卡,执行完效果后移除游戏', (eb) => {
@@ -97,7 +97,7 @@ export class GreenRing extends CorporationCard implements ICard {
     CardName.WASTE_INCINERATOR,
   ];
   private getCards(player: IPlayer): ReadonlyArray<IProjectCard> {
-    return player.playedCards.filter((card) => {
+    return player.playedCards.projects().filter((card) => {
       if (card.type !== CardType.AUTOMATED && card.type !== CardType.ACTIVE) {
         return false;
       }
@@ -117,12 +117,15 @@ export class GreenRing extends CorporationCard implements ICard {
       }
 
       const canPlay = player.canPlay(card);
-      if (!canPlay) {
-        return false;
-      }
+      return canPlay;
+      // if (!canPlay) {
+      //   return false;
+      // }
 
-      const canAffordOptions = player.affordOptionsForCard(card);
-      return player.canAfford(canAffordOptions) && card.canPlay(player, canAffordOptions);
+
+      // 这里好像跟上面的有点多余
+      // const canAffordOptions = player.affordOptionsForCard(card);
+      // return player.canAfford(canAffordOptions) && card.canPlay(player, canAffordOptions);
     });
   }
 
@@ -134,22 +137,19 @@ export class GreenRing extends CorporationCard implements ICard {
       return undefined;
     }
 
-    const playableCards: Array<PlayableCard> = [];
+    const playableCards: Array<IProjectCard> = [];
     for (const card of candidates) {
       card.warnings.clear();
 
-      playableCards.push({
-        card,
-        details: true,
-      });
+      playableCards.push(card);
     }
 
-    return new SelectProjectCardToPlay(player, playableCards).andThen((selectedCard) => {
+    return new SelectProjectCardToPlay(player, playableCards, {action: 'discard'}).andThen((selectedCard) => {
       // SelectProjectCardToPlay会先打出卡牌, 再执行andThen, 这里应该先回收的
       // 先回收
-      player.playedCards = player.playedCards.filter((c) => c.name !== selectedCard.name);
-      selectedCard.onDiscard?.(player);
-
+      // player.playedCards.remove(selectedCard as ICard);
+      // selectedCard.onDiscard?.(player);
+      player.removedFromPlayCards.push(selectedCard);
       // 再重新打出
       // player.playCard(selectedCard, undefined, 'nothing'); // Play the card but don't add it to played cards
       return undefined;

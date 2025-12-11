@@ -13,15 +13,15 @@ export class _Aphrodite_ extends Aphrodite {
   public override get startingMegaCredits() : number {
     return 40;
   }
+  public override get initialActionText() {
+    return 'Raise Venus Scale 2 steps';
+  }
 
-  public initialAction(player: IPlayer) {
+  public override initialAction(player: IPlayer) {
     player.game.increaseVenusScaleLevel(player, 2);
     return undefined;
   }
 
-  public override play(_player: IPlayer) {
-    return undefined;
-  }
 
   public override get metadata(): CardMetadata {
     return {

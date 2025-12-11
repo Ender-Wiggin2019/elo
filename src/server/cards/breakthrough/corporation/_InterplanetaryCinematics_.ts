@@ -1,10 +1,10 @@
 import {IPlayer} from '../../../IPlayer';
 import {CardRenderer} from '../../render/CardRenderer';
-import {IProjectCard} from '../../IProjectCard';
 import {CardName} from '../../../../common/cards/CardName';
 import {CardType} from '../../../../common/cards/CardType';
 import {Tag} from '../../../../common/cards/Tag';
 import {CorporationCard} from '../../corporation/CorporationCard';
+import {ICard} from '../../ICard';
 
 export class _InterplanetaryCinematics_ extends CorporationCard {
   constructor() {
@@ -29,8 +29,8 @@ export class _InterplanetaryCinematics_ extends CorporationCard {
     });
   }
 
-  public onCardPlayed(player: IPlayer, card: IProjectCard) {
-    if (player.isCorporation(this.name) && card.type === CardType.EVENT) {
+  public onCardPlayedForCorps(player: IPlayer, card: ICard) {
+    if (player.playedCards.has(this.name) && card.type === CardType.EVENT) {
       player.megaCredits += 3;
     }
   }

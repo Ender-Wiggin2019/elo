@@ -30,3 +30,4 @@ async function logparse() {
 console.log('logparse start');
 logparse();
 console.log('logparse end');
+//  ts-node .\logparse.ts

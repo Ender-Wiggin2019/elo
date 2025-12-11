@@ -41,19 +41,19 @@ export class SellPatentsStandardProject extends StandardProjectCard {
       .andThen((cards) => {
         let result = undefined;
         // 霞
-        if (player.playedCards.find((playedCard) => playedCard.name === CardName.WASTE_INCINERATOR) !== undefined) {
+        if (player.playedCards.get( CardName.WASTE_INCINERATOR) !== undefined) {
           result = new OrOptions(
             new SelectOption('Sell patents for heat', 'Confirm' ).andThen(() => {
               player.heat += 2*cards.length;
               return undefined;
             }),
             new SelectOption('Sell patents for MC', 'Confirm' ).andThen( () => {
-              if (player.isCorporation(CardName._POLYPHEMOS_)) player.megaCredits += 3* cards.length;
+              if (player.playedCards.has(CardName._POLYPHEMOS_)) player.megaCredits += 3* cards.length;
               else player.megaCredits += cards.length;
               return undefined;
             }),
           );
-        } else if (player.isCorporation(CardName._POLYPHEMOS_)) {
+        } else if (player.playedCards.has(CardName._POLYPHEMOS_)) {
           // 卖牌3元
           player.megaCredits += 3*cards.length;
         } else {

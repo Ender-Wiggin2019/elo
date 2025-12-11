@@ -42,7 +42,7 @@ export class Tyrell extends CorporationCard {
     const result: Array<ICard> = [];
     this.checkLoops++;
 
-    cardOwner.game.getPlayers().filter((player)=>player.id !== cardOwner.id).forEach((player)=>{
+    cardOwner.game.players.filter((player)=>player.id !== cardOwner.id).forEach((player)=>{
       for (const playedCard of player.tableau) {
         if (isIActionCard(playedCard) &&
             playedCard.resourceType === undefined &&

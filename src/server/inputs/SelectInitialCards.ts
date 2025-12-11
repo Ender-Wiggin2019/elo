@@ -6,8 +6,27 @@ import {SelectInitialCardsModel} from '../../common/models/PlayerInputModel';
 import {InputError} from './InputError';
 import {OptionsInput} from './OptionsPlayerInput';
 import {InputResponse, isSelectInitialCardsResponse} from '../../common/inputs/InputResponse';
+import {PlayerInput} from '../PlayerInput';
 
+type Inputs = {
+  corp: PlayerInput | undefined,
+  project: PlayerInput | undefined,
+  prelude: PlayerInput | undefined,
+  ceo: PlayerInput | undefined
+}
 export class SelectInitialCards extends OptionsInput<undefined> {
+  public readonly inputs: Inputs = {
+    corp: undefined,
+    project: undefined,
+    prelude: undefined,
+    ceo: undefined,
+  };
+
+  private push(name: keyof Inputs, input: PlayerInput) {
+    this.inputs[name] = input;
+    this.options.push(input);
+  }
+
   constructor(private player: IPlayer, doubleCorp : boolean, cb: (corporation: ICorporationCard, corporation2: ICorporationCard | undefined) => undefined) {
     super('initialCards', '', []);
     const game = this.player.game;
@@ -16,7 +35,8 @@ export class SelectInitialCards extends OptionsInput<undefined> {
     this.title = ' ';
     this.buttonLabel = 'Start';
     const corpNum = doubleCorp? 2:1;
-    this.options.push(
+
+    this.push('corp',
       new SelectCard<ICorporationCard>(
         doubleCorp ? titles.SELECT_CORPORATION_TITLE2: titles.SELECT_CORPORATION_TITLE, undefined, player.dealtCorporationCards, {min: corpNum, max: corpNum}).andThen(
         (foundCards: ReadonlyArray<ICorporationCard>) => {
@@ -32,7 +52,7 @@ export class SelectInitialCards extends OptionsInput<undefined> {
     // }
 
     if (game.gameOptions.preludeExtension) {
-      this.options.push(
+      this.push('prelude',
         new SelectCard(titles.SELECT_PRELUDE_TITLE, undefined, player.dealtPreludeCards, {min: 2, max: 2})
           .andThen((preludeCards) => {
             if (preludeCards.length !== 2) {
@@ -44,7 +64,7 @@ export class SelectInitialCards extends OptionsInput<undefined> {
     }
 
     if (game.gameOptions.ceoExtension) {
-      this.options.push(
+      this.push('ceo',
         new SelectCard(titles.SELECT_CEO_TITLE, undefined, player.dealtCeoCards, {min: 1, max: 1}).andThen((ceoCards) => {
           if (ceoCards.length !== 1) {
             throw new InputError('Only select 1 CEO');
@@ -54,7 +74,7 @@ export class SelectInitialCards extends OptionsInput<undefined> {
         }));
     }
 
-    this.options.push(
+    this.push('project',
       new SelectCard(titles.SELECT_PROJECTS_TITLE, undefined, player.dealtProjectCards, {min: 0, max: 10})
         .andThen((cards) => {
           player.cardsInHand.push(...cards);
@@ -62,41 +82,45 @@ export class SelectInitialCards extends OptionsInput<undefined> {
         }),
     );
     this.andThen(() => {
-      this.completed(corporation, corporation2);
-
       // TODO(kberg): This is probably broken. Stop subclassing AndOptions.
       cb(corporation, corporation2);
+
+      this.completed(corporation, corporation2);
       return undefined;
     });
   }
 
-  private completed(_corporation: ICorporationCard, _corporation2: ICorporationCard | undefined) {
-    //  Game.ts 的 selectInitialCards中已包含下面逻辑,先校验金额再执行, 新增部分迁移出去
-    // const player = this.player;
-    // const game = player.game;
+  private completed(corporation: ICorporationCard, corporation2: ICorporationCard | undefined) {
+    const player = this.player;
+    const game = player.game;
 
-    // player.dealtProjectCards.forEach((_card) => {
-    // if (player.cardsInHand.includes(card) === false) {
-    //   player.game.projectDeck.discard(card);
-    // }
-    // });
-    // player.dealtCorporationCards.forEach((card) => {
-    //   if (card.name !== corporation.name && card.name !== corporation2?.name) {
-    //     player.game.corporationDeck.discard(card);
-    //   }
-    // });
+    player.dealtProjectCards.forEach((card) => {
+      if (player.cardsInHand.includes(card) === false) {
+        player.game.projectDeck.discard(card);
+      }
+    });
+    player.dealtCorporationCards.forEach((card) => {
+      if (card.name !== corporation.name && card.name !== corporation2?.name) {
+        player.game.corporationDeck.discard(card);
+      }
+    });
 
-    // for (const card of player.dealtPreludeCards) {
-    //   if (player.preludeCardsInHand.includes(card) === false) {
-    //     game.preludeDeck.discard(card);
-    //   }
-    // }
+    for (const card of player.dealtPreludeCards) {
+      if (player.preludeCardsInHand.includes(card) === false) {
+        game.preludeDeck.discard(card);
+      }
+    }
 
-    // for (const card of player.dealtCeoCards) {
-    //   if (player.ceoCardsInHand.includes(card) === false) {
-    //     game.ceoDeck.discard(card);
-    //   }
-    // }
+    for (const card of player.dealtCeoCards) {
+      if (player.ceoCardsInHand.includes(card) === false) {
+        game.ceoDeck.discard(card);
+      }
+    }
+
+    player.dealtCorporationCards = [];
+    player.dealtPreludeCards = [];
+    player.dealtProjectCards = [];
+    player.dealtCeoCards = [];
   }
 
   public toModel(player: IPlayer): SelectInitialCardsModel {

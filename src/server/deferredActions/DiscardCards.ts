@@ -14,7 +14,7 @@ export class DiscardCards extends DeferredAction<ReadonlyArray<IProjectCard>> {
     public title?: string | Message,
   ) {
     super(player, Priority.DISCARD_CARDS);
-    if(this.max < this.min){
+    if (this.max < this.min) {
       this.max = this.min;
     }
   }

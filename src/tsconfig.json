@@ -19,4 +19,7 @@
         "**/genfiles/*.json", 
         "**/genfiles/translations.json",
     ],
+    "exclude": [
+      "client/**/*.ts"
+    ]
 }

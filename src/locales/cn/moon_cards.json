@@ -101,7 +101,6 @@
   "Lunar Dust Processing Plant": "月球灰处理厂",
   "Lunar Industry Complex": "月球工业复合体",
   "Lunar Mine Urbanization": "月球采矿城市化",
-  "Requires you have 1 mine tile. Increase your M€ production 1 step. Replace one of your mine tiles with this special tile. Raise the habitat rate 1 step. This tile counts both as a habitat and a mine tile.": "要求你有1个矿板块。增加你的M€生产1级。用这种特殊的改造板块替换你的一个采矿板块。提高殖民效率1级。这个特殊板块既可以算作殖民地板块也可以算作采矿板块。",
   "Lunar Observation Post": "月球观测站",
   "Lunar Planning Office": "月球规划办公室",
   "Lunar Security Stations": "月球安检站",
@@ -212,5 +211,34 @@
   "Undermoon Drug Lords Network": "毒枭地下网络",
   "Water Treatment Complex": "水处理建筑群",
   "We Grow As One": "我们一起成长",
-  "habitat rate": "殖民地轨道"
+  "habitat rate": "殖民地轨道",
+
+  "Darkside Smugglers' Union":"Darkside Smugglers' Union",
+  "Hostile Takeover":"Hostile Takeover",
+  "New Colony Planning Initiatives":"New Colony Planning Initiatives",
+  "Road Piracy":"Road Piracy",
+
+  "Exchange a NON-NEUTRAL opponent delegate with one of your own from the reserve. This exchange may not change the party leader. You may then move your delegate to another party": "用您储备区中的1个代表交换1个非中立的对手代表。此交换不得改变政党领袖。然后您可将您的代表移至另一个政党。",
+
+  "Action: Perform a trade action": "行动：执行1次贸易行动。",
+
+  "Raise the logistics rate 1 step": "物流等级提升1级。",
+
+  "Effect: When you perform an action, your PLAYED Moon tags count as Earth tags, but not vice versa": "效果：当您执行行动时，您已打出的月球标志视为地球标志，但反之则不成立。",
+
+  "Requires a habitat rate of 2 or higher, and a mining rate of 4 or higher. Add your player marker to a habitat tile and a mining tile owned by any opponent. Those now also count as yours. Increase your M€ production 2 steps": "要求栖息地等级达到2或更高，且采矿等级达到4或更高。将您的玩家标记添加到任意对手拥有的1个栖息地板块和1个采矿板块上。这些板块现在也视为您所有。您的M€产能提升2步。",
+
+  "Requires that you have 3 Moon tags. Increase your M€ production 1 step per Moon tag your OPPONENTS have": "要求您拥有3个月球标志。您的对手每有1个月球标志，您的M€产能便提升1步。",
+
+  "Requires you have 1 mine tile. Increase your M€ production 1 step. Raise the habitat rate 1 step. Remove 1 of your mine tiles (does not affect the mining rate.) Place this special tile there, regardless of placement rules. Gain placement bonuses as usual. This tile counts both as a habitat and a mine tile": "要求您拥有1个采矿板块。您的M€产能提升1步。栖息地等级提升1级。移除您的1个采矿板块（不影响采矿等级）。无视放置规则，将此特殊板块放置于该处。照常获得放置奖励。此板块同时视为栖息地板块和采矿板块。",
+
+  "Requires 3 logistic rate. Steal up to 6 steel or 4 titanium from other players. (Resources may be stolen from more than 1 opponent.)": "要求物流等级达到3级。从其他玩家处窃取最多6钢或4钛。（资源可从多于1名对手处窃取。）",
+
+  "Effect: When you play a Moon tag, including these, add a cube to this card": "效果：当您打出月球标志（包括这些）时，在此牌上放置1个方块。",
+
+  "Effect: Automatically remove 3 cubes here and gain 1 TR": "效果：自动移除此处的3个方块并获得1 TR。",
+
+  "Action: Remove 3 cubes here; gain 1 TR": "行动：移除此处的3个方块；获得1 TR。",
+
+  "Effect: When you place a habitat tile, gain 2 M€ for each adjacent habitat tile": "效果：当您放置栖息地板块时，每有1个相邻的栖息地板块，便获得2 M€。"
 }

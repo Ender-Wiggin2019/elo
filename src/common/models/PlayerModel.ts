@@ -1,7 +1,6 @@
 import {CardModel} from './CardModel';
 import {Color} from '../Color';
-import {IVictoryPointsBreakdown} from '../game/IVictoryPointsBreakdown';
-import {TagCount} from '../cards/TagCount';
+import {VictoryPointsBreakdown} from '../game/VictoryPointsBreakdown';
 import {PlayerInputModel} from './PlayerInputModel';
 import {TimerModel} from './TimerModel';
 import {GameModel} from './GameModel';
@@ -11,6 +10,7 @@ import {Resource} from '../Resource';
 import {RankTier} from '../rank/RankTier';
 import {PartyName} from '../turmoil/PartyName';
 import {Agenda} from '../turmoil/Types';
+import {Tag} from '../cards/Tag';
 
 export interface ViewModel {
   game: GameModel;
@@ -36,6 +36,7 @@ export type PublicPlayerModel = {
   actionsTakenThisRound: number;
   actionsThisGeneration: ReadonlyArray<CardName>;
   actionsTakenThisGame: number;
+  alliedParty?: AlliedPartyModel;
   availableBlueCardActionCount: number;
   cardCost: number;
   cardDiscount: number;
@@ -48,8 +49,8 @@ export type PublicPlayerModel = {
   corruption: number,
   energy: number;
   energyProduction: number;
-  excavations: number,
   fleetSize: number;
+  handicap: number | undefined;
   heat: number;
   heatProduction: number;
   id: PlayerId | undefined;
@@ -69,14 +70,15 @@ export type PublicPlayerModel = {
   steel: number;
   steelProduction: number;
   steelValue: number;
-  tags: ReadonlyArray<TagCount>;
+  tags: Record<Tag, number>
   terraformRating: number;
   timer: TimerModel;
   titanium: number;
   titaniumProduction: number;
   titaniumValue: number;
   tradesThisGeneration: number;
-  victoryPointsBreakdown: IVictoryPointsBreakdown;
+  undergroundTokens: number;
+  victoryPointsBreakdown: VictoryPointsBreakdown;
 
   waitingFor: {} | undefined;
   exited: boolean;
@@ -85,7 +87,6 @@ export type PublicPlayerModel = {
   rankTier: RankTier; // 天梯 玩家段位
 
   victoryPointsByGeneration: ReadonlyArray<number>;
-  alliedParty?: AlliedPartyModel;
 }
 
 /** A player's view of the game, including their secret information. */

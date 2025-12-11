@@ -5,8 +5,7 @@ import {CardRenderer} from '../render/CardRenderer';
 import {Card} from '../Card';
 import {Tag} from '../../../common/cards/Tag';
 import {IPlayer} from '../../IPlayer';
-import {UnderworldExpansion} from '../../underworld/UnderworldExpansion';
-import {PlaceOceanTile} from '../../deferredActions/PlaceOceanTile';
+import {ExcavateSpaceDeferred} from '../../underworld/ExcavateSpaceDeferred';
 
 export class ArtesianAquifer extends Card implements IProjectCard {
   constructor() {
@@ -16,12 +15,14 @@ export class ArtesianAquifer extends Card implements IProjectCard {
       tags: [Tag.BUILDING],
       cost: 16,
 
+      tr: {oceans: 1},
+
       metadata: {
         cardNumber: 'U59',
         renderData: CardRenderer.builder((b) => {
-          b.oceans(1).excavate().asterix();
+          b.excavate().asterix().oceans(1);
         }),
-        description: 'Place an ocean, then excavate the underground resource in its space, if possible.',
+        description: 'Excavate 1 underground resource on ANY SPACE RESERVED FOR AN OCEAN. Then, place an ocean tile there, if possible.',
       },
     });
   }
@@ -31,15 +32,17 @@ export class ArtesianAquifer extends Card implements IProjectCard {
   }
 
   public override bespokeCanPlay(player: IPlayer): boolean {
-    return player.game.canAddOcean() && this.availableSpaces(player).length > 0;
+    if (!player.game.canAddOcean()) {
+      this.warnings.add('maxoceans');
+    }
+    return this.availableSpaces(player).length > 0;
   }
 
   public override bespokePlay(player: IPlayer) {
-    const action = new PlaceOceanTile(player, {spaces: this.availableSpaces(player)})
+    player.game.defer(new ExcavateSpaceDeferred(player, this.availableSpaces(player)))
       .andThen((space) => {
-        UnderworldExpansion.excavate(player, space);
+        player.game.addOcean(player, space);
       });
-    player.game.defer(action);
     return undefined;
   }
 }

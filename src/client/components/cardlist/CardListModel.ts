@@ -1,9 +1,9 @@
 import {Tag} from '@/common/cards/Tag';
 import {CardType} from '@/common/cards/CardType';
 import {GameModule, GAME_MODULES} from '@/common/cards/GameModule';
-import {CardListSearchIndex} from '@/client/components/cardlist/CardListSearchIndex';
+import {SearchIndex} from '@/client/components/cardlist/SearchIndex';
 
-export type TypeOption = CardType | 'colonyTiles' | 'globalEvents' | 'milestones' | 'awards';
+export type TypeOption = CardType | 'colonyTiles' | 'globalEvents' | 'milestones' | 'awards' | 'agendas';
 type TagOption = Tag | 'none';
 
 const MODULE_ABBREVIATIONS: Record<GameModule, string> = {
@@ -41,6 +41,7 @@ const TYPE_ABBREVIATIONS: Record<TypeOption, string> = {
   globalEvents: 'e',
   milestones: 'm',
   awards: 'a',
+  agendas: 't',
 };
 
 const TAG_ABBREVIATIONS: Record<TagOption, string> = {
@@ -61,22 +62,24 @@ const TAG_ABBREVIATIONS: Record<TagOption, string> = {
   [Tag.EVENT]: 'e',
   [Tag.CLONE]: 'f',
   none: 'g',
+  [Tag.CRIME]: 'h',
 };
 
 export type CardListModel = {
   filterText: string,
-  namesOnly: boolean,
   expansions: Record<GameModule, boolean>,
   types: Record<TypeOption, boolean>,
   tags: Record<TagOption, boolean>,
-  searchIndex: CardListSearchIndex,
+  searchIndex: SearchIndex,
+  namesOnly: boolean,
   showAdvanced: boolean;
+  sortOrder: 'a' | '1';
+  showMetadata: boolean;
 }
 
-export function hashToModel(windowLocationHash: string) {
-  const model = {
+export function hashToModel(windowLocationHash: string): CardListModel {
+  const model: CardListModel = {
     filterText: '',
-    namesOnly: true,
     expansions: {
       base: false,
       corpera: false,
@@ -98,51 +101,54 @@ export function hashToModel(windowLocationHash: string) {
       commission: false,
     },
     types: {
-      event: true,
-      active: true,
-      automated: true,
-      prelude: true,
-      corporation: true,
-      standard_project: true,
+      event: false,
+      active: false,
+      automated: false,
+      prelude: false,
+      corporation: false,
+      standard_project: false,
       standard_action: false,
       proxy: false,
-      globalEvents: true,
-      colonyTiles: true,
-      milestones: true,
-      awards: true,
-      ceo: true,
+      globalEvents: false,
+      colonyTiles: false,
+      milestones: false,
+      awards: false,
+      ceo: false,
+      agendas: false,
     },
     tags: {
-      building: true,
-      space: true,
-      science: true,
-      power: true,
-      earth: true,
-      jovian: true,
-      venus: true,
-      plant: true,
-      microbe: true,
-      animal: true,
-      city: true,
-      moon: true,
-      mars: true,
-      wild: true,
-      event: true,
-      clone: true,
-      none: true,
+      building: false,
+      space: false,
+      science: false,
+      power: false,
+      earth: false,
+      jovian: false,
+      venus: false,
+      plant: false,
+      microbe: false,
+      animal: false,
+      city: false,
+      moon: false,
+      mars: false,
+      crime: false,
+      wild: false,
+      event: false,
+      clone: false,
+      none: false,
     },
-    searchIndex: new CardListSearchIndex(),
+    searchIndex: SearchIndex.create(),
+    namesOnly: true,
     showAdvanced: true,
+    sortOrder: 'a',
+    showMetadata: true,
   };
   if (windowLocationHash.length > 1) {
     const hash = decodeURIComponent(windowLocationHash).slice(1);
     let remainder: Array<string> = [];
     [model.filterText, ...remainder] = hash.split('~');
 
-    // if (remainder.length > 0) {
-    //   model.showAdvanced = true;
-    // }
     for (const e of remainder) {
+      // modules
       if (e.startsWith('m')) {
         const modules = e.slice(1);
         for (const module of GAME_MODULES) {
@@ -150,6 +156,7 @@ export function hashToModel(windowLocationHash: string) {
           model.expansions[module] = modules.includes(abbrev);
         }
       }
+      // types
       if (e.startsWith('t')) {
         const types = e.slice(1);
         for (const type of <Array<TypeOption>>Object.keys(model.types)) {
@@ -157,11 +164,28 @@ export function hashToModel(windowLocationHash: string) {
           model.types[type] = types.includes(abbrev);
         }
       }
+      // tags
       if (e.startsWith('g')) {
         const tags = e.slice(1);
         for (const type of <Array<TagOption>>Object.keys(model.tags)) {
           const abbrev = TAG_ABBREVIATIONS[type];
           model.tags[type] = tags.includes(abbrev);
+        }
+      }
+      // metadata
+      if (e.startsWith('d')) {
+        const metadata = e.slice(1);
+        if (metadata.includes('f')) {
+          model.namesOnly = false;
+        }
+        if (metadata.includes('!')) {
+          model.showAdvanced = true;
+        }
+        if (metadata.includes('1')) {
+          model.sortOrder = '1';
+        }
+        if (metadata.includes('d')) {
+          model.showMetadata = false;
         }
       }
     }
@@ -173,7 +197,25 @@ export function hashToModel(windowLocationHash: string) {
 function encode<T extends string>(vals: Record<T, boolean>, abbreviations: Record<T, string>) {
   const arry: Array<T> = <Array<T>> Object.keys(vals);
   const text = arry.filter((e) => vals[e]).map((e) => abbreviations[e]).join('');
-  return (text.length !== arry.length) ? text : undefined;
+  return text; // 全选和全不选要体现差异
+  // return (text.length !== arry.length) ? text : undefined;
+}
+
+function encodeMetadata(model: CardListModel) {
+  let text = '';
+  if (model.namesOnly === false) {
+    text += 'f';
+  }
+  if (model.showAdvanced === true) {
+    text += '!';
+  }
+  if (model.sortOrder === '1') {
+    text += '1';
+  }
+  if (model.showMetadata === false) {
+    text += 'd';
+  }
+  return text;
 }
 
 export function modelToHash(model: CardListModel) {
@@ -182,10 +224,12 @@ export function modelToHash(model: CardListModel) {
   parts.m = encode(model.expansions, MODULE_ABBREVIATIONS);
   parts.t = encode(model.types, TYPE_ABBREVIATIONS);
   parts.g = encode(model.tags, TAG_ABBREVIATIONS);
+  parts.d = encodeMetadata(model);
 
-  const text = model.filterText +
-    (parts.m ? ('~m' + parts.m) : '') +
-    (parts.t ? ('~t' + parts.t) : '') +
-    (parts.g ? ('~g' + parts.g) : '');
+  function tostring(key: string): string {
+    const content = parts[key] ?? '';
+    return content === '' ? '' : `~${key}${content}`;
+  }
+  const text = model.filterText + tostring('m') + tostring('t') + tostring('g') + tostring('d');
   return '#' + encodeURIComponent(text);
 }

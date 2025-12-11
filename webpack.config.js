@@ -69,7 +69,10 @@ if (process.env.NODE_ENV === 'development') {
 module.exports = {
   devtool: 'source-map',
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
-  entry: './src/client/main.ts',
+  entry: {
+    main: './src/client/main.ts',
+    // sw: './src/client/sw.ts',
+  },
   resolve: {
     plugins: [new TsconfigPathsPlugin({
       configFile: 'tsconfig.json',

@@ -1,9 +1,10 @@
 import {Context} from '../../src/server/routes/IHandler';
 import {Handler} from '../../src/server/routes/Handler';
-import {FakeGameLoader} from './FakeGameLoader';
+import {FakeSessionManager} from './FakeSessionManager';
 import {MockRequest, MockResponse} from './HttpMocks';
 import {newIpTracker} from '../../src/server/server/IPTracker';
 import {FakeClock} from '../common/FakeClock';
+import {GameLoader} from '../../src/server/database/GameLoader';
 
 export type Header = 'accept-encoding';
 
@@ -16,7 +17,8 @@ export class RouteTestScaffolding {
       url: new URL('http://boo.com'),
       ip: '123.45.678.90',
       ipTracker: newIpTracker(),
-      gameLoader: new FakeGameLoader(),
+      gameLoader: GameLoader.getInstance(),
+      sessionManager: new FakeSessionManager(),
       ids: {
         serverId: '1',
         statsId: '2',

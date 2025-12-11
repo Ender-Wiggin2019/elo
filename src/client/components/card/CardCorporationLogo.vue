@@ -92,7 +92,7 @@
       </div>
     </template>
     <template v-else-if="title === CardName.UNITED_NATIONS_MARS_INITIATIVE || title === CardName._UNITED_NATIONS_MARS_INITIATIVE_">
-      <span class="card-unmi-logo">UNITED<br/>NATIONS<br/>MARS<br/>INITIATIVE</span>
+      <span class="card-unmi-logo">UNITED NATIONS<br/>MARS INITIATIVE</span>
     </template>
     <template v-else-if="title === CardName.UTOPIA_INVEST">
       <div class="card-utopia-logo">
@@ -179,9 +179,6 @@
     <template v-else-if="title === CardName.EGLOGUE">
       <div class="card-hotsprings-logo">Eglogue</div>
     </template>
-    <template v-else-if="title === CardName.EARTHCATCULT">
-      <div class="card-protogen-logo">EarthCatCult</div>
-    </template>
     <template v-else-if="title === CardName.SHINRA_TECH">
       <div class="card-playwrights-logo">🌸SHINRA<br/>TECH🌸</div>
     </template>
@@ -266,6 +263,12 @@
     <template v-else-if="title === CardName.MIRRORCOAT">
       <div class="card-xuebao-logo">🌸MIRRORCOAT🌸</div>
     </template>
+    <template v-else-if="title === CardName.CITY_POWER_SHIFT">
+      <div class="card-city-power-shift-logo">🌸城电转能🌸</div>
+    </template>
+    <template v-else-if="title === CardName.DUAL_ORBIT_LEAP">
+      <div class="card-xuebao-logo">🌸双轨跃迁🌸</div>
+    </template>
     <template v-else-if="title === CardName.MARS_MATHS">
       <div class="card-mars-maths-logo" style="font-family: Century Gothic, CenturyGothic, AppleGothic, sans-serif">
         <span style="color: rgb(0, 0, 0);">MARS</span>
@@ -302,6 +305,11 @@
     <template v-else-if="title === CardName.ATHENA">
       <div class="card-athena-logo">Athena</div>
     </template>
+   <template v-else-if="title === CardName.POLDERTECH_DUTCH">
+      <div class="card-poldertech-1-logo">PolderTECH</div>
+      <div class="card-poldertech-2-logo">Dutch</div>
+    </template>
+
     <template v-else>
       <div :class="logoClass">{{capsTitle}}</div>
     </template>

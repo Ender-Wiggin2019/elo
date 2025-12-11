@@ -14,11 +14,8 @@ export class _MorningStarInc_ extends MorningStarInc {
     return CardName._MORNING_STAR_INC_;
   }
 
-  public override play() {
-    return undefined;
-  }
   public canAct(player: IPlayer): boolean {
-    if (this.isUsed !== true && player.isCorporation(CardName._MORNING_STAR_INC_)) return true;
+    if (this.isUsed !== true && player.playedCards.has(CardName._MORNING_STAR_INC_)) return true;
     return false;
   }
   public action(player: IPlayer) {

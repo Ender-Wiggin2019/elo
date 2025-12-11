@@ -3,7 +3,7 @@ import {PlayerInput} from '../../src/server/routes/PlayerInput';
 import {MockRequest, MockResponse} from './HttpMocks';
 import {RouteTestScaffolding} from './RouteTestScaffolding';
 
-describe('PlayerInput', function() {
+describe('PlayerInput', () => {
   let scaffolding: RouteTestScaffolding;
   let req: MockRequest;
   let res: MockResponse;

@@ -5,10 +5,11 @@ import {Game} from '../../src/server/Game';
 import {cast, runAllActions} from '../TestingUtils';
 import {TestPlayer} from '../TestPlayer';
 import {PoliticalAgendas} from '../../src/server/turmoil/PoliticalAgendas';
-import {AgendaStyle} from '../../src/common/turmoil/Types';
+import {PolicyId} from '../../src/common/turmoil/Types';
 import {OrOptions} from '../../src/server/inputs/OrOptions';
+import { SelectInitialCards } from '../../src/server/inputs/SelectInitialCards';
 
-describe('PoliticalAgendas', function() {
+describe('PoliticalAgendas', () => {
   let player1: TestPlayer;
   let player2: TestPlayer;
   let randomElement: (list: Array<any>) => any;
@@ -28,9 +29,14 @@ describe('PoliticalAgendas', function() {
   deserialized.forEach((deserialize) => {
     const suffix = deserialize ? ', but deserialized' : '';
     it('Standard' + suffix, () => {
-      let game = Game.newInstance('gameid', [player1, player2], player1, {turmoilExtension: true, politicalAgendasExtension: AgendaStyle.STANDARD});
+      let game = Game.newInstance('gameid', [player1, player2], player1, {turmoilExtension: true, politicalAgendasExtension: 'Standard'});
       if (deserialize) {
         game = game.loadFromJSON(game.serialize());
+      }
+      for (const player of game.players) {
+        if (player.getWaitingFor() instanceof SelectInitialCards) {
+          player1.popWaitingFor.call(player);
+        }
       }
       const turmoil = game.turmoil!;
 
@@ -51,12 +57,17 @@ describe('PoliticalAgendas', function() {
       // For the neutral chairman to always pick the second item in the list.
       PoliticalAgendas.randomElement = (list: Array<any>) => list[1];
 
-      let game = Game.newInstance('gameid', [player1, player2], player1, {turmoilExtension: true, politicalAgendasExtension: AgendaStyle.CHAIRMAN});
+      let game = Game.newInstance('gameid', [player1, player2], player1, {turmoilExtension: true, politicalAgendasExtension: 'Chairman'});
       let newPlayer2: IPlayer = player2;
       if (deserialize) {
         game = game.loadFromJSON(game.serialize());
         // Get a new copy of player2 who will have a different set of waitingFor.
         newPlayer2 = game.getPlayerById(player2.id);
+      }
+      for (const player of game.players) {
+        if (player.getWaitingFor() instanceof SelectInitialCards) {
+          player1.popWaitingFor.call(player);
+        }
       }
       const turmoil = game.turmoil!;
 
@@ -89,9 +100,14 @@ describe('PoliticalAgendas', function() {
       // For the neutral chairperson to always pick the second item.
       PoliticalAgendas.randomElement = (list: Array<any>) => list[1];
 
-      let game = Game.newInstance('gameid', [player1, player2], player1, {turmoilExtension: true, politicalAgendasExtension: AgendaStyle.CHAIRMAN});
+      let game = Game.newInstance('gameid', [player1, player2], player1, {turmoilExtension: true, politicalAgendasExtension: 'Chairman'});
       if (deserialize) {
         game = game.loadFromJSON(game.serialize());
+      }
+      for (const player of game.players) {
+        if (player.getWaitingFor() instanceof SelectInitialCards) {
+          player1.popWaitingFor.call(player);
+        }
       }
       const turmoil = game.turmoil!;
 
@@ -107,5 +123,24 @@ describe('PoliticalAgendas', function() {
       expect(PoliticalAgendas.currentAgenda(turmoil).bonusId).eq('kb02');
       expect(PoliticalAgendas.currentAgenda(turmoil).policyId).eq('kp02');
     });
+  });
+
+  it('Mars First serialization test', () => {
+    let game = Game.newInstance('gameid', [player1, player2], player1, {turmoilExtension: true, politicalAgendasExtension: 'Standard'});
+    let turmoil = game.turmoil!;
+    const marsFirst = turmoil.getPartyByName(PartyName.MARS);
+    turmoil.rulingParty = marsFirst;
+    turmoil.chairman = player2;
+    PoliticalAgendas.setNextAgenda(turmoil, game);
+    runAllActions(game);
+
+    expect(PoliticalAgendas.currentAgenda(turmoil).policyId).eq('mp01');
+
+    turmoil.politicalAgendasData.agendas.get(PartyName.MARS)!.policyId = 'mfp01' as PolicyId;
+    game = game.loadFromJSON(game.serialize());
+    turmoil = game.turmoil!;
+
+    expect(PoliticalAgendas.currentAgenda(turmoil).bonusId).eq('mb01');
+    expect(PoliticalAgendas.currentAgenda(turmoil).policyId).eq('mp01');
   });
 });

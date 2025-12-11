@@ -20,13 +20,9 @@ export class BuildColonyStandardProject extends StandardProjectCard {
     });
   }
 
-  protected override discount(player: IPlayer): number {
-    const adhaiDiscount = Math.floor(player.resourcesOnCard(CardName.ADHAI_HIGH_ORBIT_CONSTRUCTIONS) / 2);
-    return adhaiDiscount + super.discount(player);
-  }
-
   public override canAct(player: IPlayer): boolean {
-    return super.canAct(player) && player.colonies.getPlayableColonies(/* allowDuplicate= */ false, this.cost).length > 0;
+    const canAfford = this.canPlayOptions(player);
+    return super.canAct(player) && player.colonies.getPlayableColonies(/* allowDuplicate= */ false, canAfford).length > 0;
   }
 
   actionEssence(player: IPlayer): void {

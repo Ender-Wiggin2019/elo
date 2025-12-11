@@ -7,6 +7,7 @@ import {CardName} from '../../../common/cards/CardName';
 import {RemoveResourcesFromCard} from '../../deferredActions/RemoveResourcesFromCard';
 import {CardRenderer} from '../render/CardRenderer';
 import {ActionCard} from '../ActionCard';
+import {Priority} from '../../deferredActions/Priority';
 
 export class StratosphericBirds extends ActionCard implements IActionCard {
   constructor() {
@@ -54,7 +55,7 @@ export class StratosphericBirds extends ActionCard implements IActionCard {
     }
   }
   public override bespokePlay(player: IPlayer) {
-    player.game.defer(new RemoveResourcesFromCard(player, CardResource.FLOATER, 1, {source: 'self', blockable: false}));
+    player.game.defer(new RemoveResourcesFromCard(player, CardResource.FLOATER, 1, {source: 'self', blockable: false}), Priority.COST);
     return undefined;
   }
 }

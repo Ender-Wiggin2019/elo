@@ -13,7 +13,7 @@
         <template v-for="module in GAME_MODULES">
           <div class="corporations-filter-group" v-if="cardsByModule[module].length > 0" v-bind:key="module">
             <div class="corporations-filter-toolbox-cont">
-                <div><span v-i18n>{{moduleName(module)}}</span>&nbsp;<div :class="icon(module)"></div></div><br>
+                <div><span v-i18n>{{MODULE_NAMES[module]}}</span>&nbsp;<div :class="icon(module)"></div></div><br>
                 <div class="corporations-filter-toolbox">
                     <a href="#" v-i18n v-on:click.prevent="selectAll(module)">All</a> |
                     <a href="#" v-i18n v-on:click.prevent="selectNone(module)">None</a> |
@@ -24,7 +24,7 @@
                 <label class="form-checkbox">
                     <input type="checkbox" v-model="selectedPreludes" :value="prelude"/>
                     <i class="form-icon"></i><span v-i18n>{{ prelude }}</span>
-                    <div v-for="expansion in expansions(prelude)" :key="expansion" :class="icon(expansion)"></div>
+                    <div v-for="expansion in compatibility(prelude)" :key="expansion" :class="icon(expansion)"></div>
                 </label>
             </div>
           </div>
@@ -36,9 +36,10 @@
 import Vue from 'vue';
 
 import {CardName} from '@/common/cards/CardName';
-import {GameModule, GAME_MODULES} from '@/common/cards/GameModule';
-import {byModule, byType, getCard, getCards, toName} from '@/client/cards/ClientCardManifest';
+import {Expansion, GameModule, GAME_MODULES, MODULE_NAMES} from '@/common/cards/GameModule';
+import {byModule, byType, getCard, getCards} from '@/client/cards/ClientCardManifest';
 import {CardType} from '@/common/cards/CardType';
+import {toName} from '@/common/utils/utils';
 
 function preludeCardNames(module: GameModule): Array<CardName> {
   return getCards(byModule(module))
@@ -51,30 +52,7 @@ type Group = GameModule | 'All';
 export default Vue.extend({
   name: 'PreludesFilter',
   props: {
-    promoCardsOption: {
-      type: Boolean,
-    },
-    communityCardsOption: {
-      type: Boolean,
-    },
-    commissionCardsOption: {
-      type: Boolean,
-    },
-    moonExpansion: {
-      type: Boolean,
-    },
-    pathfindersExpansion: {
-      type: Boolean,
-    },
-    ceoExtension: {
-      type: Boolean,
-    },
-    underworldExpansion: {
-      type: Boolean,
-    },
-    prelude2Expansion: {
-      type: Boolean,
-    },
+    expansions: Object as () => Record<Expansion, boolean>,
   },
   data() {
     // Start by giving every entry a default value
@@ -94,17 +72,18 @@ export default Vue.extend({
       selectedPreludes: [
         // A bit sloppy since map is just above, but it will do.
         ...preludeCardNames('prelude'),
-        ...this.promoCardsOption ? preludeCardNames('promo') : [],
-        ...this.communityCardsOption ? preludeCardNames('community') : [],
-        ...this.commissionCardsOption ? preludeCardNames('commission') : [],
+        ...this.expansions.promo ? preludeCardNames('promo') : [],
+        ...this.expansions.community ? preludeCardNames('community') : [],
+        ...this.expansions.commission ? preludeCardNames('commission') : [],
 
-        ...this.moonExpansion ? preludeCardNames('moon') : [],
-        ...this.pathfindersExpansion ? preludeCardNames('pathfinders') : [],
-        ...this.ceoExtension ? preludeCardNames('ceo') : [],
-        ...this.underworldExpansion ? preludeCardNames('underworld') : [],
-        ...this.prelude2Expansion ? preludeCardNames('prelude2') : [],
+        ...this.expansions.moon ? preludeCardNames('moon') : [],
+        ...this.expansions.pathfinders ? preludeCardNames('pathfinders') : [],
+        ...this.expansions.ceo ? preludeCardNames('ceo') : [],
+        ...this.expansions.underworld ? preludeCardNames('underworld') : [],
+        ...this.expansions.prelude2 ? preludeCardNames('prelude2') : [],
       ],
       GAME_MODULES: GAME_MODULES,
+      MODULE_NAMES: MODULE_NAMES,
     };
   },
   methods: {
@@ -162,7 +141,7 @@ export default Vue.extend({
     watchSelect(module: GameModule, enabled: boolean) {
       enabled ? this.selectAll(module) : this.selectNone(module);
     },
-    expansions(prelude: CardName): Array<GameModule> {
+    compatibility(prelude: CardName): Array<GameModule> {
       return getCard(prelude)?.compatibility ?? [];
     },
     icon(module: GameModule) {
@@ -170,19 +149,6 @@ export default Vue.extend({
       if (module === 'colonies') suffix = 'colony';
       if (module === 'moon') suffix = 'themoon';
       return `create-game-expansion-icon expansion-icon-${suffix}`;
-    },
-    moduleName(module: GameModule) {
-      switch (module) {
-      case 'promo': return 'Promo';
-      case 'prelude': return 'Prelude';
-      case 'community': return 'Community';
-      case 'moon': return 'The Moon';
-      case 'pathfinders': return 'Pathfinders';
-      case 'ceo': return 'CEOs';
-      case 'underworld': return 'Underworld';
-      case 'prelude2': return 'Prelude 2';
-      }
-      return '';
     },
     include(name: string) {
       const normalized = this.filterText.toLocaleUpperCase();

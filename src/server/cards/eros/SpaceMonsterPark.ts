@@ -27,14 +27,17 @@ export class SpaceMonsterPark extends Card implements IProjectCard {
       metadata: {
         cardNumber: 'Q59',
         renderData: CardRenderer.builder((b) => {
-          b.tag(Tag.SPACE).slash().tag(Tag.EARTH).slash().tag(Tag.VENUS).colon().resource(CardResource.FLOATER).br;
-          b.or().br;
-          b.minus().resource(CardResource.FLOATER, 2).plus().cards(1);
+          b.effect(undefined, (eb) => {
+            eb.tag(Tag.SPACE).slash().tag(Tag.EARTH).slash().tag(Tag.VENUS).startEffect.resource(CardResource.FLOATER);
+          }).br;
+          b.effect('When you play a Space/Earth/Venus tag, including these, either add a floater resource to this card, or remove 2 floater resource from this card to draw a card.', (eb) => {
+            eb.startEffect.or().minus().resource(CardResource.FLOATER, 2).plus().cards(1);
+          }).br;
           b.production((pb) => {
             pb.minus().titanium(1);
           });
         }),
-        description: 'Decrease your titanium production 1 step. When you play a Space/Earth/Venus tag, including these, either add a floater resource to this card, or remove 2 floater resource from this card to draw a card.',
+        description: 'Decrease your titanium production 1 step. ',
       },
     });
   }
@@ -67,7 +70,7 @@ export class SpaceMonsterPark extends Card implements IProjectCard {
         options.title = 'Select an option for Space Monster Park';
         return options;
       },
-      Priority.SUPERPOWER); // Unshift that deferred action
+      Priority.DEFAULT); // Unshift that deferred action
     }
     return undefined;
   }

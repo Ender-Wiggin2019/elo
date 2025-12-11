@@ -42,8 +42,10 @@ export class LargeEcologicalReserve extends Card implements IProjectCard {
     return canPlaceTile && player.tags.playerHas([Tag.PLANT, Tag.ANIMAL, Tag.MICROBE]);
   }
   public override bespokePlay(player: IPlayer) {
-    player.game.defer(new PlaceGreeneryTile(player ));
     if (player.game.board.getAvailableSpacesOnLand(player).length > 0) {
+      player.game.defer(new PlaceGreeneryTile(player ));
+    }
+    if (player.game.board.getAvailableSpacesOnLand(player).length > 1) {
       player.game.defer(new PlaceGreeneryTile(player ));
     }
     return undefined;

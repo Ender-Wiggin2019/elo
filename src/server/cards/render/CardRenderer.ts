@@ -168,8 +168,8 @@ abstract class Builder<T> {
   public trade(options?: ItemOptions): this {
     return this._appendToRow(new CardRenderItem(CardRenderItemType.TRADE, -1, options));
   }
-  public tradeFleet(): this {
-    return this._appendToRow(new CardRenderItem(CardRenderItemType.TRADE_FLEET));
+  public tradeFleet(options?: ItemOptions): this {
+    return this._appendToRow(new CardRenderItem(CardRenderItemType.TRADE_FLEET, -1, options));
   }
 
   public colonies(amount: number = 1, options?: ItemOptions): this {
@@ -391,6 +391,10 @@ abstract class Builder<T> {
   public excavate(count: number = 1, options?: ItemOptions) {
     const item = new CardRenderItem(CardRenderItemType.EXCAVATE, count, options);
     return this._appendToRow(item);
+  }
+
+  public claim(count: number = 1) {
+    return this.text('CLAIM').text(count.toString());
   }
 
   public corruption(count: number = 1, options?: ItemOptions) {

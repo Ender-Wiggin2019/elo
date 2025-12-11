@@ -8,11 +8,10 @@ import {Size} from '../../../../common/cards/render/Size';
 import {Tag} from '../../../../common/cards/Tag';
 import {CorporationCard} from '../../corporation/CorporationCard';
 import {IGame} from '../../../IGame';
-import {TagCount} from '../../../../common/cards/TagCount';
 
 export class Chaos extends CorporationCard {
-  public _tags :[] = [];
-  public override set tags(tags:[]) {
+  public _tags :Array<Tag> = [];
+  public set settags(tags:Array<Tag>) {
     this._tags = tags;
   }
   public override get tags() {
@@ -49,26 +48,27 @@ export class Chaos extends CorporationCard {
 
   public onProductionPhase(player: IPlayer) {
     let bonus: number = 0;
-    let playerTags : Array<TagCount> = player.tags.countAllTags();
+    let scorableTags = [...player.game.tags];
+    const playerTags = player.tags.countAllTags();
     const game = player.game;
-    if (game.isSoloMode() || game.getPlayers().length ===1 ) {
+    if (game.isSoloMode() || game.players.length ===1 ) {
       bonus = player.tags.distinctCount('globalEvent');
     } else {
-      playerTags = playerTags.filter((tag) => tag.tag !== Tag.WILD && tag.tag !== Tag.EVENT);
+      scorableTags = scorableTags.filter((tag) => tag !== Tag.WILD && tag !== Tag.EVENT && playerTags[tag] > 0);
       // 遍历每个玩家，再遍历每个我已打出的标志，过滤其他玩家标志数量大于自己的标志
-      game.getPlayers().forEach((other) => {
+      game.players.forEach((other) => {
         if (other === player ) {
           return;
         }
-        playerTags = playerTags.filter((mytag) =>{
+        scorableTags = scorableTags.filter((mytag) =>{
           // > , later can change to >= if possible
-          if (mytag.count > other.tags.count(mytag.tag, 'raw')) {
+          if (playerTags[mytag] > other.tags.count(mytag, 'raw')) {
             return true;
           }
           return false;
         });
       });
-      bonus = playerTags.length;
+      bonus = scorableTags.length;
     }
     if (bonus > 0) {
       this.selectResources(player, game, bonus);

@@ -79,7 +79,7 @@ export class BorderCheckpoint extends Card implements IProjectCard {
 
 
   public action(player: IPlayer) {
-    const cardIndex = this.getRandomNum(0, Math.min(4, player.game.projectDeck.discardPile.length));
+    const cardIndex = this.getRandomNum(0, Math.min(100, player.game.projectDeck.discardPile.length -1));
     const cards: Array<IProjectCard> = player.game.projectDeck.discardPile.splice(cardIndex, 1);
     player.game.defer(new ChooseCards(player, cards, {keepMax: 1}));
     player.game.cardDrew = true;

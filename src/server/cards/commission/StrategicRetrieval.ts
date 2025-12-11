@@ -13,6 +13,7 @@ import {CardRenderer} from '../render/CardRenderer';
 import {Card} from '../Card';
 import {IPlayer} from '../../IPlayer';
 import {ChooseCards} from '../../deferredActions/ChooseCards';
+import { Resource } from '../../../common/Resource';
 
 export class StrategicRetrieval extends Card implements IProjectCard {
   constructor() {
@@ -35,11 +36,11 @@ export class StrategicRetrieval extends Card implements IProjectCard {
 
 
   public canAct(player: IPlayer): boolean {
-    return player.energy > 0 && player.game.projectDeck.discardPile.length > 0;
+    return player.energy >= 2 && player.game.projectDeck.discardPile.length > 0;
   }
 
   public action(player: IPlayer) {
-    player.energy -= 2;
+    player.stock.deduct(Resource.ENERGY, 2);
     const cards = [];
     for (let idx = 0; idx < 3; idx++) {
       const card = player.game.projectDeck.discardPile.pop();

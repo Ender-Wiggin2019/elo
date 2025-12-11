@@ -14,7 +14,7 @@ export class _Splice_ extends Splice {
   public override get initialActionText() {
     return 'Draw 2 cards with a microbe tag';
   }
-  public initialAction(player: IPlayer ) {
+  public override initialAction(player: IPlayer ) {
     player.drawCard(2, {tag: Tag.MICROBE});
     return undefined;
   }

@@ -5,11 +5,11 @@ import {forceGenerationEnd, runAllActions} from '../../TestingUtils';
 import {TestPlayer} from '../../TestPlayer';
 import {Turmoil} from '../../../src/server/turmoil/Turmoil';
 import {Oscar} from '../../../src/server/cards/ceos/Oscar';
-import {Politician} from '../../../src/server/awards/terraCimmeria/Politician';
+import {TPolitician} from '../../../src/server/awards/terraCimmeria/TPolitician';
 import {TempestConsultancy} from '../../../src/server/cards/moon/TempestConsultancy';
 import {TurmoilUtil} from '../../../src/server/turmoil/TurmoilUtil';
 
-describe('Oscar', function() {
+describe('Oscar', () => {
   let card: Oscar;
   let player: TestPlayer;
   let player2: TestPlayer;
@@ -23,12 +23,12 @@ describe('Oscar', function() {
     turmoil = TurmoilUtil.getTurmoil(player.game);
   });
 
-  it('Has +1 influence', function() {
+  it('Has +1 influence', () => {
     card.play(player);
-    expect(turmoil?.getPlayerInfluence(player)).eq(1);
+    expect(turmoil?.getInfluence(player)).eq(1);
   });
 
-  it('Takes OPG action', function() {
+  it('Takes OPG action', () => {
     turmoil.chairman = 'NEUTRAL';
     const preActionDelegates = turmoil.delegateReserve.get(player);
     card.action(player);
@@ -38,7 +38,7 @@ describe('Oscar', function() {
     expect(turmoil.delegateReserve.get(player)).is.eq(preActionDelegates - 1);
   });
 
-  it('Can only act once per game', function() {
+  it('Can only act once per game', () => {
     expect(card.canAct(player)).is.true;
     card.action(player);
     runAllActions(game);
@@ -47,7 +47,7 @@ describe('Oscar', function() {
     expect(card.canAct(player)).is.false;
   });
 
-  it('Previous Chairman player gets their delegate back to reserve after Oscar OPG', function() {
+  it('Previous Chairman player gets their delegate back to reserve after Oscar OPG', () => {
     turmoil.chairman = player2;
     const prePlayer2Delegates = turmoil.delegateReserve.get(player2);
     card.action(player);
@@ -56,39 +56,39 @@ describe('Oscar', function() {
     expect(turmoil.delegateReserve.get(player2)).is.eq(prePlayer2Delegates + 1);
   });
 
-  it('Cannot take OPG if no delegates in reserve', function() {
+  it('Cannot take OPG if no delegates in reserve', () => {
     expect(card.canAct(player)).is.true;
     turmoil.delegateReserve.clear();
     expect(card.canAct(player)).is.false;
   });
 
-  it('Cannot take OPG if already chairman', function() {
+  it('Cannot take OPG if already chairman', () => {
     expect(card.canAct(player)).is.true;
     turmoil.chairman = player;
     expect(card.canAct(player)).is.false;
   });
 
-  it('OPG does not gain TR', function() {
-    const tr = player.getTerraformRating();
+  it('OPG does not gain TR', () => {
+    const tr = player.terraformRating;
     card.action(player);
     runAllActions(game);
     expect(turmoil.chairman).eq(player);
-    expect(player.getTerraformRating()).is.eq(tr);
+    expect(player.terraformRating).is.eq(tr);
   });
 
-  it('OPG gains 1 TR with Tempest Consultancy', function() {
+  it('OPG gains 1 TR with Tempest Consultancy', () => {
     const tempcons = new TempestConsultancy();
     player.corporations.push(tempcons);
-    const tr = player.getTerraformRating();
+    const tr = player.terraformRating;
     card.action(player);
     runAllActions(game);
 
     expect(turmoil.chairman).eq(player);
-    expect(player.getTerraformRating()).is.eq(tr+1);
+    expect(player.terraformRating).is.eq(tr+1);
   });
 
-  it('OPG Counts for POLITICAN Award', function() {
-    const politician = new Politician();
+  it('OPG Counts for POLITICAN Award', () => {
+    const politician = new TPolitician();
     game.awards = [];
     game.awards.push(politician);
     const preOPGScore = game.awards[0].getScore(player);

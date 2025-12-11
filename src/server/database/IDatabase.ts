@@ -171,4 +171,7 @@ export interface IDatabase {
     getUserRanks(limit?: number): Promise<Array<UserRank>>;
     updateUserRank(userRank: UserRank): Promise<void>;
     saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void;
+    // createSession(session: Session): Promise<void>;
+    // deleteSession(sessionId: SessionId): Promise<void>;
+    // getSessions(): Promise<Array<Session>>;
 }

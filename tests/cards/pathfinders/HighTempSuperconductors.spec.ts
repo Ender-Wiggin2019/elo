@@ -14,19 +14,19 @@ import {PowerPlantStandardProject} from '../../../src/server/cards/base/standard
 import {TurmoilUtil} from '../../../src/server/turmoil/TurmoilUtil';
 import {PartyName} from '../../../src/common/turmoil/PartyName';
 
-describe('HighTempSuperconductors', function() {
+describe('HighTempSuperconductors', () => {
   let card: HighTempSuperconductors;
   let player: TestPlayer;
   let game: IGame;
   let turmoil: Turmoil;
 
-  beforeEach(function() {
+  beforeEach(() => {
     card = new HighTempSuperconductors();
     [game, player] = testGame(1, {turmoilExtension: true});
     turmoil = TurmoilUtil.getTurmoil(game);
   });
 
-  it('canPlay', function() {
+  it('canPlay', () => {
     player.megaCredits = card.cost;
     turmoil.rulingParty = new Reds();
     expect(player.canPlay(card)).is.false;
@@ -34,12 +34,12 @@ describe('HighTempSuperconductors', function() {
     expect(player.canPlay(card)).is.true;
   });
 
-  it('play', function() {
+  it('play', () => {
     card.play(player);
     expect(player.production.asUnits()).deep.eq(Units.of({energy: 2}));
   });
 
-  it('discount power tag', function() {
+  it('discount power tag', () => {
     player.playedCards.push(card);
 
     // Not power tag
@@ -56,7 +56,7 @@ describe('HighTempSuperconductors', function() {
     expect(player.canPlay(cost10WithTag)).is.true;
   });
 
-  it('discount standard project', function() {
+  it('discount standard project', () => {
     player.playedCards.push(card);
 
     const powerPlant = new PowerPlantStandardProject();
@@ -67,7 +67,7 @@ describe('HighTempSuperconductors', function() {
   });
 
 
-  it('double-discount with Thorgate', function() {
+  it('double-discount with Thorgate', () => {
     player.playedCards.push(card);
     player.corporations.push(new Thorgate());
 
@@ -78,7 +78,7 @@ describe('HighTempSuperconductors', function() {
     expect(powerPlant.canAct(player)).is.true;
   });
 
-  it('discount Kelvinists ruling bonus', function() {
+  it('discount Kelvinists ruling bonus', () => {
     setRulingParty(game, PartyName.KELVINISTS);
 
     player.megaCredits = 9;

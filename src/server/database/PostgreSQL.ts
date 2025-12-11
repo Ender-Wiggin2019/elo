@@ -101,6 +101,7 @@ export class PostgreSQL implements IDatabase {
       completed_time timestamp default now(),
       PRIMARY KEY (game_id));
 
+
     CREATE INDEX IF NOT EXISTS games_i1 on games(save_id);
     CREATE INDEX IF NOT EXISTS games_i2 on games(createtime);
     CREATE INDEX IF NOT EXISTS participants_idx_ids on participants USING GIN (participants);
@@ -148,7 +149,7 @@ export class PostgreSQL implements IDatabase {
 
   public async getGameId(participantId: ParticipantId): Promise<GameId> {
     try {
-      const res = await this.client.query('select game_id from participants where $1 = ANY(participants)', [participantId]);
+      const res = await this.client.query('SELECT game_id FROM participants WHERE $1 = ANY(participants)', [participantId]);
       if (res.rowCount === 0) {
         throw new Error(`Game for player id ${participantId} not found`);
       }
@@ -160,7 +161,7 @@ export class PostgreSQL implements IDatabase {
   }
 
   public async getSaveIds(gameId: GameId): Promise<Array<number>> {
-    const res = await this.client.query('SELECT distinct save_id FROM games WHERE game_id = $1', [gameId]);
+    const res = await this.client.query('SELECT DISTINCT save_id FROM games WHERE game_id = $1', [gameId]);
     const allSaveIds: Array<number> = [];
     res.rows.forEach((row) => {
       allSaveIds.push(row.save_id);
@@ -178,7 +179,8 @@ export class PostgreSQL implements IDatabase {
       FROM games
       LEFT JOIN game on game.game_id = games.game_id
       WHERE games.game_id = $1
-      ORDER BY save_id DESC LIMIT 1`,
+      ORDER BY save_id DESC
+      LIMIT 1`,
       [gameId],
     );
     if (res.rows.length === 0 || res.rows[0] === undefined) {
@@ -327,16 +329,14 @@ export class PostgreSQL implements IDatabase {
     }
     for (const gameId of gameIds) {
       // This isn't using await because nothing really depends on it.
-      this.compressCompletedGame(gameId);
+      await this.compressCompletedGame(gameId);
     }
   }
 
-  async compressCompletedGame(gameId: GameId): Promise<pg.QueryResult<any>> {
+  async compressCompletedGame(gameId: GameId): Promise<void> {
     const maxSaveId = await this.getMaxSaveId(gameId);
-    return this.client.query('DELETE FROM games WHERE game_id = $1 AND save_id < $2 AND save_id > 0', [gameId, maxSaveId])
-      .then(() => {
-        return this.client.query('DELETE FROM completed_game where game_id = $1', [gameId]);
-      });
+    await this.client.query('DELETE FROM games WHERE game_id = $1 AND save_id < $2 AND save_id > 0', [gameId, maxSaveId]);
+    await this.client.query('DELETE FROM completed_game where game_id = $1', [gameId]);
   }
 
   async saveGame(game: IGame): Promise<void> {
@@ -384,14 +384,6 @@ export class PostgreSQL implements IDatabase {
           this.statistics.saveConflictNormalCount++;
         }
       }
-      // Save IDs on the very first save for this game. That's when the incoming saveId is 0, and also
-      // when the database operation was an insert. (We should figure out why multiple saves occur and
-      // try to stop them. But that's for another day.)
-      // if (inserted === true && thisSaveId === 0) {
-      //   const participantIds: Array<ParticipantId> = game.getPlayers().map((p) => p.id);
-      //   if (game.spectatorId) participantIds.push(game.spectatorId);
-      //   await this.storeParticipants({gameId: game.id, participantIds: participantIds});
-      // }
 
       await this.client.query('COMMIT');
     } catch (err) {
@@ -508,7 +500,7 @@ export class PostgreSQL implements IDatabase {
     // Insert user
     this.client.query('INSERT INTO user_rank(id, rank_value, mu, sigma, trueskill) VALUES($1, $2, $3, $4, $5)', [userRank.userId, userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill], function(err: { message: any; }) {
       if (err) {
-        return console.error('addUserRank', err);
+        return console.error('addUserRank', userRank, err);
       }
     });
   }
@@ -540,8 +532,7 @@ export class PostgreSQL implements IDatabase {
 
     this.client.query(sql, params, (err) => {
       if (err) {
-        console.error('saveUserGameResult', err);
-        throw err;
+        console.error('saveUserGameResult', err, params);
       }
     });
   }
