@@ -19,7 +19,7 @@ import Vue from 'vue';
 import {WithRefs} from 'vue-typed-refs';
 import {showModal, windowHasHTMLDialogElement} from '@/client/components/HTMLDialogElementCompatibility';
 
-const dialogPolyfill = require('dialog-polyfill');
+import dialogPolyfill from 'dialog-polyfill';
 
 type Refs = {
   dialog: HTMLElement,

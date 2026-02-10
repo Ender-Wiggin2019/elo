@@ -37,7 +37,7 @@
 import Vue from 'vue';
 import LanguageSwitcher from '@/client/components/LanguageSwitcher.vue';
 
-import * as raw_settings from '@/genfiles/settings.json';
+import raw_settings from '@/genfiles/settings.json';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
 import * as constants from '@/common/constants';
 

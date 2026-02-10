@@ -21,13 +21,13 @@
 import Vue from 'vue';
 import {WithRefs} from 'vue-typed-refs';
 import {showModal, windowHasHTMLDialogElement} from '@/client/components/HTMLDialogElementCompatibility';
-import * as raw_settings from '@/genfiles/settings.json';
+import raw_settings from '@/genfiles/settings.json';
 import {vueRoot} from '@/client/components/vueRoot';
 import {PlayerViewModel} from '@/common/models/PlayerModel';
 import {SpectatorId} from '@/common/Types';
 import {getPreferences} from '../utils/PreferencesManager';
 
-const dialogPolyfill = require('dialog-polyfill');
+import dialogPolyfill from 'dialog-polyfill';
 
 type Refs = {
   dialog: HTMLElement,

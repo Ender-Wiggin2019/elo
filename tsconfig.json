@@ -44,4 +44,7 @@
        // "server.ts",
        // "server_test.ts"
     ],
+    "exclude": [
+        "node_modules"
+    ],
 }

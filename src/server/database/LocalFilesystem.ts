@@ -189,4 +189,25 @@ export class LocalFilesystem implements IDatabase {
   saveUserGameResult(): Promise<void> {
     throw new Error('Method not implemented.');
   }
+  saveSeasonSnapshot(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  getSeasonSnapshots(): Promise<Array<{userId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number}>> {
+    throw new Error('Method not implemented.');
+  }
+  updateUserPoints(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  addToMatchmakingQueue(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  removeFromMatchmakingQueue(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  getMatchmakingQueue(): Promise<Array<{userId: string, trueskill: number, joinTime: string, gameOptions: string}>> {
+    throw new Error('Method not implemented.');
+  }
+  clearMatchmakingQueue(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 }

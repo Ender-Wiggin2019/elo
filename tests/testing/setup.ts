@@ -39,6 +39,19 @@ const FAKE_DATABASE: IDatabase = {
   updateUserRank: () => Promise.resolve(),
   saveUserGameResult: () => {},
 
+  // 赛季 & 匹配
+  saveSeasonSnapshot: () => Promise.resolve(),
+  getSeasonSnapshots: () => Promise.resolve([]),
+  updateUserPoints: () => Promise.resolve(),
+  addToMatchmakingQueue: () => Promise.resolve(),
+  removeFromMatchmakingQueue: () => Promise.resolve(),
+  getMatchmakingQueue: () => Promise.resolve([]),
+  clearMatchmakingQueue: () => Promise.resolve(),
+
+  // 兼容
+  // getGameIds: () => Promise.resolve([]),
+  // loadCloneableGame: () => Promise.resolve({} as SerializedGame),
+  // updateUser: () => {},
 };
 
 let databaseUnderTest: IDatabase = FAKE_DATABASE;

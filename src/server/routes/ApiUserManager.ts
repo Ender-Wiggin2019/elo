@@ -14,6 +14,7 @@ export const userGetHandler :Map<string, IUserGetHandler> = new Map(
     ['api/isvip', UserManager.isvip],
     ['api/userrank', UserManager.getUserRank],
     ['api/userranks', UserManager.getUserRanks],
+    // 赛季和匹配 API 已迁移到 Hono (/api/v2/season/*, /api/v2/matchmaking/*)
   ],
 );
 
@@ -27,7 +28,7 @@ export const userPostHandler :Map<string, IUserPostHandler> = new Map(
     ['api/activateRank', UserManager.activateRank],
     ['player/endgame', UserManager.endGameByEvent],
     ['api/register', UserManager.register],
-
+    // 匹配 API 已迁移到 Hono (/api/v2/matchmaking/*)
   ],
 );
 

@@ -456,17 +456,17 @@
           <div class="create-game-players-cont" v-if="playersCount > 1">
             <div class="container">
               <div class="columns">
-                <template v-for="(newPlayer, index) in getPlayers()">
-                  <div v-bind:key="index">
+                <template v-for="(newPlayer, index) in getPlayers()" :key="index">
+                  <div>
                     <div :class="'form-group col6 create-game-player ' + getPlayerContainerColorClass(newPlayer.color)" :key="newPlayer.color">
                       <div>
                         <input class="form-input form-inline create-game-player-name"
                           :placeholder="getPlayerNamePlaceholder(index)" v-model="newPlayer.name" />
                       </div>
                       <div class="create-game-page-color-row">
-                                              <template v-for="color in PLAYER_COLORS">
-                          <div v-bind:key="color">
-                                                  <input type="radio" :value="color" :name="'playerColor' + (index + 1)" v-model="newPlayer.color" :id="'radioBox' + color + (index + 1)">
+                        <template v-for="color in PLAYER_COLORS" :key="color">
+                          <div>
+                            <input type="radio" :value="color" :name="'playerColor' + (index + 1)" v-model="newPlayer.color" :id="'radioBox' + color + (index + 1)">
                             <label :for="'radioBox' + color + (index + 1)">
                               <div :class="'create-game-colorbox ' + getPlayerCubeColorClass(color)"></div>
                             </label>
@@ -474,18 +474,6 @@
                         </template>
                       </div>
                       <div>
-                        <!-- <template v-if="beginnerOption">
-                                                <label v-if="isBeginnerToggleEnabled()" class="form-switch form-inline create-game-beginner-option-label">
-                                                    <input type="checkbox" v-model="newPlayer.beginner">
-                                                    <i class="form-icon"></i> <span v-i18n>Beginner?</span>&nbsp;
-                                                </label>
-
-                                                <label class="form-label">
-                                                    <input type="number" class="form-input form-inline player-handicap" value="0" min="0" :max="10" v-model.number="newPlayer.handicap" />
-                                                    <i class="form-icon"></i><span v-i18n>TR Boost</span>&nbsp;
-                                                </label>
-                                               </template> -->
-
                         <label class="form-radio form-inline" v-if="!randomFirstPlayer">
                           <input type="radio" name="firstIndex" :value="index + 1" v-model="firstIndex">
                           <i class="form-icon"></i> <span v-i18n>Goes First?</span>

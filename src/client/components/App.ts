@@ -1,5 +1,5 @@
 import * as constants from '@/common/constants';
-import * as raw_settings from '@/genfiles/settings.json';
+import raw_settings from '@/genfiles/settings.json';
 import CardList from '@/client/components/cardlist/CardList.vue';
 import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
 import GameEnd from '@/client/components/GameEnd.vue';
@@ -20,7 +20,7 @@ import {isPlayerId, isSpectatorId} from '@/common/Types';
 import {hasShowModal, showModal, windowHasHTMLDialogElement} from './HTMLDialogElementCompatibility';
 import {statusCode} from '@/common/http/statusCode';
 
-const dialogPolyfill = require('dialog-polyfill');
+import dialogPolyfill from 'dialog-polyfill';
 
 
 import {Login} from './Login';

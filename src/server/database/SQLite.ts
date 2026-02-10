@@ -59,6 +59,36 @@ export class SQLite implements IDatabase {
       completed_time timestamp not null default (strftime('%s', 'now')),
       PRIMARY KEY (game_id))`);
     await this.asyncRun('DROP TABLE IF EXISTS purges');
+
+    // 赛季快照表：保存每个赛季结束时的排名数据
+    await this.asyncRun(`CREATE TABLE IF NOT EXISTS rank_seasons (
+      user_id varchar not null,
+      season_id varchar not null,
+      rank_value integer default 0,
+      mu double,
+      sigma double,
+      trueskill double,
+      points_earned integer default 0,
+      final_position integer,
+      createtime timestamp default (datetime(CURRENT_TIMESTAMP,'localtime')),
+      PRIMARY KEY (user_id, season_id))`);
+
+    // 匹配队列表
+    await this.asyncRun(`CREATE TABLE IF NOT EXISTS matchmaking_queue (
+      user_id varchar not null,
+      trueskill double,
+      join_time timestamp default (datetime(CURRENT_TIMESTAMP,'localtime')),
+      status varchar default 'waiting',
+      game_options text,
+      PRIMARY KEY (user_id))`);
+
+    // 兼容性：为已有的 user_rank 表添加 points 和 season_id 列
+    try {
+      await this.asyncRun('ALTER TABLE user_rank ADD COLUMN points integer default 0');
+    } catch (_) { /* 列已存在则忽略 */ }
+    try {
+      await this.asyncRun('ALTER TABLE user_rank ADD COLUMN season_id varchar');
+    } catch (_) { /* 列已存在则忽略 */ }
   }
 
   public async getPlayerCount(gameId: GameId): Promise<number> {
@@ -393,7 +423,7 @@ export class SQLite implements IDatabase {
 
   addUserRank(userRank: UserRank): void {
     console.log('db:addUserRank', userRank);
-    this.db.run('INSERT INTO user_rank(id, rank_value, mu, sigma, trueskill) VALUES(?, ?, ?, ?, ?)', [userRank.userId, userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill], function(err: { message: any; }) {
+    this.db.run('INSERT INTO user_rank(id, rank_value, mu, sigma, trueskill, points, season_id) VALUES(?, ?, ?, ?, ?, ?, ?)', [userRank.userId, userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill, userRank.points || 0, userRank.seasonId || ''], function(err: { message: any; }) {
       if (err) {
         return console.error(err);
       }
@@ -403,18 +433,18 @@ export class SQLite implements IDatabase {
   // 天梯，返回所有UserRank
   public async getUserRanks(limit:number | undefined = 0): Promise<Array<UserRank>> {
     const concatLimit: string = limit === 0 ? '' : ' limit ' + limit.toString();
-    const sql: string = 'SELECT id, rank_value, mu, sigma, trueskill FROM user_rank   order by rank_value desc,trueskill desc' + concatLimit;
+    const sql: string = 'SELECT id, rank_value, mu, sigma, trueskill, points, season_id FROM user_rank   order by rank_value desc,trueskill desc' + concatLimit;
     const allUserRanks : Array<UserRank> = [];
     const rows = await this.asyncAll(sql);
     rows.forEach((row) => {
-      const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma, row.trueskill);
+      const userRank = new UserRank(row.id, row.rank_value, row.mu, row.sigma, row.trueskill, row.points || 0, row.season_id || '');
       allUserRanks.push(userRank);
     });
     return allUserRanks;
   }
 
   public async updateUserRank(userRank:UserRank): Promise<void> {
-    await this.asyncRun('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ? , trueskill = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill, userRank.userId]);
+    await this.asyncRun('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ? , trueskill = ?, points = ?, season_id = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill, userRank.points || 0, userRank.seasonId || '', userRank.userId]);
   }
 
   // @param position: 这局游戏第几名
@@ -432,5 +462,56 @@ export class SQLite implements IDatabase {
         throw err;
       }
     });
+  }
+
+  // 赛季相关方法
+  public async saveSeasonSnapshot(userId: string, seasonId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number): Promise<void> {
+    await this.asyncRun(
+      'INSERT OR REPLACE INTO rank_seasons (user_id, season_id, rank_value, mu, sigma, trueskill, points_earned, final_position) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, seasonId, rankValue, mu, sigma, trueskill, pointsEarned, finalPosition],
+    );
+  }
+
+  public async getSeasonSnapshots(seasonId: string): Promise<Array<{userId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number}>> {
+    const rows = await this.asyncAll('SELECT user_id, rank_value, mu, sigma, trueskill, points_earned, final_position FROM rank_seasons WHERE season_id = ? ORDER BY final_position ASC', [seasonId]);
+    return rows.map((row) => ({
+      userId: row.user_id,
+      rankValue: row.rank_value,
+      mu: row.mu,
+      sigma: row.sigma,
+      trueskill: row.trueskill,
+      pointsEarned: row.points_earned,
+      finalPosition: row.final_position,
+    }));
+  }
+
+  public async updateUserPoints(userId: string, points: number): Promise<void> {
+    await this.asyncRun('UPDATE user_rank SET points = ? WHERE id = ?', [points, userId]);
+  }
+
+  // 匹配队列相关方法
+  public async addToMatchmakingQueue(userId: string, trueskill: number, gameOptions: string): Promise<void> {
+    await this.asyncRun(
+      'INSERT OR REPLACE INTO matchmaking_queue (user_id, trueskill, game_options, status) VALUES(?, ?, ?, \'waiting\')',
+      [userId, trueskill, gameOptions],
+    );
+  }
+
+  public async removeFromMatchmakingQueue(userId: string): Promise<void> {
+    await this.asyncRun('DELETE FROM matchmaking_queue WHERE user_id = ?', [userId]);
+  }
+
+  public async getMatchmakingQueue(): Promise<Array<{userId: string, trueskill: number, joinTime: string, gameOptions: string}>> {
+    const rows = await this.asyncAll('SELECT user_id, trueskill, join_time, game_options FROM matchmaking_queue WHERE status = \'waiting\' ORDER BY join_time ASC');
+    return rows.map((row) => ({
+      userId: row.user_id,
+      trueskill: row.trueskill,
+      joinTime: row.join_time,
+      gameOptions: row.game_options,
+    }));
+  }
+
+  public async clearMatchmakingQueue(): Promise<void> {
+    await this.asyncRun('DELETE FROM matchmaking_queue');
   }
 }

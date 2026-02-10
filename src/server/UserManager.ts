@@ -7,12 +7,12 @@ import {Context} from './routes/IHandler';
 import * as crypto from 'crypto';
 import {UserRank} from '../common/rank/RankManager';
 import {RankTier} from '../common/rank/RankTier';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../common/rank/constants';
 import {generateRandomId} from './utils/server-ids';
 import {Request} from './Request';
 import {Response} from './Response';
 import {UnexpectedInput} from './inputs/UnexpectedInput';
 import {Phase} from '../common/Phase';
+import {UserCenter, ServiceError} from './services/UserCenter';
 
 const colorNames = ['blue', 'red', 'yellow', 'green', 'black', 'purple', 'you', '红色', '绿色', '黄色', '蓝色', '黑色', '紫色'];
 function notFound(req: Request, res: Response, msg: string = ''): void {
@@ -290,50 +290,30 @@ export async function sitDown(userReq:any, req: Request, res: Response): Promise
 
 //
 
-// 天梯 用户激活排名的接口
+// 天梯 用户激活排名的接口 — 委托给 UserCenter
 export function activateRank(userReq: any, _req: Request, res: Response): void {
-  const userId = userReq.userId;
-  const rankValue = DEFAULT_RANK_VALUE;
-  const mu = DEFAULT_MU;
-  const sigma = DEFAULT_SIGMA;
-  let userRank = GameLoader.getInstance().userRankMap.get(userId);
-  if (userRank === null) {
-    userRank = new UserRank(userId, rankValue, mu, sigma, 0);
-    Database.getInstance().addUserRank(userRank);
-    GameLoader.getInstance().addOrUpdateUserRank(userRank);
-  }
+  UserCenter.activateRank(userReq.userId);
   res.setHeader('Content-Type', 'application/json');
   res.write('success');
   res.end();
   return;
 }
 
+// 获取用户排名 — 委托给 UserCenter
 export function getUserRank(req: Request, res: Response, ctx: Context): void {
-  let userRank: UserRank | undefined;
-  let userId = ctx.url.searchParams.get('userId');
+  const userId = ctx.url.searchParams.get('userId');
   const playerName = ctx.url.searchParams.get('playerName');
-  if (!userId && playerName !== undefined && playerName !== '' && playerName !== null) {
-    // 如果没传userId 就用playerName得到userId
-    const user = GameLoader.getInstance().userNameMap.get(playerName);
-    if (user !==undefined) {
-      userId = user.id;
-    }
-  }
-  if (userId ) {
-    userRank = GameLoader.getInstance().userRankMap.get(userId);
-    if (userRank === undefined ) {
-      userRank = new UserRank(userId, DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0);
-      Database.getInstance().addUserRank(userRank);
-      GameLoader.getInstance().addOrUpdateUserRank(userRank);
-    }
-    const data = {userId: userRank.userId, rankValue: userRank.rankValue, mu: userRank.mu, sigma: userRank.sigma, trueskill: userRank.trueskill};
-
+  try {
+    const data = UserCenter.getUserRank(userId, playerName);
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify(data));
     res.end();
-  } else {
+  } catch (err) {
+    if (err instanceof ServiceError) {
+      notFound(req, res, err.message);
+      return;
+    }
     notFound(req, res, 'not find user id or player name');
-    return;
   }
 }
 
@@ -392,3 +372,6 @@ export async function endGameByEvent(userReq: any, req: Request, res: Response):
   res.setHeader('Content-Type', 'application/json');
   res.end();
 }
+
+// 赛季和匹配 API 已迁移到 Hono (/api/v2/season/*, /api/v2/matchmaking/*)
+// 业务逻辑统一在 UserCenter 中，参见 src/server/services/UserCenter.ts

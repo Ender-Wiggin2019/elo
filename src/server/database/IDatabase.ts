@@ -171,7 +171,15 @@ export interface IDatabase {
     getUserRanks(limit?: number): Promise<Array<UserRank>>;
     updateUserRank(userRank: UserRank): Promise<void>;
     saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void;
-    // createSession(session: Session): Promise<void>;
-    // deleteSession(sessionId: SessionId): Promise<void>;
-    // getSessions(): Promise<Array<Session>>;
+
+    // 赛季相关
+    saveSeasonSnapshot(userId: string, seasonId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number): Promise<void>;
+    getSeasonSnapshots(seasonId: string): Promise<Array<{userId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number}>>;
+    updateUserPoints(userId: string, points: number): Promise<void>;
+
+    // 匹配队列相关
+    addToMatchmakingQueue(userId: string, trueskill: number, gameOptions: string): Promise<void>;
+    removeFromMatchmakingQueue(userId: string): Promise<void>;
+    getMatchmakingQueue(): Promise<Array<{userId: string, trueskill: number, joinTime: string, gameOptions: string}>>;
+    clearMatchmakingQueue(): Promise<void>;
 }
