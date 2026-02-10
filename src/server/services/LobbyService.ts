@@ -96,12 +96,12 @@ export class LobbyService {
   }
 
   /**
-   * 获取所有等待中的房间列表
+   * 获取所有房间列表（包括已启动的游戏）
    */
   static listRooms(): Array<ILobbyRoom> {
     const result: Array<ILobbyRoom> = [];
     for (const room of rooms.values()) {
-      if (room.status === ELobbyRoomStatus.WAITING || room.status === ELobbyRoomStatus.CONFIRMING) {
+      if (room.status === ELobbyRoomStatus.WAITING || room.status === ELobbyRoomStatus.CONFIRMING || room.status === ELobbyRoomStatus.STARTED) {
         result.push(room);
       }
     }

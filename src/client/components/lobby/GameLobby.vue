@@ -318,12 +318,6 @@ export default Vue.extend({
               break;
             }
           }
-
-          // 非房主：游戏已启动 -> 自动跳转
-          if (room.status === 'started' && room.gameData && !this.isOwner(room)) {
-            this.navigateToGame(room.gameData);
-            break;
-          }
         }
       } catch (err) {
         console.error('Failed to fetch rooms:', err);
@@ -336,6 +330,7 @@ export default Vue.extend({
         );
         if (data.allReady && data.gameConfig) {
           await this.createGameFromLobby(roomId, data.gameConfig);
+          await this.fetchRooms();
         }
       } catch (err) {
         console.error('Failed to poll and create game:', err);
@@ -473,9 +468,8 @@ export default Vue.extend({
         if (data.allReady && data.gameConfig) {
           // 所有人已确认，创建游戏
           await this.createGameFromLobby(roomId, data.gameConfig);
-        } else {
-          await this.fetchRooms();
         }
+        await this.fetchRooms();
       } catch (err: any) {
         alert(err.body || err.message);
       }
@@ -505,9 +499,6 @@ export default Vue.extend({
           gameId: json.id,
           gameData: json,
         });
-
-        // 跳转到游戏页面
-        this.navigateToGame(json);
       } catch (err: any) {
         alert('Failed to create game: ' + (err.message || err));
       }
@@ -517,9 +508,7 @@ export default Vue.extend({
       if (gameData.players.length === 1) {
         window.location.href = 'player?id=' + gameData.players[0].id;
       } else {
-        window.history.replaceState(gameData, `${constants.APP_NAME} - Game`, 'game?id=' + gameData.id);
-        vueRoot(this).game = gameData;
-        vueRoot(this).screen = 'game-home';
+        window.location.href = 'game?id=' + gameData.id;
       }
     },
   },
