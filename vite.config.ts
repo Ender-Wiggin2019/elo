@@ -70,16 +70,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Proxy all backend API and page routes to the Node server
+      // Only proxy API endpoints and static assets to the backend.
+      // All client-side page routes (/, /login, /player, /lobby, etc.)
+      // are handled by Vite's SPA fallback (serves index.html).
       '/api': 'http://localhost:8081',
-      '/player': 'http://localhost:8081',
-      '/spectator': 'http://localhost:8081',
-      '/game': 'http://localhost:8081',
-      '/games-overview': 'http://localhost:8081',
-      '/load': 'http://localhost:8081',
-      '/login': 'http://localhost:8081',
-      '/register': 'http://localhost:8081',
-      '/cards': 'http://localhost:8081',
       '/favicon.ico': 'http://localhost:8081',
       // Static assets built by the server (CSS, fonts, images, locales)
       '/styles.css': 'http://localhost:8081',

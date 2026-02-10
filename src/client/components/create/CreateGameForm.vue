@@ -15,7 +15,7 @@
         <div class="create-game-page-container">
           <div class="create-game-page-column">
             <h4 v-i18n>№ of Players</h4>
-                            <div v-for="pCount in [1,2,3,4,5,6]" v-bind:key="pCount">
+                            <div v-for="pCount in (lobbyMode ? [2,3,4,5,6] : [1,2,3,4,5,6])" v-bind:key="pCount">
                               <input type="radio" :value="pCount" name="playersCount" v-model="playersCount" :id="pCount+'-radio'">
                               <label :for="pCount+'-radio'">
                                     {{ getPlayersCountText(pCount) }}
@@ -453,19 +453,19 @@
             </label>
           </div>
 
-          <div class="create-game-players-cont" v-if="playersCount > 1">
+          <div class="create-game-players-cont" v-if="playersCount > 1 && !lobbyMode">
             <div class="container">
               <div class="columns">
-                <template v-for="(newPlayer, index) in getPlayers()" :key="index">
-                  <div>
-                    <div :class="'form-group col6 create-game-player ' + getPlayerContainerColorClass(newPlayer.color)" :key="newPlayer.color">
+                <template v-for="(newPlayer, index) in getPlayers()">
+                  <div :key="index">
+                    <div :class="'form-group col6 create-game-player ' + getPlayerContainerColorClass(newPlayer.color)">
                       <div>
                         <input class="form-input form-inline create-game-player-name"
                           :placeholder="getPlayerNamePlaceholder(index)" v-model="newPlayer.name" />
                       </div>
                       <div class="create-game-page-color-row">
-                        <template v-for="color in PLAYER_COLORS" :key="color">
-                          <div>
+                        <template v-for="color in PLAYER_COLORS">
+                          <div :key="color">
                             <input type="radio" :value="color" :name="'playerColor' + (index + 1)" v-model="newPlayer.color" :id="'radioBox' + color + (index + 1)">
                             <label :for="'radioBox' + color + (index + 1)">
                               <div :class="'create-game-colorbox ' + getPlayerCubeColorClass(color)"></div>
@@ -487,7 +487,11 @@
           </div>
 
           <div class="create-game-action">
-            <AppButton title="Create game" size="big" @click="createGame" />
+            <template v-if="lobbyMode">
+              <AppButton title="Create Room" size="big" @click="createLobbyRoom" />
+              <AppButton title="Cancel" size="big" @click="$emit('lobby-cancel')" />
+            </template>
+            <AppButton v-else title="Create game" size="big" @click="createGame" />
             <span v-if="isvip">
               <label>
                 <div class="btn btn-primary btn-action btn-lg"><i class="icon icon-upload"></i></div>
@@ -582,6 +586,7 @@ import {mainAppSettings} from '../App';
 import {CreateGameModel} from './CreateGameModel';
 import {statusCode} from '../../../common/http/statusCode';
 import {paths} from '@/common/app/paths';
+import {request} from '@/client/utils/request';
 // import * as HTTPResponseCode from '@/client/utils/HTTPResponseCode';
 
 const REVISED_COUNT_ALGORITHM = false;
@@ -627,6 +632,12 @@ type FormModel = {
 
 export default (Vue as WithRefs<Refs>).extend({
   name: 'CreateGameForm',
+  props: {
+    lobbyMode: {
+      type: Boolean,
+      default: false,
+    },
+  },
   data(): CreateGameModel & FormModel {
     return {
       isvip: false,
@@ -729,6 +740,10 @@ export default (Vue as WithRefs<Refs>).extend({
   mounted() {
     const root = this.$root as any;
     this.isvip = root.isvip;
+    // Lobby mode: default to 2 players since solo is not supported
+    if (this.lobbyMode && this.playersCount < 2) {
+      this.playersCount = 2;
+    }
   },
   watch: {
     allOfficialExpansions(value: boolean) {
@@ -1429,6 +1444,34 @@ export default (Vue as WithRefs<Refs>).extend({
           root.isServerSideRequestInProgress = false;
           alert(error.message);
         });
+    },
+    async createLobbyRoom() {
+      const dataToSend = await this.serializeSettings();
+      if (dataToSend === undefined) return;
+
+      const gameConfig = JSON.parse(dataToSend);
+      // 移除 players（lobby 模式下不需要玩家信息，玩家在大厅加入）
+      delete gameConfig.players;
+
+      const userId = PreferencesManager.load('userId');
+      const userName = PreferencesManager.load('userName');
+
+      if (!userId || !userName) {
+        alert('Please login first');
+        return;
+      }
+
+      try {
+        const result = await request.post<{room: any}>('/api/v2/lobby/create', {
+          userId,
+          userName,
+          gameConfig,
+          maxPlayers: this.playersCount,
+        });
+        this.$emit('lobby-room-created', result.room);
+      } catch (err: any) {
+        alert(err.body || err.message || 'Failed to create room');
+      }
     },
   },
 });

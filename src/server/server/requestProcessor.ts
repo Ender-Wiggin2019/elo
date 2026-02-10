@@ -111,6 +111,7 @@ const handlers: Map<string, IHandler> = new Map(
     ['users', ServeApp.INSTANCE],
     ['exec', ServeApp.INSTANCE],
     ['ranks', ServeApp.INSTANCE], // 天梯排行榜
+    [paths.LOBBY, ServeApp.INSTANCE], // 游戏大厅
   ],
 );
 
@@ -137,6 +138,10 @@ function getHandler(pathname: string): IHandler | undefined {
   }
   if (pathname.startsWith('assets/') || pathname.startsWith('css/') || pathname.startsWith('chunks/')) {
     return ServeAsset.INSTANCE;
+  }
+  // Handle user profile paths like user/xxx
+  if (pathname.startsWith('user/')) {
+    return ServeApp.INSTANCE;
   }
   return undefined;
 }

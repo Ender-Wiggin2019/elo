@@ -10,6 +10,7 @@
               <div class="start-screen-title-bottom">MARS</div>
           </div>
     <a class="start-screen-link start-screen-link--new-game" href="new-game" v-i18n>New game</a>
+    <a class="start-screen-link start-screen-link--new-game" href="lobby" v-i18n>Game Lobby</a>
           <a class="start-screen-link start-screen-link--how-to-play" href="/mygames" v-if="userName" v-i18n>My Games</a>
           <a class="start-screen-link start-screen-link--how-to-play" href="/login" v-else v-i18n>Login</a>
           <a class="start-screen-link start-screen-link--cards-list" href="/donate" v-i18n>Donate</a>

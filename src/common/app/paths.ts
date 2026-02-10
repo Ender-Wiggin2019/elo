@@ -22,6 +22,7 @@ export const paths = {
   HELP: 'help',
   LOAD: 'load',
   LOAD_GAME: 'load_game',
+  LOBBY: 'lobby',
   LOGIN: 'login',
   NEW_GAME: 'new-game',
   PLAYER: 'player',
@@ -29,4 +30,5 @@ export const paths = {
   RESET: 'reset',
   SPECTATOR: 'spectator',
   THE_END: 'the-end',
+  USER_PROFILE: 'user',
 } as const;

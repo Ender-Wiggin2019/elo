@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" media="all" href="/styles.css?v=<%- VERSION %>" />
         <link rel="stylesheet" type="text/css" media="all" href="/tailwindcss.css?v=<%- VERSION %>">
         <title>Terraforming Mars</title>
@@ -25,6 +26,9 @@
                 <create-game-form
                     v-else-if="screen === 'create-game-form'"
                 ></create-game-form>
+                <game-lobby
+                    v-else-if="screen === 'game-lobby'"
+                ></game-lobby>
                 <load-game-form v-else-if="screen === 'load'"></load-game-form>
                 <game-home
                     v-else-if="screen === 'game-home'"
@@ -61,6 +65,7 @@
                 <donate v-if="screen === 'donate'"></donate>
                 <users v-if="screen === 'users'"></users>
                 <ranks v-if="screen === 'ranks'"></ranks>
+                <user-profile v-if="screen === 'user-profile'" :identifier="userProfileId"></user-profile>
             </div>
         </div>
         <div  style="text-align:center;margin:-35px 0 0 60px;position: relative;"><a href="https://beian.miit.gov.cn" target="_blank">粤ICP备17128934号</a></div>

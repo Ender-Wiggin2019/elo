@@ -4,6 +4,7 @@ import CardList from '@/client/components/cardlist/CardList.vue';
 import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
 import GameEnd from '@/client/components/GameEnd.vue';
 import GameHome from '@/client/components/GameHome.vue';
+import GameLobby from '@/client/components/lobby/GameLobby.vue';
 import GamesOverview from '@/client/components/GamesOverview.vue';
 import Help from '@/client/components/help/Help.vue';
 import LoadGameForm from '@/client/components/LoadGameForm.vue';
@@ -29,6 +30,7 @@ import {MyGames} from './MyGames';
 import {Donate} from './Donate';
 import {PreferencesManager} from '../utils/PreferencesManager';
 import {Ranks} from './Ranks';
+import UserProfile from './UserProfile.vue';
 
 function getDay() {
   return new Date(new Date().getTime()+8*60*60*1000).toISOString().slice(0, 10).replace('T', ' ');
@@ -37,6 +39,8 @@ function getDay() {
 export interface MainAppData {
     screen: string;
     oscreen: string;
+    /** User identifier for user profile page (user ID or name) */
+    userProfileId: string;
     /**
      * player or spectator are set once the app component has loaded.
      * Vue only watches properties that exist initially. When we
@@ -59,6 +63,7 @@ export interface MainAppData {
 
 const data: MainAppData = {
   screen: 'empty',
+  userProfileId: '',
   playerkey: 0,
   settings: raw_settings,
   isServerSideRequestInProgress: false,
@@ -89,6 +94,7 @@ export const mainAppSettings = {
     'player-input-factory': PlayerInputFactory,
     'start-screen': StartScreen,
     'create-game-form': CreateGameForm,
+    'game-lobby': GameLobby,
     'load-game-form': LoadGameForm,
     'game-home': GameHome,
     'player-home': PlayerHome,
@@ -102,6 +108,7 @@ export const mainAppSettings = {
     'my-games': MyGames,
     'donate': Donate,
     'ranks': Ranks, // 天梯排行榜
+    'user-profile': UserProfile,
     // 这里引入是为了统一编译进去，渲染 card 并在card_HTML.spec.ts中获取html 保存到json中
     // 'cardHTML': CardHTML,
   },
@@ -316,6 +323,8 @@ export const mainAppSettings = {
       app.screen = 'games-overview';
     } else if (currentPathname === paths.NEW_GAME) {
       app.screen = 'create-game-form';
+    } else if (currentPathname === paths.LOBBY) {
+      app.screen = 'game-lobby';
     } else if (currentPathname === paths.LOAD) {
       app.screen = 'load';
     } else if (currentPathname === paths.CARDS) {
@@ -334,6 +343,14 @@ export const mainAppSettings = {
       app.screen = 'donate';
     } else if (currentPathname === 'ranks') {
       app.screen = 'ranks';
+    } else if (getFullPath().startsWith('user/')) {
+      const identifier = getFullPath().substring('user/'.length);
+      if (identifier) {
+        app.userProfileId = decodeURIComponent(identifier);
+        app.screen = 'user-profile';
+      } else {
+        app.screen = 'start-screen';
+      }
     } else {
       app.screen = 'start-screen';
     }
@@ -349,4 +366,12 @@ export const mainAppSettings = {
 function getLastPathSegment() {
   // Leave only the last part of /path
   return window.location.pathname.replace(/.*\//g, '');
+}
+
+/**
+ * Get the full path without leading slash.
+ * e.g. "/user/john" -> "user/john"
+ */
+function getFullPath() {
+  return window.location.pathname.substring(1);
 }

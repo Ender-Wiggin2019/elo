@@ -37,6 +37,8 @@ export interface ILobbyRoom {
   createdAt: number;
   /** 创建后的游戏 ID（仅 STARTED 状态有值） */
   gameId?: string;
+  /** 创建后的游戏完整数据（包含每个玩家 ID） */
+  gameData?: any;
 }
 
 /** 房间列表响应 */
