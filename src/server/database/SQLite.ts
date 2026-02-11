@@ -52,7 +52,9 @@ export class SQLite implements IDatabase {
     // 天梯 新增`user_rank`表记录用户的排名
     await this.asyncRun('CREATE TABLE IF NOT EXISTS user_rank (id varchar not null, rank_value integer default 0, mu double, sigma double, trueskill double default 1, PRIMARY KEY (id))');
     // 天梯 玩家数据表，用于保存段位的历史记录，和未来的数据分析 TODO: 将这两张表在PG中也加上
-    await this.asyncRun('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), corporation text, position integer, player_score integer, rank_value integer, mu double, sigma double, trueskill double, is_rank integer, phase text, PRIMARY KEY (user_id, game_id))');
+    await this.asyncRun('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), corporation text, position integer, player_score integer, rank_value integer, mu double, sigma double, trueskill double, is_rank integer, phase text, is_timeout integer default 0, PRIMARY KEY (user_id, game_id))');
+    // Migrate: add is_timeout column if missing
+    await this.asyncRun('ALTER TABLE user_game_results ADD COLUMN is_timeout integer default 0').catch(() => {});
     await this.asyncRun(
       `CREATE TABLE IF NOT EXISTS completed_game(
       game_id varchar not null,
@@ -85,10 +87,10 @@ export class SQLite implements IDatabase {
     // 兼容性：为已有的 user_rank 表添加 points 和 season_id 列
     try {
       await this.asyncRun('ALTER TABLE user_rank ADD COLUMN points integer default 0');
-    } catch (_) { /* 列已存在则忽略 */ }
+    } catch (_) {/* 列已存在则忽略 */}
     try {
       await this.asyncRun('ALTER TABLE user_rank ADD COLUMN season_id varchar');
-    } catch (_) { /* 列已存在则忽略 */ }
+    } catch (_) {/* 列已存在则忽略 */}
   }
 
   public async getPlayerCount(gameId: GameId): Promise<number> {
@@ -456,13 +458,13 @@ export class SQLite implements IDatabase {
   }
 
   // @param position: 这局游戏第几名
-  saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void {
+  saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined, is_timeout: boolean = false): void {
     const sql: string = user_rank !== undefined ?
-      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma, trueskill, is_rank, phase) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)' :
-      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank, phase) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma, trueskill, is_rank, phase, is_timeout) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)' :
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank, phase, is_timeout) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     const params: any = user_rank !== undefined ?
-      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, user_rank.trueskill, is_rank, phase] :
-      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank, phase];
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, user_rank.trueskill, is_rank?1:0, phase, is_timeout?1:0] :
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank?1:0, phase, is_timeout?1:0];
 
     this.db.run(sql, params, (err) => {
       if (err) {
@@ -470,6 +472,53 @@ export class SQLite implements IDatabase {
         throw err;
       }
     });
+  }
+
+  async getUserGameStats(userId: string): Promise<import('./IDatabase').IUserGameStats> {
+    const buildStatsQuery = (dateFilter: string) => `
+      SELECT
+        COUNT(*) as total_games,
+        SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) as wins,
+        SUM(CASE WHEN position > 1 THEN 1 ELSE 0 END) as losses,
+        SUM(CASE WHEN is_timeout = 1 THEN 1 ELSE 0 END) as flee_count,
+        COALESCE(AVG(player_score), 0) as avg_score,
+        COALESCE(AVG(position), 0) as avg_position,
+        SUM(CASE WHEN is_rank = 1 THEN 1 ELSE 0 END) as total_rank_games,
+        SUM(CASE WHEN is_rank = 1 AND position = 1 THEN 1 ELSE 0 END) as rank_wins
+      FROM user_game_results
+      WHERE user_id = ? ${dateFilter}
+    `;
+
+    const allTimeRow: any = await this.asyncGet(buildStatsQuery(''), [userId]);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const recentRow: any = await this.asyncGet(
+      buildStatsQuery('AND createtime >= ?'),
+      [userId, threeMonthsAgo.toISOString()],
+    );
+
+    const mapRow = (row: any): import('./IDatabase').IUserGameStatsBlock => {
+      const totalGames = parseInt(row?.total_games) || 0;
+      const wins = parseInt(row?.wins) || 0;
+      const fleeCount = parseInt(row?.flee_count) || 0;
+      return {
+        totalGames,
+        wins,
+        losses: parseInt(row?.losses) || 0,
+        winRate: totalGames > 0 ? Math.round((wins / totalGames) * 10000) / 100 : 0,
+        fleeCount,
+        fleeRate: totalGames > 0 ? Math.round((fleeCount / totalGames) * 10000) / 100 : 0,
+        avgScore: Math.round(parseFloat(row?.avg_score || '0') * 100) / 100,
+        avgPosition: Math.round(parseFloat(row?.avg_position || '0') * 100) / 100,
+        totalRankGames: parseInt(row?.total_rank_games) || 0,
+        rankWins: parseInt(row?.rank_wins) || 0,
+      };
+    };
+
+    return {
+      allTime: mapRow(allTimeRow),
+      recent3Months: mapRow(recentRow),
+    };
   }
 
   // 赛季相关方法

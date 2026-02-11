@@ -15,6 +15,7 @@ import {matchmakingRoutes} from './matchmaking';
 import {lobbyRoutes} from './lobby';
 import {testRoutes} from './test';
 import {userProfileRoutes} from './userProfile';
+import {userStatsRoutes} from './userStats';
 
 const app = new Hono().basePath('/api/v2');
 
@@ -30,5 +31,6 @@ app.route('/matchmaking', matchmakingRoutes);
 app.route('/lobby', lobbyRoutes);
 app.route('/test', testRoutes);
 app.route('/user-profile', userProfileRoutes);
+app.route('/user-stats', userStatsRoutes);
 
 export {app};

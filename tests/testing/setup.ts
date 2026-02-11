@@ -38,6 +38,11 @@ const FAKE_DATABASE: IDatabase = {
   getUserRanks: () => Promise.resolve({} as UserRank[]),
   updateUserRank: () => Promise.resolve(),
   saveUserGameResult: () => {},
+  updateUserProp: () => Promise.resolve(),
+  getUserGameStats: () => Promise.resolve({
+    allTime: {totalGames: 0, wins: 0, losses: 0, winRate: 0, fleeCount: 0, fleeRate: 0, avgScore: 0, avgPosition: 0, totalRankGames: 0, rankWins: 0},
+    recent3Months: {totalGames: 0, wins: 0, losses: 0, winRate: 0, fleeCount: 0, fleeRate: 0, avgScore: 0, avgPosition: 0, totalRankGames: 0, rankWins: 0},
+  }),
 
   // 赛季 & 匹配
   saveSeasonSnapshot: () => Promise.resolve(),

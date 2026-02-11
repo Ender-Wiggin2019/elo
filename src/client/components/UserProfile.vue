@@ -70,7 +70,7 @@
           <div class="absolute bottom-0 right-0 w-px h-10" style="background:linear-gradient(to top,#e2520e80,transparent);"></div>
         </div>
 
-        <!-- Stats Grid -->
+        <!-- Quick overview cards -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div class="stat-card p-4 text-center">
             <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Games</div>
@@ -78,11 +78,13 @@
           </div>
           <div class="stat-card p-4 text-center">
             <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Win Rate</div>
-            <div class="text-2xl font-bold font-mono text-mars-teal">{{ mockWinRate }}</div>
+            <div class="text-2xl font-bold font-mono" :class="allTimeWinRate >= 50 ? 'text-mars-teal' : 'text-mars-amber'">
+              {{ allTimeWinRate }}%
+            </div>
           </div>
           <div class="stat-card p-4 text-center">
             <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Flee Rate</div>
-            <div class="text-2xl font-bold font-mono" :class="mockFleeRateClass">{{ mockFleeRate }}</div>
+            <div class="text-2xl font-bold font-mono" :class="fleeRateCardClass">{{ allTimeFleeRate }}%</div>
           </div>
           <div class="stat-card p-4 text-center" v-if="profile.rank">
             <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Rating</div>
@@ -90,8 +92,20 @@
           </div>
           <div class="stat-card p-4 text-center" v-else>
             <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Rating</div>
-            <div class="text-2xl font-bold font-mono text-mars-text-dim">—</div>
+            <div class="text-2xl font-bold font-mono text-mars-text-dim">&mdash;</div>
           </div>
+        </div>
+
+        <!-- ============ Game Stats (shared component) ============ -->
+        <div v-if="profile.gameStats" class="profile-card relative overflow-hidden">
+          <div class="relative z-10">
+            <UserGameStats
+              :allTime="profile.gameStats.allTime"
+              :recent3Months="profile.gameStats.recent3Months"
+            />
+          </div>
+          <div class="absolute top-0 left-0 w-6 h-px bg-mars-rust"></div>
+          <div class="absolute bottom-0 right-0 w-6 h-px bg-mars-rust"></div>
         </div>
 
         <!-- Rank Details -->
@@ -108,22 +122,11 @@
                 <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>Stars</div>
                 <div class="text-sm font-bold text-mars-text">{{ profile.rank.tier.stars }} / {{ profile.rank.tier.maxStars }}</div>
               </div>
-              <div v-if="profile.rank.tier.measurement === 'value'">
-                <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>TrueSkill</div>
-                <div class="text-sm font-bold text-mars-cyan">{{ Math.round(profile.rank.trueskill * 100) }}</div>
-              </div>
               <div>
                 <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>Rank Value</div>
                 <div class="text-sm font-bold text-mars-text">{{ profile.rank.rankValue }}</div>
               </div>
-              <div>
-                <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>Season Points</div>
-                <div class="text-sm font-bold text-mars-text">{{ profile.rank.points }}</div>
-              </div>
-              <div v-if="profile.rank.seasonId">
-                <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>Season</div>
-                <div class="text-sm font-bold text-mars-text-dim">{{ profile.rank.seasonId }}</div>
-              </div>
+              <!-- Season Points and internal skill values (mu/sigma/trueskill) are private -->
             </div>
           </div>
 
@@ -141,10 +144,7 @@
 import Vue from 'vue';
 import {RankTier} from '@/common/rank/RankTier';
 import RankTierComponent from '@/client/components/RankTier.vue';
-
-// Mock constants
-const MOCK_WIN_RATE = 0.42;
-const MOCK_FLEE_RATE = 0.03;
+import UserGameStats from '@/client/components/common/UserGameStats.vue';
 
 interface IProfileRank {
   rankValue: number;
@@ -162,6 +162,19 @@ interface IProfileRank {
   };
 }
 
+interface IGameStatsBlock {
+  totalGames: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  fleeCount: number;
+  fleeRate: number;
+  avgScore: number;
+  avgPosition: number;
+  totalRankGames: number;
+  rankWins: number;
+}
+
 interface IProfile {
   id: string;
   name: string;
@@ -169,12 +182,17 @@ interface IProfile {
   isvip: number;
   rank: IProfileRank | null;
   totalGames: number;
+  gameStats: {
+    allTime: IGameStatsBlock;
+    recent3Months: IGameStatsBlock;
+  } | null;
 }
 
 export default Vue.extend({
   name: 'UserProfile',
   components: {
     RankTier: RankTierComponent,
+    UserGameStats,
   },
   props: {
     identifier: {
@@ -215,17 +233,21 @@ export default Vue.extend({
         t.value,
       );
     },
-    mockWinRate(): string {
-      return (MOCK_WIN_RATE * 100).toFixed(1) + '%';
+    allTimeWinRate(): number {
+      return this.profile?.gameStats?.allTime?.winRate ?? 0;
     },
-    mockFleeRate(): string {
-      return (MOCK_FLEE_RATE * 100).toFixed(1) + '%';
+    allTimeFleeRate(): number {
+      return this.profile?.gameStats?.allTime?.fleeRate ?? 0;
     },
-    mockFleeRateClass(): string {
-      return MOCK_FLEE_RATE <= 0.05 ? 'text-mars-teal' : 'text-mars-red';
+    fleeRateCardClass(): string {
+      const rate = this.allTimeFleeRate;
+      if (rate > 20) return 'text-red-500';
+      if (rate > 10) return 'text-red-400';
+      if (rate > 5) return 'text-mars-amber';
+      return 'text-mars-teal';
     },
     displayRating(): string {
-      if (!this.profile?.rank) return '—';
+      if (!this.profile?.rank) return '\u2014';
       if (this.profile.rank.tier.measurement === 'value') {
         return String(Math.round(this.profile.rank.trueskill * 100));
       }

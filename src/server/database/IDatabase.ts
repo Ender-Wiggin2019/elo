@@ -7,6 +7,24 @@ import {Phase} from '../../common/Phase';
 import {User} from '../User';
 import {UserRank} from '../../common/rank/RankManager';
 
+export interface IUserGameStatsBlock {
+    totalGames: number;
+    wins: number;
+    losses: number;
+    winRate: number;
+    fleeCount: number;
+    fleeRate: number;
+    avgScore: number;
+    avgPosition: number;
+    totalRankGames: number;
+    rankWins: number;
+}
+
+export interface IUserGameStats {
+    allTime: IUserGameStatsBlock;
+    recent3Months: IUserGameStatsBlock;
+}
+
 export interface IShortData {
     id:string,
     phase : Phase,
@@ -171,7 +189,13 @@ export interface IDatabase {
     addUserRank(userRank: UserRank): void ;
     getUserRanks(limit?: number): Promise<Array<UserRank>>;
     updateUserRank(userRank: UserRank): Promise<void>;
-    saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void;
+    saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined, is_timeout?: boolean): void;
+
+    /**
+     * Get aggregated game stats for a user.
+     * Returns all-time and recent (last 3 months) stats.
+     */
+    getUserGameStats(userId: string): Promise<IUserGameStats>;
 
     // 赛季相关
     saveSeasonSnapshot(userId: string, seasonId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number): Promise<void>;

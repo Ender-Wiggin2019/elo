@@ -192,6 +192,14 @@ export class LocalFilesystem implements IDatabase {
   saveUserGameResult(): Promise<void> {
     throw new Error('Method not implemented.');
   }
+  async getUserGameStats(): Promise<import('./IDatabase').IUserGameStats> {
+    const emptyBlock: import('./IDatabase').IUserGameStatsBlock = {
+      totalGames: 0, wins: 0, losses: 0, winRate: 0,
+      fleeCount: 0, fleeRate: 0, avgScore: 0, avgPosition: 0,
+      totalRankGames: 0, rankWins: 0,
+    };
+    return {allTime: emptyBlock, recent3Months: emptyBlock};
+  }
   saveSeasonSnapshot(): Promise<void> {
     throw new Error('Method not implemented.');
   }

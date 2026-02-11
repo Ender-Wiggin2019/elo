@@ -446,6 +446,77 @@ async function main(): Promise<void> {
     console.log('\n  (Skipping normal-end flow: set TEST_API=true to run)');
   }
 
+  // ─── 10c. User Game Stats (需 TEST_API=true) ───
+  if (process.env.TEST_API === 'true') {
+    section('10c. Insert Test Game Results & Verify Stats');
+
+    const testUserId = users[0].token;
+    const testGamePrefix = `_test_game_${Date.now()}_`;
+
+    // Insert a mix of rank / casual / fled game results
+    const testGameResults = [
+      {gameId: `${testGamePrefix}rank_w1`, position: 1, isRank: true, isTimeout: false, playerScore: 120, corporation: 'Ecoline'},
+      {gameId: `${testGamePrefix}rank_w2`, position: 1, isRank: true, isTimeout: false, playerScore: 95, corporation: 'Thorgate'},
+      {gameId: `${testGamePrefix}rank_l1`, position: 2, isRank: true, isTimeout: false, playerScore: 78, corporation: 'Tharsis Republic'},
+      {gameId: `${testGamePrefix}rank_flee1`, position: 3, isRank: true, isTimeout: true, playerScore: 30, corporation: 'Inventrix'},
+      {gameId: `${testGamePrefix}casual_w1`, position: 1, isRank: false, isTimeout: false, playerScore: 110, corporation: 'CrediCor'},
+      {gameId: `${testGamePrefix}casual_l1`, position: 2, isRank: false, isTimeout: false, playerScore: 65, corporation: 'Helion'},
+      {gameId: `${testGamePrefix}casual_l2`, position: 3, isRank: false, isTimeout: false, playerScore: 50, corporation: 'Mining Guild'},
+      {gameId: `${testGamePrefix}casual_flee1`, position: 4, isRank: false, isTimeout: true, playerScore: 15, corporation: 'Teractor'},
+    ];
+
+    for (const g of testGameResults) {
+      await test(`Insert game result: ${g.gameId.replace(testGamePrefix, '')} (rank=${g.isRank}, pos=${g.position}, fled=${g.isTimeout})`, async () => {
+        const {status, data} = await req('POST', '/api/v2/test/insertUserGameResult', {
+          userId: testUserId,
+          gameId: g.gameId,
+          phase: g.isTimeout ? 'timeout' : 'end',
+          corporation: g.corporation,
+          playerScore: g.playerScore,
+          players: 4,
+          generations: 12,
+          position: g.position,
+          isRank: g.isRank,
+          isTimeout: g.isTimeout,
+        });
+        assert(status === 200, `Expected 200, got ${status}: ${JSON.stringify(data)}`);
+        assert(data.ok === true, `Expected ok:true, got ${JSON.stringify(data)}`);
+      });
+    }
+
+    // Verify stats via test endpoint
+    await test('Verify user game stats include inserted data', async () => {
+      const {status, data} = await req('GET', `/api/v2/test/userGameStats/${testUserId}`);
+      assert(status === 200, `Expected 200, got ${status}`);
+      assert(data.allTime !== undefined, 'Missing allTime stats');
+
+      const stats = data.allTime;
+      console.log(`    totalGames=${stats.totalGames} wins=${stats.wins} losses=${stats.losses}`);
+      console.log(`    winRate=${stats.winRate}% fleeCount=${stats.fleeCount} fleeRate=${stats.fleeRate}%`);
+      console.log(`    avgScore=${stats.avgScore} avgPosition=${stats.avgPosition}`);
+      console.log(`    totalRankGames=${stats.totalRankGames} rankWins=${stats.rankWins}`);
+
+      // We inserted 8 test games, at minimum these should be present
+      assert(stats.totalGames >= 8, `Expected >= 8 totalGames, got ${stats.totalGames}`);
+      assert(stats.totalRankGames >= 4, `Expected >= 4 rankGames, got ${stats.totalRankGames}`);
+      assert(stats.rankWins >= 2, `Expected >= 2 rankWins, got ${stats.rankWins}`);
+      assert(stats.fleeCount >= 2, `Expected >= 2 fleeCount, got ${stats.fleeCount}`);
+      assert(stats.wins >= 3, `Expected >= 3 wins, got ${stats.wins}`);
+    });
+
+    // Also verify via the public user-stats API
+    await test('Verify public user-stats API returns data', async () => {
+      const {status, data} = await req('GET', `/api/v2/user-stats/${testUserId}`);
+      assert(status === 200, `Expected 200, got ${status}`);
+      assert(data.allTime !== undefined, 'Missing allTime stats');
+      assert(data.recent3Months !== undefined, 'Missing recent3Months stats');
+      console.log(`    Public API allTime.totalGames=${data.allTime.totalGames}`);
+      console.log(`    Public API recent3Months.totalGames=${data.recent3Months.totalGames}`);
+    });
+  } else {
+    console.log('\n  (Skipping game stats tests: set TEST_API=true to run)');
+  }
+
   // ─── 11. 错误场景验证 ───
   section('11. Error Scenarios');
 

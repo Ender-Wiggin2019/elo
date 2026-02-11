@@ -113,7 +113,9 @@ export class PostgreSQL implements IDatabase {
     // 天梯 新增`user_rank`表记录用户的排名
     await this.client.query('CREATE TABLE IF NOT EXISTS user_rank (id varchar not null, rank_value integer default 0, mu float4, sigma float4,trueskill float4, PRIMARY KEY (id))');
     // 天梯 玩家数据表，用于保存段位的历史记录，和未来的数据分析 TODO: 未来如果做分析的话加上index
-    await this.client.query('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp(0) default now(), corporation text, position integer, player_score integer, rank_value integer, mu float4, sigma float4,trueskill float4, is_rank integer, phase text, PRIMARY KEY (user_id, game_id))');
+    await this.client.query('CREATE TABLE IF NOT EXISTS user_game_results (user_id varchar not null, game_id varchar not null, players integer, generations integer, createtime timestamp(0) default now(), corporation text, position integer, player_score integer, rank_value integer, mu float4, sigma float4,trueskill float4, is_rank integer, phase text, is_timeout integer default 0, PRIMARY KEY (user_id, game_id))');
+    // Migrate: add is_timeout column if missing (backward-compatible)
+    await this.client.query('ALTER TABLE user_game_results ADD COLUMN IF NOT EXISTS is_timeout integer default 0').catch(() => {});
 
     // 赛季快照表：保存每个赛季结束时的排名数据
     await this.client.query(`CREATE TABLE IF NOT EXISTS rank_seasons (
@@ -559,19 +561,66 @@ export class PostgreSQL implements IDatabase {
   }
 
   // @param position: 这局游戏第几名
-  saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined): void {
+  saveUserGameResult(user_id: string, game_id: string, phase: string, score: Score, players: number, generations: number, create_time: string, position: number, is_rank: boolean, user_rank: UserRank | undefined, is_timeout: boolean = false): void {
     const sql: string = user_rank !== undefined ?
-      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma,trueskill, is_rank, phase) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)' :
-      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank, phase) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, rank_value, mu, sigma,trueskill, is_rank, phase, is_timeout) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)' :
+      'INSERT INTO user_game_results (user_id, game_id, players, generations, createtime, corporation, position, player_score, is_rank, phase, is_timeout) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
     const params: any = user_rank !== undefined ?
-      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, user_rank.trueskill, is_rank?1:0, phase] :
-      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank?1:0, phase];
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, user_rank.trueskill, is_rank?1:0, phase, is_timeout?1:0] :
+      [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank?1:0, phase, is_timeout?1:0];
 
     this.client.query(sql, params, (err) => {
       if (err) {
         console.error('saveUserGameResult', err, params);
       }
     });
+  }
+
+  async getUserGameStats(userId: string): Promise<import('./IDatabase').IUserGameStats> {
+    const buildStatsQuery = (dateFilter: string) => `
+      SELECT
+        COUNT(*) as total_games,
+        SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) as wins,
+        SUM(CASE WHEN position > 1 THEN 1 ELSE 0 END) as losses,
+        SUM(CASE WHEN is_timeout = 1 THEN 1 ELSE 0 END) as flee_count,
+        COALESCE(AVG(player_score), 0) as avg_score,
+        COALESCE(AVG(position), 0) as avg_position,
+        SUM(CASE WHEN is_rank = 1 THEN 1 ELSE 0 END) as total_rank_games,
+        SUM(CASE WHEN is_rank = 1 AND position = 1 THEN 1 ELSE 0 END) as rank_wins
+      FROM user_game_results
+      WHERE user_id = $1 ${dateFilter}
+    `;
+
+    const allTimeResult = await this.client.query(buildStatsQuery(''), [userId]);
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    const recentResult = await this.client.query(
+      buildStatsQuery('AND createtime >= $2'),
+      [userId, threeMonthsAgo.toISOString()],
+    );
+
+    const mapRow = (row: any): import('./IDatabase').IUserGameStatsBlock => {
+      const totalGames = parseInt(row.total_games) || 0;
+      const wins = parseInt(row.wins) || 0;
+      const fleeCount = parseInt(row.flee_count) || 0;
+      return {
+        totalGames,
+        wins,
+        losses: parseInt(row.losses) || 0,
+        winRate: totalGames > 0 ? Math.round((wins / totalGames) * 10000) / 100 : 0,
+        fleeCount,
+        fleeRate: totalGames > 0 ? Math.round((fleeCount / totalGames) * 10000) / 100 : 0,
+        avgScore: Math.round(parseFloat(row.avg_score) * 100) / 100,
+        avgPosition: Math.round(parseFloat(row.avg_position) * 100) / 100,
+        totalRankGames: parseInt(row.total_rank_games) || 0,
+        rankWins: parseInt(row.rank_wins) || 0,
+      };
+    };
+
+    return {
+      allTime: mapRow(allTimeResult.rows[0]),
+      recent3Months: mapRow(recentResult.rows[0]),
+    };
   }
 
   // 赛季相关方法

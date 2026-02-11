@@ -22,8 +22,8 @@
         {{ rankTier.name }}
       </div>
 
-      <!-- Stats row -->
-      <div class="flex items-center gap-3 mt-1">
+      <!-- Stats row (only shown when data available) -->
+      <div v-if="winRate !== undefined || fleeRate !== undefined" class="flex items-center gap-3 mt-1">
         <div class="flex items-center gap-1">
           <span class="text-xs text-mars-text-faint font-mono uppercase tracking-wider" v-i18n>Win</span>
           <span class="text-xs font-mono font-semibold" :class="winRateClass">{{ winRateDisplay }}</span>
@@ -42,10 +42,6 @@ import Vue from 'vue';
 import {RankTier} from '@/common/rank/RankTier';
 import RankTierComponent from '@/client/components/RankTier.vue';
 
-// Mock constants — replace with real data later
-const MOCK_WIN_RATE = 0.42;
-const MOCK_FLEE_RATE = 0.03;
-
 export default Vue.extend({
   name: 'UserInfo',
   components: {
@@ -62,15 +58,15 @@ export default Vue.extend({
       type: Object as () => RankTier | null,
       default: null,
     },
-    /** Recent win rate (0-1). Uses mock if not provided. */
+    /** Recent win rate as percentage (0-100). Undefined if not available. */
     winRate: {
       type: Number,
-      default: MOCK_WIN_RATE,
+      default: undefined,
     },
-    /** Escape/flee rate (0-1). Uses mock if not provided. */
+    /** Escape/flee rate as percentage (0-100). Undefined if not available. */
     fleeRate: {
       type: Number,
-      default: MOCK_FLEE_RATE,
+      default: undefined,
     },
     /** Custom avatar color. Defaults to mars-rust. */
     avatarColor: {
@@ -91,19 +87,23 @@ export default Vue.extend({
       };
     },
     winRateDisplay(): string {
-      return (this.winRate * 100).toFixed(1) + '%';
+      if (this.winRate === undefined) return '--';
+      return this.winRate.toFixed(1) + '%';
     },
     fleeRateDisplay(): string {
-      return (this.fleeRate * 100).toFixed(1) + '%';
+      if (this.fleeRate === undefined) return '--';
+      return this.fleeRate.toFixed(1) + '%';
     },
     winRateClass(): string {
-      if (this.winRate >= 0.5) return 'text-mars-teal';
-      if (this.winRate >= 0.3) return 'text-mars-text-dim';
+      if (this.winRate === undefined) return 'text-mars-text-dim';
+      if (this.winRate >= 50) return 'text-mars-teal';
+      if (this.winRate >= 30) return 'text-mars-text-dim';
       return 'text-mars-red';
     },
     fleeRateClass(): string {
-      if (this.fleeRate <= 0.05) return 'text-mars-teal';
-      if (this.fleeRate <= 0.15) return 'text-mars-yellow';
+      if (this.fleeRate === undefined) return 'text-mars-text-dim';
+      if (this.fleeRate <= 5) return 'text-mars-teal';
+      if (this.fleeRate <= 15) return 'text-mars-yellow';
       return 'text-mars-red';
     },
   },

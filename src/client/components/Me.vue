@@ -28,6 +28,10 @@
           </div>
 
           <div class="me-panel">
+            <div class="me-points-chip" v-if="userId">
+              <span class="me-points-chip__label" v-i18n>Points</span>
+              <span class="me-points-chip__value">{{ userPointsDisplay }}</span>
+            </div>
             <div class="me-account-layout p-4 sm:p-6">
               <!-- Avatar -->
               <div class="me-account-avatar flex-shrink-0 w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-xl sm:text-3xl font-bold uppercase"
@@ -69,7 +73,8 @@
             <span class="me-section__title" v-i18n>Game Stats</span>
           </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <!-- Quick overview cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             <div class="me-stat-card p-4 text-center">
               <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Total Games</div>
               <div class="text-2xl font-bold font-mono text-mars-text">{{ games.length }}</div>
@@ -92,6 +97,17 @@
                 <a href="/donate" class="inline-block mt-1 px-3 py-1 bg-mars-amber/15 hover:bg-mars-amber/25 text-mars-amber text-xs font-bold uppercase tracking-wider border border-mars-amber/30 hover:border-mars-amber/50 transition-all" v-i18n>Get Potato</a>
               </div>
             </div>
+          </div>
+
+          <!-- Detailed stats (shared component) -->
+          <div v-if="gameStats" class="me-panel">
+            <UserGameStats
+              :allTime="gameStats.allTime"
+              :recent3Months="gameStats.recent3Months"
+            />
+          </div>
+          <div v-else-if="statsLoading" class="me-panel p-6 text-center">
+            <div class="text-mars-text-faint text-sm font-mono animate-pulse" v-i18n>Loading stats...</div>
           </div>
         </div>
 
@@ -181,6 +197,7 @@ import {Phase} from '@/common/Phase';
 import {getPreferences, PreferencesManager} from '@/client/utils/PreferencesManager';
 import ConfirmDialog from '@/client/components/common/ConfirmDialog.vue';
 import RankTier from '@/client/components/RankTier.vue';
+import UserGameStats from '@/client/components/common/UserGameStats.vue';
 import {UserRank} from '@/common/rank/RankManager';
 import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '@/common/rank/constants';
 
@@ -189,6 +206,7 @@ export default Vue.extend({
   components: {
     'confirm-dialog': ConfirmDialog,
     RankTier,
+    UserGameStats,
   },
   data() {
     return {
@@ -199,6 +217,8 @@ export default Vue.extend({
       enable_sounds: false,
       showhandcards: false,
       userRank: new UserRank('', DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0),
+      gameStats: null as any,
+      statsLoading: false,
     };
   },
   computed: {
@@ -216,6 +236,10 @@ export default Vue.extend({
         boxShadow: isVip ? '0 0 20px rgba(245,158,11,0.35)' : '0 0 12px rgba(226,82,14,0.2)',
       };
     },
+    userPointsDisplay(): string {
+      const points = this.userRank?.points || 0;
+      return points.toLocaleString('en-US');
+    },
   },
   mounted() {
     this.userId = PreferencesManager.load('userId');
@@ -226,6 +250,7 @@ export default Vue.extend({
     if (this.userId.length > 0) {
       this.getGames();
       this.getUserRank();
+      this.getUserStats();
     }
   },
   methods: {
@@ -262,7 +287,15 @@ export default Vue.extend({
         if (xhr.status === 200) {
           const result = xhr.response;
           if (result && result.rankValue >= 0) {
-            this.userRank = new UserRank(this.userId, result.rankValue, result.mu, result.sigma, result.trueskill);
+            this.userRank = new UserRank(
+              this.userId,
+              result.rankValue,
+              result.mu,
+              result.sigma,
+              result.trueskill,
+              result.points || 0,
+              result.seasonId || '',
+            );
           }
         }
       };
@@ -309,15 +342,31 @@ export default Vue.extend({
         alert(error);
       });
     },
+    getUserStats() {
+      if (!this.userId) return;
+      this.statsLoading = true;
+      axios.get('/api/v2/user-stats/' + this.userId)
+        .then((response: any) => {
+          if (response && response.data) {
+            this.gameStats = response.data;
+          }
+        })
+        .catch((err: any) => {
+          console.warn('Failed to load user stats:', err);
+        })
+        .finally(() => {
+          this.statsLoading = false;
+        });
+    },
     activateRank() {
       const userId = PreferencesManager.load('userId');
       if (userId === undefined || userId === '') return;
       axios.post('/api/activateRank', {
         userId: userId,
       }).then((response: any) => {
-        if (response && response.data) {
-          const result = response.data;
-          this.userRank = new UserRank(this.userId, result.rankValue, result.mu, result.sigma, result.trueskill);
+        if (response && response.status === 200) {
+          // activateRank returns "success"; refresh rank data via /api/userrank
+          this.getUserRank();
         }
       }).catch((error: any) => {
         alert(error);
@@ -484,6 +533,42 @@ export default Vue.extend({
   flex-shrink: 0;
 }
 
+.me-points-chip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(251, 191, 36, 0.08));
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.22), inset 0 0 8px rgba(251, 191, 36, 0.1);
+  border-radius: 3px;
+}
+
+.me-points-chip__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #fcd34d;
+  opacity: 0.9;
+  font-family: monospace;
+  font-weight: 700;
+}
+
+.me-points-chip__value {
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 800;
+  font-family: monospace;
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.45);
+}
+
+/* Stats display styles are in the shared UserGameStats.vue component */
+
 /* === Mobile responsive === */
 @media (max-width: 640px) {
   .me-account-layout {
@@ -513,10 +598,21 @@ export default Vue.extend({
     flex-wrap: wrap;
   }
 
+  .me-points-chip {
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+  }
+
+  .me-points-chip__value {
+    font-size: 15px;
+  }
+
   /* Reduce stat card text */
   .me-stat-card {
     padding: 12px 8px !important;
   }
+
 
   /* Games table: make it scroll */
   .me-panel table {

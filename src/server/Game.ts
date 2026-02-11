@@ -1371,14 +1371,15 @@ export class Game implements IGame, Logger {
       }
     }
 
-    // 天梯 存储历史数据和段位变化情况
-    // 1. 获取天梯排名的历史数据，用于显示变化以及在未来赛季重置时获取备份 @param position是玩家名次，写入数据库时+1
-    // 2. TODO: 在用户信息界面可以提供一定信息，例如近期胜率等等...
+    // 存储所有已登录玩家的对局结果（天梯 & 休闲均保存）
+    // is_rank 字段标记是否为天梯对局，用于后续查询过滤
+    // @param position 玩家名次，写入数据库时 +1（从 1 开始）
     sortedPlayers.forEach((player, position) => {
       const newUserRank = player.getUserRank();
       if (player.userId === undefined) return; // table `user_game_results` pk: user_id + game_id
       const playerIndex = players.indexOf(player);
-      Database.getInstance().saveUserGameResult(player.userId, this.id, this.phase, scores[playerIndex], players.length, this.generation, this.createtime, position+1, this.isRankMode(), newUserRank);
+      const isTimeoutPlayer = timeOutPlayer !== undefined && player === timeOutPlayer;
+      Database.getInstance().saveUserGameResult(player.userId, this.id, this.phase, scores[playerIndex], players.length, this.generation, this.createtime, position+1, this.isRankMode(), newUserRank, isTimeoutPlayer);
     });
 
     return;

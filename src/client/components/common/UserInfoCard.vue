@@ -31,12 +31,12 @@ export default Vue.extend({
       type: Object as () => RankTier | null,
       default: null,
     },
-    /** Recent win rate (0-1) */
+    /** Recent win rate as percentage (0-100). Undefined if not available. */
     winRate: {
       type: Number,
       default: undefined,
     },
-    /** Escape/flee rate (0-1) */
+    /** Escape/flee rate as percentage (0-100). Undefined if not available. */
     fleeRate: {
       type: Number,
       default: undefined,

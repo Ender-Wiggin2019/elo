@@ -2,12 +2,15 @@
  * User Profile API — /api/v2/user-profile
  *
  * Provides a public user profile endpoint that resolves users by ID or name.
+ * Includes aggregated game stats (allTime + recent3Months).
  */
 
 import {Hono} from 'hono';
 import {GameLoader} from '../database/GameLoader';
+import {Database} from '../database/Database';
 import {User} from '../User';
 import {UserRank} from '../../common/rank/RankManager';
+import {IUserGameStats} from '../database/IDatabase';
 
 export interface IUserProfileResponse {
   id: string;
@@ -29,14 +32,16 @@ export interface IUserProfileResponse {
       value: number;
     };
   } | null;
-  /** Total number of games */
+  /** Total number of games (from in-memory game loader) */
   totalGames: number;
+  /** Aggregated game stats from DB */
+  gameStats: IUserGameStats | null;
 }
 
-function buildProfileResponse(user: User): IUserProfileResponse {
+async function buildProfileResponse(user: User): Promise<IUserProfileResponse> {
   const userRank: UserRank | undefined = GameLoader.getInstance().userRankMap.get(user.id);
 
-  // Count games
+  // Count games from in-memory map
   const gameIds = GameLoader.getInstance().usersToGames.get(user.id);
   const totalGames = gameIds ? gameIds.size : 0;
 
@@ -60,6 +65,14 @@ function buildProfileResponse(user: User): IUserProfileResponse {
     };
   }
 
+  // Fetch aggregated game stats from DB
+  let gameStats: IUserGameStats | null = null;
+  try {
+    gameStats = await Database.getInstance().getUserGameStats(user.id);
+  } catch (err) {
+    console.error('[userProfile] Failed to get game stats for', user.id, err);
+  }
+
   return {
     id: user.id,
     name: user.name,
@@ -67,6 +80,7 @@ function buildProfileResponse(user: User): IUserProfileResponse {
     isvip: user.isvip(),
     rank: rankData,
     totalGames,
+    gameStats,
   };
 }
 
@@ -78,7 +92,7 @@ export const userProfileRoutes = new Hono();
  * Looks up a user by ID or name (case-insensitive).
  * The identifier is first tried as a user ID, then as a username.
  */
-userProfileRoutes.get('/:identifier', (c) => {
+userProfileRoutes.get('/:identifier', async (c) => {
   const identifier = c.req.param('identifier');
 
   if (!identifier) {
@@ -97,5 +111,5 @@ userProfileRoutes.get('/:identifier', (c) => {
     return c.json({error: 'User not found'}, 404);
   }
 
-  return c.json(buildProfileResponse(user));
+  return c.json(await buildProfileResponse(user));
 });
