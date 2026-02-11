@@ -4,6 +4,8 @@ import {Database} from '../../src/server/database/Database';
 import {GameLoader} from '../../src/server/database/GameLoader';
 import {getSeasonId, getSeasonInfo} from '../../src/common/rank/SeasonManager';
 import {User} from '../../src/server/User';
+import {UserRank} from '../../src/common/rank/RankManager';
+import {serverId} from '../../src/server/utils/server-ids';
 
 describe('Hono Season Routes', () => {
   describe('GET /api/v2/season/info', () => {
@@ -73,6 +75,66 @@ describe('Hono Season Routes', () => {
         Database.getInstance().getSeasonSnapshots = originalGetSnapshots;
         GameLoader.getInstance().userIdMap.delete('test-user-1');
       }
+    });
+  });
+
+  describe('GET /api/v2/season/list', () => {
+    it('should return current and previous season ids', async () => {
+      const res = await app.request('/api/v2/season/list');
+      expect(res.status).to.eq(200);
+      const data = await res.json();
+      expect(data.currentSeasonId).to.match(/^\d{4}-S[1-6]$/);
+      expect(data.previousSeasonId).to.match(/^\d{4}-S[1-6]$/);
+    });
+  });
+
+  describe('GET /api/v2/season/leaderboard', () => {
+    it('should return 400 without seasonId', async () => {
+      const res = await app.request('/api/v2/season/leaderboard');
+      expect(res.status).to.eq(400);
+    });
+
+    it('should return current season leaderboard', async () => {
+      const currentSeasonId = getSeasonId(new Date());
+      const userId = 'ldr-user-001';
+      GameLoader.getInstance().userIdMap.set(userId, new User('LeaderboardUser', '', userId));
+      const originalGetUserRanks = Database.getInstance().getUserRanks;
+      Database.getInstance().getUserRanks = () => Promise.resolve([
+        new UserRank(userId, 6, 25, 8.333, 0, 0, currentSeasonId),
+      ]);
+      try {
+        const res = await app.request('/api/v2/season/leaderboard?seasonId=' + currentSeasonId);
+        expect(res.status).to.eq(200);
+        const data = await res.json();
+        expect(data.isCurrentSeason).to.eq(true);
+        expect(data.allUserRanks).to.have.length(1);
+        expect(data.allUserRanks[0].userName).to.eq('LeaderboardUser');
+      } finally {
+        Database.getInstance().getUserRanks = originalGetUserRanks;
+        GameLoader.getInstance().userIdMap.delete(userId);
+      }
+    });
+  });
+
+  describe('POST /api/v2/season/admin/reset', () => {
+    it('should return 401 when serverId is missing', async () => {
+      const res = await app.request('/api/v2/season/admin/reset', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({dryRun: true, expectedFromSeasonId: '2026-S1'}),
+      });
+      expect(res.status).to.eq(401);
+    });
+
+    it('should allow dry-run reset when serverId is valid', async () => {
+      const res = await app.request('/api/v2/season/admin/reset?serverId=' + serverId, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({dryRun: true, expectedFromSeasonId: '2026-S1'}),
+      });
+      expect(res.status).to.eq(200);
+      const data = await res.json();
+      expect(data.status).to.eq('dry-run');
     });
   });
 });

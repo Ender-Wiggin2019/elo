@@ -12,6 +12,11 @@ export const Ranks = Vue.component('ranks', {
       allUserRanks: [],
       openTab: 1,
       rankTiers: RankTiers,
+      seasonInfo: undefined as undefined | {seasonId: string; seasonName: string; startDate: string; endDate: string},
+      seasonList: undefined as undefined | {currentSeasonId: string; previousSeasonId: string},
+      selectedSeasonId: '',
+      isCurrentSeason: true,
+      isLoadingLeaderboard: false,
     };
   },
   components: {
@@ -19,22 +24,77 @@ export const Ranks = Vue.component('ranks', {
     RankTier,
   },
   mounted: function() {
-    this.getRanks();
+    this.loadSeasonData();
   },
   methods: {
-    getRanks: function() {
+    loadSeasonData: function() {
+      const infoXhr = new XMLHttpRequest();
+      infoXhr.open('GET', '/api/v2/season/info');
+      infoXhr.responseType = 'json';
+      infoXhr.onerror = () => {
+        alert('Error loading season info');
+      };
+      infoXhr.onload = () => {
+        if (infoXhr.status === 200 && infoXhr.response) {
+          this.seasonInfo = infoXhr.response;
+        }
+      };
+      infoXhr.send();
+
+      const listXhr = new XMLHttpRequest();
+      listXhr.open('GET', '/api/v2/season/list');
+      listXhr.responseType = 'json';
+      listXhr.onerror = () => {
+        this.loadLegacyLeaderboard();
+      };
+      listXhr.onload = () => {
+        if (listXhr.status === 200 && listXhr.response) {
+          this.seasonList = listXhr.response;
+          this.selectedSeasonId = listXhr.response.currentSeasonId;
+          this.isCurrentSeason = true;
+          this.loadLeaderboard(this.selectedSeasonId);
+        } else {
+          this.loadLegacyLeaderboard();
+        }
+      };
+      listXhr.send();
+    },
+    loadLegacyLeaderboard: function() {
       const xhr = new XMLHttpRequest();
       xhr.open('GET', '/api/userranks?limit=' + RANK_LIMIT);
-      xhr.onerror = function() {
-        alert('Error getting games data');
+      xhr.onerror = () => {
+        alert('Error getting ranking data');
       };
       xhr.onload = () => {
         if (xhr.status === 200) {
           const result = xhr.response;
           if (result && result.allUserRanks && result.allUserRanks instanceof Array) {
             this.allUserRanks = result.allUserRanks;
+          }
+        }
+      };
+      xhr.responseType = 'json';
+      xhr.send();
+    },
+    loadLeaderboard: function(seasonId: string) {
+      this.isLoadingLeaderboard = true;
+      const querySeasonId = seasonId || (this.seasonInfo ? this.seasonInfo.seasonId : '');
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/v2/season/leaderboard?seasonId=' + encodeURIComponent(querySeasonId) + '&limit=' + RANK_LIMIT);
+      xhr.onerror = () => {
+        this.isLoadingLeaderboard = false;
+        alert('Error getting ranking data');
+      };
+      xhr.onload = () => {
+        this.isLoadingLeaderboard = false;
+        if (xhr.status === 200) {
+          const result = xhr.response;
+          if (result && result.allUserRanks && result.allUserRanks instanceof Array) {
+            this.allUserRanks = result.allUserRanks;
+            this.selectedSeasonId = result.seasonId || querySeasonId;
+            this.isCurrentSeason = result.isCurrentSeason === true;
           } else {
-            alert('Unexpected response fetching games from API');
+            alert('Unexpected response fetching leaderboard from API');
           }
         } else {
           console.log('No Ranking Data yet.');
@@ -46,19 +106,43 @@ export const Ranks = Vue.component('ranks', {
     toggleTabs: function(tabNumber: number) {
       this.openTab = tabNumber;
     },
+    viewPreviousSeason: function() {
+      const previousSeasonId = this.seasonList?.previousSeasonId || '';
+      if (!previousSeasonId) {
+        return;
+      }
+      this.loadLeaderboard(previousSeasonId);
+    },
+    viewCurrentSeason: function() {
+      const currentSeasonId = this.seasonList?.currentSeasonId || this.seasonInfo?.seasonId || '';
+      if (!currentSeasonId) {
+        return;
+      }
+      this.loadLeaderboard(currentSeasonId);
+    },
+    formatSeasonDateTime: function(isoDate: string | undefined): string {
+      if (!isoDate) {
+        return '';
+      }
+      const date = new Date(isoDate);
+      return date.toLocaleString();
+    },
+    getDisplayRank: function(singleUserRank: any, index: number): number {
+      return singleUserRank.finalPosition || index + 1;
+    },
     getTierColor: function(rankTier: any): string {
       const colors: Record<string, string> = {
-        'Iron': '#78716c',
-        'Bronze': '#b4783c',
-        'Silver': '#94a3b8',
-        'Gold': '#eab308',
-        'Platinum': '#06b6d4',
+        'Iron': '#a8a29e',
+        'Bronze': '#d4945a',
+        'Silver': '#cbd5e1',
+        'Gold': '#facc15',
+        'Platinum': '#22d3ee',
         'Diamond': '#60a5fa',
         'Master': '#a78bfa',
         'Grandmaster': '#f87171',
         'Challenger': '#fbbf24',
       };
-      return colors[rankTier.name] || '#94a3b8';
+      return colors[rankTier.name] || '#cbd5e1';
     },
     getTierCardStyle: function(rankTier: any, _idx: number): Record<string, string> {
       const color = (this as any).getTierColor(rankTier);
@@ -80,16 +164,33 @@ export const Ranks = Vue.component('ranks', {
   },
   template: `
     <div class="ranks-page min-h-screen bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
-      style="background-image: radial-gradient(ellipse at 50% 0%, rgba(194,65,12,0.10) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(6,182,212,0.04) 0%, transparent 40%), linear-gradient(rgba(30,42,66,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(30,42,66,0.25) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
+      style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
       <div class="max-w-5xl mx-auto">
 
-        <!-- Header -->
-        <div class="flex items-center gap-2 mb-1">
-          <a href="/" class="text-mars-rust hover:text-mars-ember transition-colors text-sm font-semibold uppercase tracking-widest" v-i18n>Terraforming Mars</a>
-          <span class="text-mars-text-faint text-xs">&#9656;</span>
-          <span class="text-sm font-bold text-mars-text uppercase tracking-widest" v-i18n>Ranking</span>
+        <!-- Page title -->
+        <div class="flex items-center gap-3 mb-3">
+          <div style="width:7px;height:7px;border-radius:50%;background:#2dd4bf;box-shadow:0 0 8px rgba(45,212,191,0.7);"></div>
+          <h1 class="text-lg font-bold text-mars-text uppercase tracking-widest" v-i18n>Ranking</h1>
         </div>
-        <div class="mb-6" style="height:1px;background:linear-gradient(to right,rgba(194,65,12,0.7),rgba(194,65,12,0.3) 25%,rgba(46,63,94,0.5) 55%,transparent 100%);"></div>
+        <div class="mb-3 text-xs text-mars-text-dim font-mono">
+          <span class="text-mars-rust font-semibold">Season:</span>
+          <span class="ml-1 text-mars-text">{{ seasonInfo ? seasonInfo.seasonName : '--' }}</span>
+          <span v-if="seasonInfo" class="ml-3 text-mars-text-faint">({{ formatSeasonDateTime(seasonInfo.startDate) }} ~ {{ formatSeasonDateTime(seasonInfo.endDate) }})</span>
+          <span v-if="!isCurrentSeason" class="ml-3 text-mars-yellow font-bold uppercase tracking-wider">Final Snapshot</span>
+        </div>
+        <div class="flex gap-2 mb-3 flex-wrap">
+          <button class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all border border-mars-rust/30 bg-mars-deep text-mars-text-dim hover:bg-mars-rust/10 hover:border-mars-rust/60 hover:text-mars-text"
+            style="border-radius:2px;"
+            v-on:click="viewCurrentSeason" v-i18n>
+            Current Season
+          </button>
+          <button class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all border border-mars-rust/30 bg-mars-deep text-mars-text-dim hover:bg-mars-rust/10 hover:border-mars-rust/60 hover:text-mars-text"
+            style="border-radius:2px;"
+            v-on:click="viewPreviousSeason" v-i18n>
+            Previous Season
+          </button>
+        </div>
+        <div class="mb-6" style="height:1px;background:linear-gradient(to right,rgba(226,82,14,0.7),rgba(226,82,14,0.3) 25%,rgba(38,48,80,0.5) 55%,transparent 100%);"></div>
 
         <!-- Tabs -->
         <div class="flex gap-1 mb-5" style="cursor:pointer;">
@@ -108,45 +209,66 @@ export const Ranks = Vue.component('ranks', {
 
         <!-- =============== TAB 1: Leaderboard =============== -->
         <div v-if="openTab === 1">
-          <!-- Top 3 Podium -->
-          <div v-if="allUserRanks.length >= 3" class="flex items-end justify-center gap-3 mb-6 px-4">
+          <div v-if="isLoadingLeaderboard" class="text-center text-sm text-mars-text-dim mb-4">Loading leaderboard...</div>
+          <!-- Top 3 Podium (Desktop only: hidden on small screens) -->
+          <div v-if="allUserRanks.length >= 3" class="hidden sm:flex items-end justify-center gap-3 mb-6 px-4">
             <!-- #2 Silver -->
             <div class="ranks-podium ranks-podium--silver flex-1 max-w-[200px]">
               <div class="ranks-podium__crown text-center mb-2">
-                <span class="text-3xl" style="filter:drop-shadow(0 0 6px rgba(192,192,192,0.5));">&#9733;</span>
+                <span class="text-3xl" style="filter:drop-shadow(0 0 8px rgba(203,213,225,0.5));">&#9733;</span>
               </div>
-              <div class="ranks-podium__card relative p-4 text-center" style="background:linear-gradient(180deg,rgba(148,163,184,0.12) 0%,rgba(24,33,54,0.95) 100%);border:1px solid rgba(148,163,184,0.3);clip-path:polygon(0 8px,8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);">
-                <div class="text-xs font-mono text-zinc-400 uppercase tracking-widest mb-1">#2</div>
+              <div class="ranks-podium__card relative p-4 text-center" style="background:linear-gradient(180deg,rgba(203,213,225,0.12) 0%,rgba(17,26,46,0.95) 100%);border:1px solid rgba(203,213,225,0.3);clip-path:polygon(0 8px,8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+                <div class="text-xs font-mono text-mars-text-dim uppercase tracking-widest mb-1">#{{ getDisplayRank(allUserRanks[1], 1) }}</div>
                 <a :href="'/user/' + encodeURIComponent(allUserRanks[1].userName)" class="block text-sm font-bold text-mars-text truncate mb-1 hover:text-mars-cyan transition-colors">{{ allUserRanks[1].userName }}</a>
                 <div class="flex justify-center"><RankTier :rankTier="allUserRanks[1].userTier" :showNumber="false"/></div>
               </div>
-              <div style="height:60px;background:linear-gradient(180deg,rgba(148,163,184,0.15),rgba(148,163,184,0.03));border-left:1px solid rgba(148,163,184,0.2);border-right:1px solid rgba(148,163,184,0.2);"></div>
+              <div style="height:60px;background:linear-gradient(180deg,rgba(203,213,225,0.15),rgba(203,213,225,0.02));border-left:1px solid rgba(203,213,225,0.2);border-right:1px solid rgba(203,213,225,0.2);"></div>
             </div>
 
             <!-- #1 Gold -->
             <div class="ranks-podium ranks-podium--gold flex-1 max-w-[220px]">
               <div class="ranks-podium__crown text-center mb-2">
-                <span class="text-4xl" style="filter:drop-shadow(0 0 10px rgba(234,179,8,0.6));">&#9813;</span>
+                <span class="text-4xl" style="filter:drop-shadow(0 0 12px rgba(250,204,21,0.6));">&#9813;</span>
               </div>
-              <div class="ranks-podium__card relative p-5 text-center" style="background:linear-gradient(180deg,rgba(234,179,8,0.12) 0%,rgba(24,33,54,0.95) 100%);border:1px solid rgba(234,179,8,0.4);clip-path:polygon(0 10px,10px 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);box-shadow:0 0 20px rgba(234,179,8,0.1);">
-                <div class="text-xs font-mono text-yellow-400 uppercase tracking-widest mb-1" style="text-shadow:0 0 6px rgba(234,179,8,0.4);">#1</div>
+              <div class="ranks-podium__card relative p-5 text-center" style="background:linear-gradient(180deg,rgba(250,204,21,0.12) 0%,rgba(17,26,46,0.95) 100%);border:1px solid rgba(250,204,21,0.4);clip-path:polygon(0 10px,10px 0,calc(100% - 10px) 0,100% 10px,100% 100%,0 100%);box-shadow:0 0 28px rgba(250,204,21,0.12);">
+                <div class="text-xs font-mono text-mars-yellow uppercase tracking-widest mb-1" style="text-shadow:0 0 8px rgba(250,204,21,0.4);">#{{ getDisplayRank(allUserRanks[0], 0) }}</div>
                 <a :href="'/user/' + encodeURIComponent(allUserRanks[0].userName)" class="block text-base font-bold text-mars-text truncate mb-1 hover:text-mars-cyan transition-colors">{{ allUserRanks[0].userName }}</a>
                 <div class="flex justify-center"><RankTier :rankTier="allUserRanks[0].userTier" :showNumber="false"/></div>
               </div>
-              <div style="height:80px;background:linear-gradient(180deg,rgba(234,179,8,0.12),rgba(234,179,8,0.02));border-left:1px solid rgba(234,179,8,0.25);border-right:1px solid rgba(234,179,8,0.25);"></div>
+              <div style="height:80px;background:linear-gradient(180deg,rgba(250,204,21,0.12),rgba(250,204,21,0.02));border-left:1px solid rgba(250,204,21,0.25);border-right:1px solid rgba(250,204,21,0.25);"></div>
             </div>
 
             <!-- #3 Bronze -->
             <div class="ranks-podium ranks-podium--bronze flex-1 max-w-[200px]">
               <div class="ranks-podium__crown text-center mb-2">
-                <span class="text-3xl" style="filter:drop-shadow(0 0 6px rgba(180,120,60,0.5));">&#9733;</span>
+                <span class="text-3xl" style="filter:drop-shadow(0 0 8px rgba(212,148,90,0.5));">&#9733;</span>
               </div>
-              <div class="ranks-podium__card relative p-4 text-center" style="background:linear-gradient(180deg,rgba(180,120,60,0.12) 0%,rgba(24,33,54,0.95) 100%);border:1px solid rgba(180,120,60,0.3);clip-path:polygon(0 8px,8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);">
-                <div class="text-xs font-mono text-amber-500 uppercase tracking-widest mb-1">#3</div>
+              <div class="ranks-podium__card relative p-4 text-center" style="background:linear-gradient(180deg,rgba(212,148,90,0.12) 0%,rgba(17,26,46,0.95) 100%);border:1px solid rgba(212,148,90,0.3);clip-path:polygon(0 8px,8px 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+                <div class="text-xs font-mono text-mars-amber uppercase tracking-widest mb-1">#{{ getDisplayRank(allUserRanks[2], 2) }}</div>
                 <a :href="'/user/' + encodeURIComponent(allUserRanks[2].userName)" class="block text-sm font-bold text-mars-text truncate mb-1 hover:text-mars-cyan transition-colors">{{ allUserRanks[2].userName }}</a>
                 <div class="flex justify-center"><RankTier :rankTier="allUserRanks[2].userTier" :showNumber="false"/></div>
               </div>
-              <div style="height:40px;background:linear-gradient(180deg,rgba(180,120,60,0.12),rgba(180,120,60,0.02));border-left:1px solid rgba(180,120,60,0.2);border-right:1px solid rgba(180,120,60,0.2);"></div>
+              <div style="height:40px;background:linear-gradient(180deg,rgba(212,148,90,0.12),rgba(212,148,90,0.02));border-left:1px solid rgba(212,148,90,0.2);border-right:1px solid rgba(212,148,90,0.2);"></div>
+            </div>
+          </div>
+
+          <!-- Top 3 List (Mobile only: hidden on sm and above) -->
+          <div v-if="allUserRanks.length >= 3" class="sm:hidden mb-4 space-y-2">
+            <div v-for="idx in [0, 1, 2]" :key="'top-' + idx"
+              class="flex items-center gap-3 px-3 py-2.5 bg-mars-deep border border-mars-border/50 rounded">
+              <div class="w-8 h-8 flex items-center justify-center text-xs font-bold font-mono rounded flex-shrink-0"
+                :style="idx === 0 ? 'background:rgba(250,204,21,0.15);color:#facc15;border:1px solid rgba(250,204,21,0.3);' :
+                         idx === 1 ? 'background:rgba(203,213,225,0.1);color:#cbd5e1;border:1px solid rgba(203,213,225,0.25);' :
+                                     'background:rgba(212,148,90,0.1);color:#d4945a;border:1px solid rgba(212,148,90,0.25);'">
+                #{{ getDisplayRank(allUserRanks[idx], idx) }}
+              </div>
+              <a :href="'/user/' + encodeURIComponent(allUserRanks[idx].userName)"
+                class="flex-1 min-w-0 text-sm font-bold text-mars-text truncate hover:text-mars-cyan transition-colors" style="text-decoration:none;">
+                {{ allUserRanks[idx].userName }}
+              </a>
+              <div class="flex-shrink-0">
+                <RankTier :rankTier="allUserRanks[idx].userTier" :showNumber="false"/>
+              </div>
             </div>
           </div>
 
@@ -168,7 +290,7 @@ export const Ranks = Vue.component('ranks', {
                       class="border-b border-mars-border/30 transition-colors"
                       v-bind:class="{'hover:bg-mars-surface/40': true}">
                     <td class="py-2.5 px-3">
-                      <div class="w-7 h-7 text-center text-sm font-mono text-mars-text-dim leading-7">{{ index + 1 }}</div>
+                      <div class="w-7 h-7 text-center text-sm font-mono text-mars-text-dim leading-7">{{ getDisplayRank(singleUserRank, index) }}</div>
                     </td>
                     <td class="py-2.5 px-3 text-mars-text font-medium"><a :href="'/user/' + encodeURIComponent(singleUserRank.userName)" class="hover:text-mars-cyan transition-colors hover:underline">{{ singleUserRank.userName }}</a></td>
                     <td class="py-2.5 px-3"><RankTier :rankTier="singleUserRank.userTier" :showNumber="false"/></td>
@@ -186,9 +308,9 @@ export const Ranks = Vue.component('ranks', {
             style="clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));">
             <div class="text-xs uppercase tracking-widest text-mars-rust font-mono font-bold mb-4" v-i18n>Star Change per Placement</div>
             <div class="space-y-3">
-              <div v-for="p in ['2','3','4','5']" class="ranks-rule-row flex items-start gap-4 p-3 rounded-sm transition-colors hover:bg-mars-surface/30" style="border-left:2px solid rgba(194,65,12,0.4);">
+              <div v-for="p in ['2','3','4','5']" class="ranks-rule-row flex items-start gap-4 p-3 rounded-sm transition-colors hover:bg-mars-surface/30" style="border-left:2px solid rgba(226,82,14,0.5);">
                 <span class="inline-flex items-center justify-center w-10 h-10 flex-shrink-0 text-sm font-bold font-mono"
-                  style="background:linear-gradient(135deg,rgba(194,65,12,0.2),rgba(194,65,12,0.05));color:#ea580c;clip-path:polygon(0 4px,4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px));">
+                  style="background:linear-gradient(135deg,rgba(226,82,14,0.2),rgba(226,82,14,0.05));color:#f97316;clip-path:polygon(0 4px,4px 0,calc(100% - 4px) 0,100% 4px,100% calc(100% - 4px),calc(100% - 4px) 100%,4px 100%,0 calc(100% - 4px));">
                   {{p}}P
                 </span>
                 <div class="text-sm text-mars-text-dim pt-2 leading-relaxed">
@@ -200,7 +322,7 @@ export const Ranks = Vue.component('ranks', {
               </div>
             </div>
 
-            <div class="mt-6 p-3 text-xs text-mars-text-faint font-mono" style="border:1px dashed rgba(46,63,94,0.6);background:rgba(11,15,26,0.4);">
+            <div class="mt-6 p-3 text-xs text-mars-text-dim font-mono" style="border:1px dashed rgba(38,48,80,0.7);background:rgba(10,14,26,0.5);">
               <span class="text-mars-cyan">&#9432;</span>
               <span class="ml-2" v-i18n>Iron, Bronze, Silver tier players will not lose stars on demotion.</span>
             </div>
@@ -259,14 +381,19 @@ export const Ranks = Vue.component('ranks', {
       <style>
         .ranks-tab {
           clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
-          background: rgba(24,33,54,0.3);
+          background: rgba(17,26,46,0.4);
           border: 1px solid transparent;
+          transition: all 0.2s ease;
         }
         .ranks-tab--active {
-          border-color: rgba(46,63,94,0.6);
+          border-color: rgba(38,48,80,0.7);
+          background: rgba(17,26,46,0.8);
         }
         .ranks-panel {
           position: relative;
+          background: rgba(17,26,46,0.95);
+          border-color: #263050;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
         }
         .ranks-panel::before {
           content: '';
@@ -274,8 +401,8 @@ export const Ranks = Vue.component('ranks', {
           top: 0;
           left: 0;
           width: 30px;
-          height: 1px;
-          background: #c2410c;
+          height: 2px;
+          background: linear-gradient(to right, #e2520e, transparent);
         }
         .ranks-panel::after {
           content: '';
@@ -283,8 +410,8 @@ export const Ranks = Vue.component('ranks', {
           bottom: 0;
           right: 0;
           width: 30px;
-          height: 1px;
-          background: #c2410c;
+          height: 2px;
+          background: linear-gradient(to left, #e2520e, transparent);
         }
         .ranks-tiers-grid {
           display: flex;
@@ -292,19 +419,76 @@ export const Ranks = Vue.component('ranks', {
           gap: 6px;
         }
         .ranks-tier-card {
-          border: 1px solid rgba(46,63,94,0.5);
+          border: 1px solid rgba(38,48,80,0.5);
           clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-          background: linear-gradient(135deg, rgba(24,33,54,0.9) 0%, rgba(31,43,68,0.7) 100%);
+          background: linear-gradient(135deg, rgba(17,26,46,0.95) 0%, rgba(26,37,64,0.8) 100%);
+          transition: all 0.25s ease;
         }
         .ranks-tier-card:hover {
-          border-color: rgba(46,63,94,0.8);
+          border-color: rgba(38,48,80,0.9);
           transform: translateX(4px);
         }
+        /* ============ Podium ============ */
         .ranks-podium {
-          transition: transform 0.2s;
+          transition: transform 0.25s ease;
         }
         .ranks-podium:hover {
           transform: translateY(-4px);
+        }
+
+        /* Podium visibility and mobile list handled by Tailwind responsive classes */
+
+        /* ============ Mobile Responsive ============ */
+        @media (max-width: 640px) {
+          .ranks-page {
+            padding: 12px !important;
+          }
+
+          /* Season info: wrap */
+          .ranks-page .mb-3.text-xs {
+            line-height: 1.6;
+          }
+          .ranks-page .mb-3.text-xs .ml-3 {
+            display: block;
+            margin-left: 0 !important;
+            margin-top: 2px;
+          }
+
+          /* Tabs: smaller */
+          .ranks-tab {
+            padding: 8px 6px !important;
+            font-size: 10px !important;
+          }
+
+          /* Panel padding */
+          .ranks-panel {
+            padding: 12px !important;
+          }
+
+          /* Ranking table */
+          .ranks-panel table th,
+          .ranks-panel table td {
+            padding: 8px 6px !important;
+            font-size: 12px;
+          }
+
+          /* Rule rows */
+          .ranks-rule-row {
+            flex-direction: column;
+            gap: 8px !important;
+          }
+
+          /* Tier cards */
+          .ranks-tier-card .flex.items-center.gap-4.p-4 {
+            padding: 10px !important;
+            gap: 10px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .ranks-page {
+            padding: 8px !important;
+          }
         }
       </style>
     </div>

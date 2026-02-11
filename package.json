@@ -119,7 +119,6 @@
     "dev:client": "vite",
     "dev:server": "cross-env NODE_ENV=development tsnd src/server/server.ts",
     "dev:server:bun": "bun --watch run src/server/server.ts",
-    "dev:server:bun-hot": "bun --hot run src/server/server-bun.ts",
     "dev:bun": "bun run dev:server:bun-hot",
     "tsc-w": "tsc --build -w src/tsconfig.json",
     "tsc-wt": "tsc --build -w src/tsconfig.json  tests/tsconfig.json"

@@ -317,6 +317,14 @@ export class SQLite implements IDatabase {
     });
   }
 
+  updateUserProp(id: string, prop: string): void {
+    this.db.run('UPDATE users SET prop = ? WHERE id = ?', [prop, id], function(err: { message: any; }) {
+      if (err) {
+        return console.error('SQLite:updateUserProp', err.message);
+      }
+    });
+  }
+
   getUsers(cb:(err: any, allUsers:Array<User>)=> void): void {
     const allUsers:Array<User> = [];
     const sql: string = 'SELECT distinct id, name, password, prop, createtime FROM users ';

@@ -8,9 +8,11 @@ import {DEFAULT_MU, DEFAULT_SIGMA} from './constants';
 export const SEASON_POINTS_REWARDS: Record<number, number> = {
   1: 100, // 第一名
   2: 50, // 第二名
-  3: 30, // 第三名
+  3: 35, // 第三名
 };
-export const SEASON_POINTS_DEFAULT = 15; // 其他玩家
+export const SEASON_POINTS_TOP_TEN = 20; // 前十
+export const SEASON_POINTS_TOP_HUNDRED = 10; // 前一百
+export const SEASON_POINTS_DEFAULT = 0; // 其他玩家
 
 // 赛季软重置参数：保留60%的旧分数
 export const SEASON_MU_RETENTION = 0.6;
@@ -38,6 +40,22 @@ export function getSeasonId(date: Date = new Date()): string {
   const year = date.getFullYear();
   const seasonNum = getSeasonNumber(date);
   return `${year}-S${seasonNum}`;
+}
+
+/**
+ * 获取指定赛季的上一个赛季ID
+ */
+export function getPreviousSeasonId(seasonId: string): string {
+  const match = seasonId.match(/^(\d{4})-S([1-6])$/);
+  if (match === null) {
+    return seasonId;
+  }
+  const year = Number(match[1]);
+  const seasonNumber = Number(match[2]);
+  if (seasonNumber > 1) {
+    return `${year}-S${seasonNumber - 1}`;
+  }
+  return `${year - 1}-S6`;
 }
 
 /**
@@ -84,17 +102,30 @@ export function shouldResetSeason(lastSeasonId: string | undefined, currentDate:
  * 参考LoL等游戏的赛季重置机制，保留一部分旧分数
  */
 export function softResetMu(oldMu: number): number {
-  return DEFAULT_MU * (1 - SEASON_MU_RETENTION) + oldMu * SEASON_MU_RETENTION;
+  // 赛季重置后保留玩家的技能均值，延续长期实力
+  return oldMu;
 }
 
-export function softResetSigma(oldSigma: number): number {
-  // sigma向默认值回归，增加不确定性
-  return DEFAULT_SIGMA * (1 - SEASON_SIGMA_RETENTION) + oldSigma * SEASON_SIGMA_RETENTION;
+export function softResetSigma(_oldSigma: number): number {
+  // 重置不确定性到初始值，让新赛季更快重新校准匹配
+  return DEFAULT_SIGMA;
 }
 
 /**
  * 根据赛季排名获取积分奖励
  */
 export function getSeasonPointsReward(position: number): number {
-  return SEASON_POINTS_REWARDS[position] ?? SEASON_POINTS_DEFAULT;
+  if (position <= 0) {
+    return SEASON_POINTS_DEFAULT;
+  }
+  if (position in SEASON_POINTS_REWARDS) {
+    return SEASON_POINTS_REWARDS[position];
+  }
+  if (position <= 10) {
+    return SEASON_POINTS_TOP_TEN;
+  }
+  if (position <= 100) {
+    return SEASON_POINTS_TOP_HUNDRED;
+  }
+  return SEASON_POINTS_DEFAULT;
 }

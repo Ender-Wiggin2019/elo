@@ -17,10 +17,12 @@
 
 import {Database} from '../database/Database';
 import {GameLoader} from '../database/GameLoader';
-import {getSeasonId, getSeasonInfo as getSeasonInfoFn, ISeasonInfo} from '../../common/rank/SeasonManager';
+import {getSeasonId, getSeasonInfo as getSeasonInfoFn, ISeasonInfo, getPreviousSeasonId} from '../../common/rank/SeasonManager';
 import {tryMatchPlayers, IMatchResult} from '../rank/MatchmakingHandler';
 import {UserRank} from '../../common/rank/RankManager';
 import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../common/rank/constants';
+import {runSeasonReset, ISeasonResetResult} from '../rank/SeasonResetHandler';
+import {RankTier} from '../../common/rank/RankTier';
 
 // ========== 返回类型定义 ==========
 
@@ -47,6 +49,27 @@ export interface ISeasonHistoryResponse {
   snapshots: Array<ISeasonSnapshotEntry>;
 }
 
+export interface ISeasonListResponse {
+  currentSeasonId: string;
+  previousSeasonId: string;
+}
+
+export interface ISeasonLeaderboardEntry {
+  userName: string;
+  userTier: RankTier;
+  rankValue: number;
+  trueskill: number;
+  seasonId: string;
+  finalPosition?: number;
+  pointsEarned?: number;
+}
+
+export interface ISeasonLeaderboardResponse {
+  seasonId: string;
+  isCurrentSeason: boolean;
+  allUserRanks: Array<ISeasonLeaderboardEntry>;
+}
+
 export interface IJoinMatchmakingResponse {
   status: string;
   match: IMatchResult | null;
@@ -70,6 +93,11 @@ export interface IUserRankResponse {
   trueskill: number;
   points: number;
   seasonId: string;
+}
+
+export interface ISeasonResetRequest {
+  expectedFromSeasonId?: string;
+  dryRun?: boolean;
 }
 
 // ========== 错误类型 ==========
@@ -122,6 +150,86 @@ export class UserCenter {
     });
 
     return {seasonId, snapshots: result};
+  }
+
+  /**
+   * 返回可选的赛季信息（当前与上一赛季）
+   */
+  static getSeasonList(now: Date = new Date()): ISeasonListResponse {
+    const currentSeasonId = getSeasonId(now);
+    return {
+      currentSeasonId,
+      previousSeasonId: getPreviousSeasonId(currentSeasonId),
+    };
+  }
+
+  /**
+   * 获取赛季排行榜
+   * - 当前赛季: 读取实时 user_rank
+   * - 历史赛季: 读取赛季快照 rank_seasons
+   */
+  static async getSeasonLeaderboard(seasonId: string, limit = 100): Promise<ISeasonLeaderboardResponse> {
+    if (!seasonId) {
+      throw new ServiceError(400, 'Missing seasonId parameter');
+    }
+    const currentSeasonId = getSeasonId();
+    if (seasonId === currentSeasonId) {
+      const allUserRanks = await Database.getInstance().getUserRanks(Math.min(100, limit));
+      const rankList = Array.isArray(allUserRanks) ? allUserRanks : [];
+      const entries = rankList.map((userRank) => {
+        const user = GameLoader.getInstance().userIdMap.get(userRank.userId);
+        return {
+          userName: user?.name || 'Unknown',
+          userTier: userRank.getTier(),
+          rankValue: userRank.rankValue,
+          trueskill: userRank.trueskill,
+          seasonId: userRank.seasonId || currentSeasonId,
+        };
+      });
+      return {
+        seasonId,
+        isCurrentSeason: true,
+        allUserRanks: entries,
+      };
+    }
+    const snapshots = await Database.getInstance().getSeasonSnapshots(seasonId);
+    const entries = snapshots.slice(0, Math.min(100, limit)).map((snapshot) => {
+      const user = GameLoader.getInstance().userIdMap.get(snapshot.userId);
+      const userRank = new UserRank(
+        snapshot.userId,
+        snapshot.rankValue,
+        snapshot.mu,
+        snapshot.sigma,
+        snapshot.trueskill,
+        0,
+        seasonId,
+      );
+      return {
+        userName: user?.name || 'Unknown',
+        userTier: userRank.getTier(),
+        rankValue: snapshot.rankValue,
+        trueskill: snapshot.trueskill,
+        seasonId,
+        finalPosition: snapshot.finalPosition,
+        pointsEarned: snapshot.pointsEarned,
+      };
+    });
+    return {
+      seasonId,
+      isCurrentSeason: false,
+      allUserRanks: entries,
+    };
+  }
+
+  /**
+   * 触发赛季重置（admin）
+   */
+  static async triggerSeasonReset(payload: ISeasonResetRequest): Promise<ISeasonResetResult> {
+    return await runSeasonReset({
+      expectedFromSeasonId: payload.expectedFromSeasonId,
+      dryRun: payload.dryRun === true,
+      triggeredBy: 'admin',
+    });
   }
 
   /**

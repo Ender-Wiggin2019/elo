@@ -18,6 +18,35 @@ src/
 └── tools/           # Utility scripts
 ```
 
+## Project Request Conventions
+
+### Frontend HTTP Requests
+
+- **Must use wrapped request utility**: `src/client/utils/request.ts`
+- Avoid adding new raw `fetch` / `XMLHttpRequest` calls in frontend features.
+
+Use:
+
+```typescript
+import {request} from '@/client/utils/request';
+
+// GET with optional query params
+const seasonInfo = await request.get('/api/v2/season/info');
+const leaderboard = await request.get('/api/v2/season/leaderboard', {seasonId: '2026-S1', limit: 100});
+
+// POST with JSON body
+const resetResult = await request.post('/api/v2/season/admin/reset?serverId=xxx', {
+  dryRun: true,
+  expectedFromSeasonId: '2026-S1',
+});
+```
+
+### Backend API Implementation
+
+- **All newly added backend APIs must be implemented with Hono**, mounted under `/api/v2/*`.
+- Do not add new legacy routes in `UserManager` / `ApiUserManager` for new features.
+- Add route module in `src/server/hono/` and mount it in `src/server/hono/app.ts`.
+
 ## Three-Layer Architecture
 
 ### 1. Common Layer (`src/common/`)

@@ -1,15 +1,14 @@
 <template>
   <div class="min-h-screen bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
-    style="background-image: radial-gradient(ellipse at 50% 0%, rgba(194,65,12,0.10) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(6,182,212,0.04) 0%, transparent 40%), linear-gradient(rgba(30,42,66,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(30,42,66,0.25) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
+    style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
     <div class="max-w-3xl mx-auto">
 
-      <!-- Header -->
-      <div class="flex items-center gap-2 mb-1">
-        <a href="/" class="text-mars-rust hover:text-mars-ember transition-colors text-sm font-semibold uppercase tracking-widest" v-i18n>Terraforming Mars</a>
-        <span class="text-mars-text-faint text-xs">&#9656;</span>
-        <span class="text-sm font-bold text-mars-text uppercase tracking-widest" v-i18n>Profile</span>
+      <!-- Page Title -->
+      <div class="flex items-center gap-3 mb-3">
+        <div style="width:7px;height:7px;border-radius:50%;background:#2dd4bf;box-shadow:0 0 8px rgba(45,212,191,0.7);"></div>
+        <h1 class="text-lg font-bold text-mars-text uppercase tracking-widest" v-i18n>Profile</h1>
       </div>
-      <div class="mb-6" style="height:1px;background:linear-gradient(to right,rgba(194,65,12,0.7),rgba(194,65,12,0.3) 25%,rgba(46,63,94,0.5) 55%,transparent 100%);"></div>
+      <div class="mb-6" style="height:1px;background:linear-gradient(to right,rgba(226,82,14,0.7),rgba(226,82,14,0.3) 25%,rgba(38,48,80,0.5) 55%,transparent 100%);"></div>
 
       <!-- Loading -->
       <div v-if="loading" class="text-center py-20">
@@ -65,10 +64,10 @@
           </div>
 
           <!-- Corner accents -->
-          <div class="absolute top-0 left-0 w-8 h-px bg-mars-rust"></div>
-          <div class="absolute top-0 left-0 w-px h-8 bg-mars-rust"></div>
-          <div class="absolute bottom-0 right-0 w-8 h-px bg-mars-rust"></div>
-          <div class="absolute bottom-0 right-0 w-px h-8 bg-mars-rust"></div>
+          <div class="absolute top-0 left-0 w-10 h-px" style="background:linear-gradient(to right,#e2520e,transparent);"></div>
+          <div class="absolute top-0 left-0 w-px h-10" style="background:linear-gradient(to bottom,#e2520e,transparent);"></div>
+          <div class="absolute bottom-0 right-0 w-10 h-px" style="background:linear-gradient(to left,#e2520e80,transparent);"></div>
+          <div class="absolute bottom-0 right-0 w-px h-10" style="background:linear-gradient(to top,#e2520e80,transparent);"></div>
         </div>
 
         <!-- Stats Grid -->
@@ -198,11 +197,11 @@ export default Vue.extend({
       const isVip = this.profile && this.profile.isvip > 0;
       return {
         background: isVip
-          ? 'linear-gradient(135deg, #eab308, #d97706)'
-          : 'linear-gradient(135deg, #c2410c, #c2410c88)',
+          ? 'linear-gradient(135deg, #facc15, #f59e0b)'
+          : 'linear-gradient(135deg, #e2520e, #f97316)',
         color: '#fff',
         textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-        boxShadow: isVip ? '0 0 16px rgba(234,179,8,0.3)' : 'none',
+        boxShadow: isVip ? '0 0 20px rgba(245,158,11,0.35)' : '0 0 12px rgba(226,82,14,0.2)',
       };
     },
     rankTierObj(): RankTier | null {
@@ -272,27 +271,83 @@ export default Vue.extend({
 
 <style scoped>
 .profile-card {
-  background: linear-gradient(135deg, #182136 0%, #1f2b44 100%);
-  border: 1px solid #2e3f5e;
+  background: linear-gradient(135deg, rgba(17,26,46,0.98) 0%, rgba(26,37,64,0.9) 100%);
+  border: 1px solid #263050;
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
 }
 
 .stat-card {
-  background: linear-gradient(135deg, rgba(24,33,54,0.9) 0%, rgba(31,43,68,0.7) 100%);
-  border: 1px solid rgba(46,63,94,0.5);
+  background: linear-gradient(135deg, rgba(17,26,46,0.95) 0%, rgba(26,37,64,0.8) 100%);
+  border: 1px solid rgba(38,48,80,0.5);
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-  transition: border-color 0.2s;
+  transition: all 0.25s ease;
 }
 
 .stat-card:hover {
-  border-color: rgba(194,65,12,0.3);
+  border-color: rgba(226,82,14,0.35);
+  transform: translateY(-2px);
 }
 
 .vip-name {
-  background: linear-gradient(135deg, #eab308, #fbbf24, #d97706);
+  background: linear-gradient(135deg, #facc15, #f59e0b, #f97316);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 6px rgba(234, 179, 8, 0.3));
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.35));
+}
+
+/* ============ Mobile Responsive ============ */
+@media (max-width: 640px) {
+  /* Profile card: stack avatar and info vertically */
+  .profile-card .flex.items-start.gap-5 {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .profile-card .flex.items-start.gap-5 .flex-1 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .profile-card .flex.items-start.gap-5 .flex-1 .flex.items-center {
+    justify-content: center;
+  }
+
+  /* Avatar size */
+  .profile-card .w-20.h-20 {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 24px !important;
+  }
+
+  /* Name size */
+  .profile-card h1 {
+    font-size: 20px !important;
+  }
+
+  /* Rank details grid */
+  .profile-card .grid.grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* Stat cards: reduce padding */
+  .stat-card {
+    padding: 10px 8px !important;
+  }
+
+  .stat-card .text-2xl {
+    font-size: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-card .text-xs {
+    font-size: 10px !important;
+  }
 }
 </style>

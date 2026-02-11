@@ -1,5 +1,5 @@
 import * as constants from '@/common/constants';
-import raw_settings from '@/genfiles/settings.json';
+import * as raw_settings from '@/genfiles/settings.json';
 import CardList from '@/client/components/cardlist/CardList.vue';
 import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
 import GameEnd from '@/client/components/GameEnd.vue';
@@ -31,6 +31,10 @@ import {Donate} from './Donate';
 import {PreferencesManager} from '../utils/PreferencesManager';
 import {Ranks} from './Ranks';
 import UserProfile from './UserProfile.vue';
+import MePage from './Me.vue';
+import NavBar from './common/NavBar.vue';
+import TfmButton from './common/TfmButton.vue';
+import TfmIcon from './common/TfmIcon.vue';
 
 function getDay() {
   return new Date(new Date().getTime()+8*60*60*1000).toISOString().slice(0, 10).replace('T', ' ');
@@ -109,6 +113,10 @@ export const mainAppSettings = {
     'donate': Donate,
     'ranks': Ranks, // 天梯排行榜
     'user-profile': UserProfile,
+    'me-page': MePage,
+    'nav-bar': NavBar,
+    'tfm-button': TfmButton,
+    'tfm-icon': TfmIcon,
     // 这里引入是为了统一编译进去，渲染 card 并在card_HTML.spec.ts中获取html 保存到json中
     // 'cardHTML': CardHTML,
   },
@@ -275,7 +283,7 @@ export const mainAppSettings = {
   mounted() {
     // document.title = constants.APP_NAME;
     if (!windowHasHTMLDialogElement()) {
-      dialogPolyfill.default.registerDialog(document.getElementById('alert-dialog'));
+      (dialogPolyfill as any).default.registerDialog(document.getElementById('alert-dialog'));
     }
     const currentPathname = getLastPathSegment();
     const app = this as unknown as (MainAppData) & (typeof mainAppSettings.methods);
@@ -337,8 +345,8 @@ export const mainAppSettings = {
       app.screen = 'login';
     } else if (currentPathname === 'register') {
       app.screen = 'register';
-    } else if (currentPathname === 'mygames') {
-      app.screen = 'my-games';
+    } else if (currentPathname === 'mygames' || currentPathname === 'me') {
+      app.screen = 'me-page';
     } else if (currentPathname === 'donate') {
       app.screen = 'donate';
     } else if (currentPathname === 'ranks') {

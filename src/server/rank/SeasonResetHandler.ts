@@ -5,14 +5,46 @@ import {Database} from '../database/Database';
 import {GameLoader} from '../database/GameLoader';
 import {UserRank} from '../../common/rank/RankManager';
 import {DEFAULT_RANK_VALUE} from '../../common/rank/constants';
+import {RankTiers} from '../../common/rank/RankTiers';
 import {
   getSeasonId,
   getSeasonInfo,
   getSeasonPointsReward,
+  getPreviousSeasonId,
   shouldResetSeason,
   softResetMu,
   softResetSigma,
 } from '../../common/rank/SeasonManager';
+
+export interface ISeasonResetOptions {
+  expectedFromSeasonId?: string;
+  dryRun?: boolean;
+  triggeredBy?: 'auto' | 'admin';
+}
+
+export interface ISeasonResetPlayerPreview {
+  userId: string;
+  position: number;
+  oldRankValue: number;
+  newRankValue: number;
+  oldMu: number;
+  newMu: number;
+  oldSigma: number;
+  newSigma: number;
+  pointsEarned: number;
+}
+
+export interface ISeasonResetResult {
+  status: 'skipped' | 'dry-run' | 'completed';
+  reason?: string;
+  fromSeasonId: string;
+  toSeasonId: string;
+  playerCount: number;
+  preview: Array<ISeasonResetPlayerPreview>;
+  triggeredBy: 'auto' | 'admin';
+}
+
+let isSeasonResetRunning = false;
 
 /**
  * 检查并执行赛季重置
@@ -63,11 +95,33 @@ export async function checkAndResetSeason(): Promise<void> {
     return;
   }
 
-  console.log(`[Season] Season reset triggered! Previous: ${previousSeasonId} -> Current: ${currentSeasonId}`);
-  console.log(`[Season] ${seasonInfo.seasonName}`);
+  const result = await runSeasonReset({
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    expectedFromSeasonId: previousSeasonId!,
+    dryRun: false,
+    triggeredBy: 'auto',
+  });
+  console.log('[Season] Auto season reset result:', result.status, result.reason || '');
+}
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  await performSeasonReset(previousSeasonId!, currentSeasonId);
+/**
+ * 手动执行赛季重置（支持 dry-run）
+ */
+export async function runSeasonReset(options: ISeasonResetOptions = {}): Promise<ISeasonResetResult> {
+  if (isSeasonResetRunning) {
+    throw new Error('Season reset is already running');
+  }
+  isSeasonResetRunning = true;
+  try {
+    const now = new Date();
+    const currentSeasonId = getSeasonId(now);
+    const previousSeasonId = options.expectedFromSeasonId || getPreviousSeasonId(currentSeasonId);
+    const dryRun = options.dryRun === true;
+    const triggeredBy = options.triggeredBy || 'admin';
+    return await performSeasonReset(previousSeasonId, currentSeasonId, dryRun, triggeredBy);
+  } finally {
+    isSeasonResetRunning = false;
+  }
 }
 
 /**
@@ -77,7 +131,12 @@ export async function checkAndResetSeason(): Promise<void> {
  * 3. 发放积分
  * 4. 软重置分数
  */
-async function performSeasonReset(previousSeasonId: string, newSeasonId: string): Promise<void> {
+async function performSeasonReset(
+  previousSeasonId: string,
+  newSeasonId: string,
+  dryRun: boolean,
+  triggeredBy: 'auto' | 'admin',
+): Promise<ISeasonResetResult> {
   const gameLoader = GameLoader.getInstance();
   const db = Database.getInstance();
 
@@ -91,7 +150,35 @@ async function performSeasonReset(previousSeasonId: string, newSeasonId: string)
     return b.trueskill - a.trueskill;
   });
 
+  const seasonInfo = getSeasonInfo(nowFromSeasonId(newSeasonId));
+  console.log(`[Season] Season reset triggered! Previous: ${previousSeasonId} -> Current: ${newSeasonId}`);
+  console.log(`[Season] ${seasonInfo.seasonName}, triggeredBy=${triggeredBy}, dryRun=${dryRun}`);
   console.log(`[Season] Processing ${allRanks.length} players for season reset`);
+
+  const mismatchedPlayers = allRanks.filter((rank) => rank.seasonId && rank.seasonId !== previousSeasonId).length;
+  if (mismatchedPlayers > 0) {
+    return {
+      status: 'skipped',
+      reason: `Found ${mismatchedPlayers} users not in expected season ${previousSeasonId}`,
+      fromSeasonId: previousSeasonId,
+      toSeasonId: newSeasonId,
+      playerCount: allRanks.length,
+      preview: buildResetPreview(allRanks, 20),
+      triggeredBy,
+    };
+  }
+
+  const preview = buildResetPreview(allRanks, 20);
+  if (dryRun) {
+    return {
+      status: 'dry-run',
+      fromSeasonId: previousSeasonId,
+      toSeasonId: newSeasonId,
+      playerCount: allRanks.length,
+      preview,
+      triggeredBy,
+    };
+  }
 
   // 2 & 3. 保存快照并发放积分
   for (let i = 0; i < allRanks.length; i++) {
@@ -117,8 +204,7 @@ async function performSeasonReset(previousSeasonId: string, newSeasonId: string)
     console.log(`[Season] Player ${userRank.userId}: position=${position}, points_earned=${pointsEarned}, total_points=${userRank.points}`);
 
     // 4. 软重置排名
-    // 段位星星归零
-    userRank.rankValue = DEFAULT_RANK_VALUE;
+    userRank.rankValue = computeSeasonResetRankValue(userRank);
     // TrueSkill 保留一部分
     userRank.mu = softResetMu(userRank.mu);
     userRank.sigma = softResetSigma(userRank.sigma);
@@ -135,4 +221,51 @@ async function performSeasonReset(previousSeasonId: string, newSeasonId: string)
   }
 
   console.log(`[Season] Season reset complete. ${allRanks.length} players processed.`);
+  return {
+    status: 'completed',
+    fromSeasonId: previousSeasonId,
+    toSeasonId: newSeasonId,
+    playerCount: allRanks.length,
+    preview,
+    triggeredBy,
+  };
+}
+
+function buildResetPreview(allRanks: Array<UserRank>, limit: number): Array<ISeasonResetPlayerPreview> {
+  return allRanks.slice(0, limit).map((rank, index) => {
+    const newRankValue = computeSeasonResetRankValue(rank);
+    const newMu = softResetMu(rank.mu);
+    const newSigma = softResetSigma(rank.sigma);
+    return {
+      userId: rank.userId,
+      position: index + 1,
+      oldRankValue: rank.rankValue,
+      newRankValue,
+      oldMu: rank.mu,
+      newMu,
+      oldSigma: rank.sigma,
+      newSigma,
+      pointsEarned: getSeasonPointsReward(index + 1),
+    };
+  });
+}
+
+function computeSeasonResetRankValue(userRank: UserRank): number {
+  const tierName = userRank.getTier().name;
+  const tierIndex = RankTiers.findIndex((tier) => tier.name === tierName);
+  if (tierIndex <= 0) {
+    return DEFAULT_RANK_VALUE;
+  }
+  return DEFAULT_RANK_VALUE + tierIndex;
+}
+
+function nowFromSeasonId(seasonId: string): Date {
+  const match = seasonId.match(/^(\d{4})-S([1-6])$/);
+  if (match === null) {
+    return new Date();
+  }
+  const year = Number(match[1]);
+  const seasonNumber = Number(match[2]);
+  const month = (seasonNumber - 1) * 2;
+  return new Date(year, month, 1, 0, 0, 0);
 }

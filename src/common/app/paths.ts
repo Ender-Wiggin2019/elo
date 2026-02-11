@@ -24,6 +24,7 @@ export const paths = {
   LOAD_GAME: 'load_game',
   LOBBY: 'lobby',
   LOGIN: 'login',
+  ME: 'me',
   NEW_GAME: 'new-game',
   PLAYER: 'player',
   PLAYER_INPUT: 'player/input',

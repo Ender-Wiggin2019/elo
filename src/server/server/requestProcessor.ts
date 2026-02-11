@@ -107,6 +107,7 @@ const handlers: Map<string, IHandler> = new Map(
     ['login', ServeApp.INSTANCE],
     ['register', ServeApp.INSTANCE],
     ['mygames', ServeApp.INSTANCE],
+    ['me', ServeApp.INSTANCE],
     ['donate', ServeApp.INSTANCE],
     ['users', ServeApp.INSTANCE],
     ['exec', ServeApp.INSTANCE],

@@ -1,6 +1,16 @@
 <template>
+  <div class="card-list-page min-h-screen bg-mars-void text-mars-text"
+    style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
+
   <div class="card-list-container" :class="getLanguageCssClass()">
-    <h1 v-i18n>Cards List</h1>
+    <!-- Page Title -->
+    <div class="card-list-page-header">
+      <div class="card-list-page-header__title">
+        <span class="card-list-page-header__dot"></span>
+        <h1 v-i18n>Cards List</h1>
+      </div>
+      <div class="card-list-page-header__line"></div>
+    </div>
 
       <!-- start filters -->
 
@@ -175,6 +185,7 @@
       <div class="free-floating-preferences-icon">
         <preferences-icon></preferences-icon>
       </div>
+  </div>
   </div>
 </template>
 

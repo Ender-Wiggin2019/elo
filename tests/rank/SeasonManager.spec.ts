@@ -3,12 +3,13 @@ import {
   getSeasonId,
   getSeasonNumber,
   getSeasonInfo,
+  getPreviousSeasonId,
   shouldResetSeason,
   softResetMu,
   softResetSigma,
   getSeasonPointsReward,
-  SEASON_MU_RETENTION,
-  SEASON_SIGMA_RETENTION,
+  SEASON_POINTS_TOP_TEN,
+  SEASON_POINTS_TOP_HUNDRED,
   SEASON_POINTS_DEFAULT,
 } from '../../src/common/rank/SeasonManager';
 import {DEFAULT_MU, DEFAULT_SIGMA} from '../../src/common/rank/constants';
@@ -79,10 +80,9 @@ describe('SeasonManager', () => {
   });
 
   describe('softResetMu', () => {
-    it('should return weighted average towards default', () => {
+    it('should preserve mu', () => {
       const oldMu = 30;
-      const expected = DEFAULT_MU * (1 - SEASON_MU_RETENTION) + oldMu * SEASON_MU_RETENTION;
-      expect(softResetMu(oldMu)).to.eq(expected);
+      expect(softResetMu(oldMu)).to.eq(oldMu);
     });
 
     it('should return DEFAULT_MU when oldMu equals DEFAULT_MU', () => {
@@ -92,23 +92,20 @@ describe('SeasonManager', () => {
     it('should move a high mu downward', () => {
       const highMu = 40;
       const result = softResetMu(highMu);
-      expect(result).to.be.lessThan(highMu);
-      expect(result).to.be.greaterThan(DEFAULT_MU);
+      expect(result).to.eq(highMu);
     });
 
     it('should move a low mu upward', () => {
       const lowMu = 10;
       const result = softResetMu(lowMu);
-      expect(result).to.be.greaterThan(lowMu);
-      expect(result).to.be.lessThan(DEFAULT_MU);
+      expect(result).to.eq(lowMu);
     });
   });
 
   describe('softResetSigma', () => {
-    it('should return weighted average towards default', () => {
-      const oldSigma = 4;
-      const expected = DEFAULT_SIGMA * (1 - SEASON_SIGMA_RETENTION) + oldSigma * SEASON_SIGMA_RETENTION;
-      expect(softResetSigma(oldSigma)).to.eq(expected);
+    it('should reset sigma to default', () => {
+      expect(softResetSigma(4)).to.eq(DEFAULT_SIGMA);
+      expect(softResetSigma(20)).to.eq(DEFAULT_SIGMA);
     });
   });
 
@@ -121,14 +118,37 @@ describe('SeasonManager', () => {
       expect(getSeasonPointsReward(2)).to.eq(50);
     });
 
-    it('should return 30 for 3rd place', () => {
-      expect(getSeasonPointsReward(3)).to.eq(30);
+    it('should return 35 for 3rd place', () => {
+      expect(getSeasonPointsReward(3)).to.eq(35);
     });
 
-    it('should return default (15) for other positions', () => {
-      expect(getSeasonPointsReward(4)).to.eq(SEASON_POINTS_DEFAULT);
-      expect(getSeasonPointsReward(10)).to.eq(SEASON_POINTS_DEFAULT);
-      expect(getSeasonPointsReward(100)).to.eq(SEASON_POINTS_DEFAULT);
+    it('should return 20 for top ten except top three', () => {
+      expect(getSeasonPointsReward(4)).to.eq(SEASON_POINTS_TOP_TEN);
+      expect(getSeasonPointsReward(10)).to.eq(SEASON_POINTS_TOP_TEN);
+    });
+
+    it('should return 10 for top hundred except top ten', () => {
+      expect(getSeasonPointsReward(11)).to.eq(SEASON_POINTS_TOP_HUNDRED);
+      expect(getSeasonPointsReward(100)).to.eq(SEASON_POINTS_TOP_HUNDRED);
+    });
+
+    it('should return default for other positions', () => {
+      expect(getSeasonPointsReward(101)).to.eq(SEASON_POINTS_DEFAULT);
+      expect(getSeasonPointsReward(-1)).to.eq(SEASON_POINTS_DEFAULT);
+    });
+  });
+
+  describe('getPreviousSeasonId', () => {
+    it('should return previous season in same year', () => {
+      expect(getPreviousSeasonId('2026-S3')).to.eq('2026-S2');
+    });
+
+    it('should roll back to previous year from S1', () => {
+      expect(getPreviousSeasonId('2026-S1')).to.eq('2025-S6');
+    });
+
+    it('should return input for invalid season format', () => {
+      expect(getPreviousSeasonId('invalid')).to.eq('invalid');
     });
   });
 });

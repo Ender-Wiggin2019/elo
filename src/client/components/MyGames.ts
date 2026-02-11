@@ -162,38 +162,42 @@ export const MyGames = Vue.component('my-games', {
   },
   template: `
     <div class="min-h-screen bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
-      style="background-image: radial-gradient(ellipse at 50% 0%, rgba(194,65,12,0.08) 0%, transparent 60%), linear-gradient(rgba(30,42,66,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(30,42,66,0.3) 1px, transparent 1px); background-size: 100% 100%, 40px 40px, 40px 40px;">
+      style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
       <div class="max-w-4xl mx-auto">
-        <!-- Header -->
-        <div class="flex items-center gap-2 mb-1">
-          <a href="/" class="text-mars-rust hover:text-mars-ember transition-colors text-sm font-semibold uppercase tracking-widest" v-i18n>Terraforming Mars</a>
-          <span class="text-mars-text-faint text-xs">&#9656;</span>
-          <span class="text-sm font-bold text-mars-text uppercase tracking-widest" v-i18n>My Games</span>
+        <!-- Page Title -->
+        <div class="flex items-center gap-3 mb-3">
+          <div style="width:7px;height:7px;border-radius:50%;background:#2dd4bf;box-shadow:0 0 8px rgba(45,212,191,0.7);"></div>
+          <h1 class="text-lg font-bold text-mars-text uppercase tracking-widest" v-i18n>My Games</h1>
         </div>
-        <div class="mb-6" style="height:1px;background:linear-gradient(to right,rgba(194,65,12,0.6),rgba(194,65,12,0.3) 20%,rgba(46,63,94,0.5) 50%,transparent 100%);"></div>
+        <div class="mb-6" style="height:1px;background:linear-gradient(to right,rgba(226,82,14,0.7),rgba(226,82,14,0.3) 20%,rgba(38,48,80,0.5) 50%,transparent 100%);"></div>
 
         <!-- Tabs -->
-        <div class="flex gap-2 mb-4" style="cursor:pointer;">
-          <div class="flex-1 text-center text-sm font-bold uppercase tracking-wider px-4 py-2.5 transition-all border-b-2"
+        <div class="flex gap-1 mb-5" style="cursor:pointer;">
+          <div class="mygames-tab flex-1 text-center text-xs font-bold uppercase tracking-widest px-4 py-3 transition-all relative"
                v-on:click="toggleTabs(1)"
-               v-bind:class="{'border-mars-rust text-mars-text bg-mars-surface': openTab === 1, 'border-transparent text-mars-text-dim hover:text-mars-text': openTab !== 1}">
+               v-bind:class="{'mygames-tab--active bg-mars-deep text-mars-text': openTab === 1, 'text-mars-text-dim hover:text-mars-text hover:bg-mars-deep/50': openTab !== 1}">
             <span v-i18n>User Info</span>
+            <div v-if="openTab === 1" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-8" style="height:2px;background:linear-gradient(to right,transparent,#e2520e,transparent);"></div>
           </div>
-          <div class="flex-1 text-center text-sm font-bold uppercase tracking-wider px-4 py-2.5 transition-all border-b-2"
+          <div class="mygames-tab flex-1 text-center text-xs font-bold uppercase tracking-widest px-4 py-3 transition-all relative"
                v-on:click="toggleTabs(2)"
-               v-bind:class="{'border-mars-rust text-mars-text bg-mars-surface': openTab === 2, 'border-transparent text-mars-text-dim hover:text-mars-text': openTab !== 2}">
+               v-bind:class="{'mygames-tab--active bg-mars-deep text-mars-text': openTab === 2, 'text-mars-text-dim hover:text-mars-text hover:bg-mars-deep/50': openTab !== 2}">
             <span v-i18n>Settings</span>
+            <div v-if="openTab === 2" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-8" style="height:2px;background:linear-gradient(to right,transparent,#e2520e,transparent);"></div>
           </div>
-          <div class="flex-1 text-center text-sm font-bold uppercase tracking-wider px-4 py-2.5 transition-all border-b-2"
+          <div class="mygames-tab flex-1 text-center text-xs font-bold uppercase tracking-widest px-4 py-3 transition-all relative"
                v-on:click="toggleTabs(3)"
-               v-bind:class="{'border-mars-rust text-mars-text bg-mars-surface': openTab === 3, 'border-transparent text-mars-text-dim hover:text-mars-text': openTab !== 3}">
+               v-bind:class="{'mygames-tab--active bg-mars-deep text-mars-text': openTab === 3, 'text-mars-text-dim hover:text-mars-text hover:bg-mars-deep/50': openTab !== 3}">
             <span v-i18n>Games</span>
+            <div v-if="openTab === 3" class="absolute bottom-0 left-1/2 -translate-x-1/2 w-8" style="height:2px;background:linear-gradient(to right,transparent,#e2520e,transparent);"></div>
           </div>
         </div>
 
         <!-- Tab Content -->
-        <div class="bg-mars-deep border border-mars-border shadow-xl shadow-black/40 p-5"
-          style="clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));">
+        <div class="bg-mars-deep border border-mars-border shadow-xl shadow-black/40 p-5 relative"
+          style="clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);">
+          <div class="absolute top-0 left-0 w-8 h-px" style="background:linear-gradient(to right,#e2520e,transparent);"></div>
+          <div class="absolute bottom-0 right-0 w-8 h-px" style="background:linear-gradient(to left,#e2520e,transparent);"></div>
 
           <!-- User Info -->
           <div v-bind:class="{'hidden': openTab !== 1, 'block': openTab === 1}">
@@ -207,26 +211,26 @@ export const MyGames = Vue.component('my-games', {
 
             <div v-if="userName" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <!-- User Name Card -->
-              <div class="bg-mars-surface border border-mars-border p-4 text-center rounded-sm">
+              <div class="p-4 text-center" style="background:linear-gradient(135deg,rgba(17,26,46,0.95),rgba(26,37,64,0.8));border:1px solid rgba(38,48,80,0.5);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));">
                 <div class="text-xs text-mars-text-faint uppercase tracking-wider font-mono mb-2" v-i18n>User Name</div>
                 <div class="text-lg text-mars-text font-semibold">{{ userName }}</div>
               </div>
               <!-- VIP Card -->
-              <div class="bg-mars-surface border border-mars-border p-4 text-center rounded-sm">
+              <div class="p-4 text-center" style="background:linear-gradient(135deg,rgba(17,26,46,0.95),rgba(26,37,64,0.8));border:1px solid rgba(38,48,80,0.5);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));">
                 <div class="text-xs text-mars-text-faint uppercase tracking-wider font-mono mb-2" v-i18n>Potato Date</div>
-                <div v-if="vipDate" class="text-lg text-mars-amber font-mono">{{ vipDate }}</div>
+                <div v-if="vipDate" class="text-lg text-mars-amber font-mono font-semibold">{{ vipDate }}</div>
                 <div v-else>
-                  <a href="/donate" class="inline-block mt-1 px-3 py-1 bg-mars-amber/20 hover:bg-mars-amber/30 text-mars-amber text-xs font-medium uppercase tracking-wider border border-mars-amber/30 transition-colors" v-i18n>Get Potato</a>
+                  <a href="/donate" class="inline-block mt-1 px-3 py-1.5 bg-mars-amber/15 hover:bg-mars-amber/25 text-mars-amber text-xs font-bold uppercase tracking-wider border border-mars-amber/30 hover:border-mars-amber/50 transition-all" v-i18n>Get Potato</a>
                 </div>
               </div>
               <!-- Rank Card -->
-              <div class="bg-mars-surface border border-mars-border p-4 text-center rounded-sm">
+              <div class="p-4 text-center" style="background:linear-gradient(135deg,rgba(17,26,46,0.95),rgba(26,37,64,0.8));border:1px solid rgba(38,48,80,0.5);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));">
                 <div class="text-xs text-mars-text-faint uppercase tracking-wider font-mono mb-2">User Rank</div>
                 <div v-if="userRank.userId!==''" class="scale-110 mb-2">
                   <RankTier :rankTier="getTier()" :showNumber="false"/>
                 </div>
                 <div v-else>
-                  <button class="px-3 py-1 bg-mars-rust/20 hover:bg-mars-rust/30 text-mars-rust text-xs font-medium uppercase tracking-wider border border-mars-rust/30 transition-colors mb-2"
+                  <button class="px-3 py-1.5 bg-mars-rust/15 hover:bg-mars-rust/25 text-mars-rust text-xs font-bold uppercase tracking-wider border border-mars-rust/30 hover:border-mars-rust/50 transition-all mb-2"
                     v-on:click="activateRank" v-i18n>Start Rank</button>
                 </div>
                 <a href="/ranks" class="inline-block px-3 py-1 text-mars-cyan text-xs uppercase tracking-wider font-mono hover:underline" v-i18n>View Rankings</a>
@@ -289,6 +293,19 @@ export const MyGames = Vue.component('my-games', {
 
         </div>
       </div>
+
+      <style>
+        .mygames-tab {
+          clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+          background: rgba(17,26,46,0.4);
+          border: 1px solid transparent;
+          transition: all 0.2s ease;
+        }
+        .mygames-tab--active {
+          border-color: rgba(38,48,80,0.7);
+          background: rgba(17,26,46,0.8);
+        }
+      </style>
     </div>`,
 
 });

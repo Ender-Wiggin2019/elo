@@ -18,12 +18,23 @@ import {ServiceError} from './UserCenter';
 
 /** 房间存储 */
 const rooms = new Map<string, ILobbyRoom>();
+const ROOM_CLEANUP_INTERVAL_MS = 30 * 60 * 1000;
+const NON_STARTED_ROOM_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const FINISHED_PHASES = new Set(['end', 'timeout', 'abandon']);
 
 /** 自增 ID 计数器 */
 let roomIdCounter = 1;
 
 function generateRoomId(): string {
   return `room_${Date.now()}_${roomIdCounter++}`;
+}
+
+function isFinishedStartedRoom(room: ILobbyRoom): boolean {
+  if (room.status !== ELobbyRoomStatus.STARTED) {
+    return false;
+  }
+  const phase = room.gameData?.phase;
+  return typeof phase === 'string' && FINISHED_PHASES.has(phase);
 }
 
 /** 获取房间，不存在则抛异常 */
@@ -101,7 +112,14 @@ export class LobbyService {
   static listRooms(): Array<ILobbyRoom> {
     const result: Array<ILobbyRoom> = [];
     for (const room of rooms.values()) {
-      if (room.status === ELobbyRoomStatus.WAITING || room.status === ELobbyRoomStatus.CONFIRMING || room.status === ELobbyRoomStatus.STARTED) {
+      if (
+        room.status === ELobbyRoomStatus.WAITING ||
+        room.status === ELobbyRoomStatus.CONFIRMING ||
+        room.status === ELobbyRoomStatus.STARTED
+      ) {
+        if (isFinishedStartedRoom(room)) {
+          continue;
+        }
         result.push(room);
       }
     }
@@ -341,14 +359,13 @@ export class LobbyService {
   }
 
   /**
-   * 清理超时房间（超过 2 小时未启动的房间）
+   * 清理超时房间（超过 1 天且未启动的房间）
    */
   static cleanup(): number {
     const now = Date.now();
-    const maxAge = 2 * 60 * 60 * 1000; // 2 hours
     let cleaned = 0;
     for (const [roomId, room] of rooms) {
-      if (room.status !== ELobbyRoomStatus.STARTED && now - room.createdAt > maxAge) {
+      if (room.status !== ELobbyRoomStatus.STARTED && now - room.createdAt > NON_STARTED_ROOM_MAX_AGE_MS) {
         rooms.delete(roomId);
         cleaned++;
       }
@@ -361,4 +378,4 @@ export class LobbyService {
 }
 
 // 每 30 分钟清理一次过期房间
-setInterval(() => LobbyService.cleanup(), 30 * 60 * 1000);
+setInterval(() => LobbyService.cleanup(), ROOM_CLEANUP_INTERVAL_MS);

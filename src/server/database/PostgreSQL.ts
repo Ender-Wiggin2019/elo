@@ -463,6 +463,13 @@ export class PostgreSQL implements IDatabase {
       }
     });
   }
+  updateUserProp(id: string, prop: string): void {
+    this.client.query('UPDATE users SET prop = $1 WHERE id = $2', [prop, id], function(err: any) {
+      if (err) {
+        return console.error('PostgreSQL:updateUserProp', err);
+      }
+    });
+  }
   getUsers(cb: (err: any, allUsers: Array<User>) => void): void {
     const allUsers:Array<User> = [];
     const sql: string = 'SELECT distinct id, name, password, prop, createtime FROM users ';

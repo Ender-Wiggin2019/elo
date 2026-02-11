@@ -24,6 +24,21 @@ function notFound(req: Request, res: Response, msg: string = ''): void {
   res.end();
 }
 
+async function refreshUserVipState(user: User): Promise<void> {
+  await new Promise<void>((resolve) => {
+    Database.getInstance().getUsers((_err, allUsers) => {
+      const latestUser = allUsers.find((candidate) => candidate.id === user.id);
+      if (latestUser !== undefined) {
+        user.vip = latestUser.vip;
+        user.vipDate = latestUser.vipDate;
+        user.donateNum = latestUser.donateNum;
+        user.accessDate = latestUser.accessDate;
+      }
+      resolve();
+    });
+  });
+}
+
 
 export function apiGameBack(userReq:any, req: Request, res: Response): void {
   const gameId = userReq['id'];
@@ -123,6 +138,8 @@ export function login(userReq:any, _req: Request, res: Response): Promise<void> 
     throw new UnexpectedInput('User not exists or Password error');
   }
   const token = user.addToken();
+  // Persist token to database so it survives server restarts
+  Database.getInstance().updateUserProp(user.id, user.getProp());
   res.setHeader('Content-Type', 'application/json');
   res.write(JSON.stringify({id: token, name: user.name}));
   res.end();
@@ -156,7 +173,7 @@ export function register(userReq: any, _req: Request, res: Response): void {
 
 
 // 导出一个函数，用于判断用户是否为VIP
-export function isvip(req: Request, res: Response, ctx: Context): void {
+export async function isvip(req: Request, res: Response, ctx: Context): Promise<void> {
   let userId = ctx.url.searchParams.get('userId');
   if (userId === undefined || userId === '' || userId === null) {
     notFound(req, res, 'not find user id');
@@ -176,6 +193,8 @@ export function isvip(req: Request, res: Response, ctx: Context): void {
     user.accessDate = getDate();
   }
   try {
+    // Keep VIP state in sync with direct DB changes (e.g., manual SQL updates).
+    await refreshUserVipState(user);
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify({id: userId, isvip: user.isvip()}));
     res.end();
