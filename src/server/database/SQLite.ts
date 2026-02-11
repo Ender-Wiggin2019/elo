@@ -75,6 +75,13 @@ export class SQLite implements IDatabase {
       createtime timestamp default (datetime(CURRENT_TIMESTAMP,'localtime')),
       PRIMARY KEY (user_id, season_id))`);
 
+    // 当前赛季信息表（只存储一个当前赛季）
+    await this.asyncRun(`CREATE TABLE IF NOT EXISTS current_season (
+      season_id varchar not null,
+      season_name varchar,
+      start_date timestamp default (datetime(CURRENT_TIMESTAMP,'localtime')),
+      end_date timestamp)`);
+
     // 匹配队列表
     await this.asyncRun(`CREATE TABLE IF NOT EXISTS matchmaking_queue (
       user_id varchar not null,
@@ -454,7 +461,7 @@ export class SQLite implements IDatabase {
   }
 
   public async updateUserRank(userRank:UserRank): Promise<void> {
-    await this.asyncRun('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ? , trueskill = ?, points = ?, season_id = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill, userRank.points || 0, userRank.seasonId || '', userRank.userId]);
+    await this.asyncRun('UPDATE user_rank SET rank_value = ?, mu = ?, sigma = ?, trueskill = ?, points = ?, season_id = ? WHERE id = ?', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill, userRank.points || 0, userRank.seasonId || '', userRank.userId]);
   }
 
   // @param position: 这局游戏第几名
@@ -524,7 +531,7 @@ export class SQLite implements IDatabase {
   // 赛季相关方法
   public async saveSeasonSnapshot(userId: string, seasonId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number): Promise<void> {
     await this.asyncRun(
-      'INSERT OR REPLACE INTO rank_seasons (user_id, season_id, rank_value, mu, sigma, trueskill, points_earned, final_position) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT OR IGNORE INTO rank_seasons (user_id, season_id, rank_value, mu, sigma, trueskill, points_earned, final_position) VALUES(?, ?, ?, ?, ?, ?, ?, ?)',
       [userId, seasonId, rankValue, mu, sigma, trueskill, pointsEarned, finalPosition],
     );
   }
@@ -542,8 +549,35 @@ export class SQLite implements IDatabase {
     }));
   }
 
+  public async getAvailableSeasons(): Promise<Array<string>> {
+    const rows = await this.asyncAll('SELECT DISTINCT season_id FROM rank_seasons ORDER BY season_id DESC', []);
+    return rows.map((row) => row.season_id);
+  }
+
   public async updateUserPoints(userId: string, points: number): Promise<void> {
     await this.asyncRun('UPDATE user_rank SET points = ? WHERE id = ?', [points, userId]);
+  }
+
+  public async setCurrentSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void> {
+    // 先删除旧记录，再插入新记录（确保只有一条当前赛季记录）
+    await this.asyncRun('DELETE FROM current_season');
+    await this.asyncRun(
+      'INSERT INTO current_season (season_id, season_name, start_date, end_date) VALUES (?, ?, ?, ?)',
+      [seasonId, seasonName, startDate.toISOString(), endDate.toISOString()],
+    );
+  }
+
+  public async getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
+    const rows = await this.asyncAll('SELECT season_id, season_name, start_date, end_date FROM current_season', []);
+    if (rows.length === 0) {
+      return undefined;
+    }
+    return {
+      seasonId: rows[0].season_id,
+      seasonName: rows[0].season_name,
+      startDate: rows[0].start_date,
+      endDate: rows[0].end_date,
+    };
   }
 
   // 匹配队列相关方法

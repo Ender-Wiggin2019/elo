@@ -166,7 +166,7 @@
                       v-if="player.isOwner"
                       class="px-1.5 py-0.5 bg-mars-amber/20 text-mars-amber text-xs font-bold uppercase tracking-wide border border-mars-amber/30 rounded-sm"
                       v-i18n
-                    >CMD</span>
+                    >Owner</span>
                     <span v-if="player.rankValue" class="text-xs text-mars-text-dim font-mono">
                       &#9733; {{ Math.round(player.rankValue) }}
                     </span>

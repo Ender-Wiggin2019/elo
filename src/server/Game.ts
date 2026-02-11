@@ -2288,6 +2288,7 @@ export class Game implements IGame, Logger {
       throw new Error('No Player found when rebuilding First Player');
     }
     this.first = first;
+    this.setFirstPlayer(first);
 
     // Define who is the active player and init the take action phase
     let active = this.players.find((player) => player.id === d.activePlayer.id);

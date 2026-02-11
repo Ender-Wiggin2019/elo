@@ -310,8 +310,8 @@ export async function sitDown(userReq:any, req: Request, res: Response): Promise
 //
 
 // 天梯 用户激活排名的接口 — 委托给 UserCenter
-export function activateRank(userReq: any, _req: Request, res: Response): void {
-  UserCenter.activateRank(userReq.userId);
+export async function activateRank(userReq: any, _req: Request, res: Response): Promise<void> {
+  await UserCenter.activateRank(userReq.userId);
   res.setHeader('Content-Type', 'application/json');
   res.write('success');
   res.end();
@@ -319,11 +319,11 @@ export function activateRank(userReq: any, _req: Request, res: Response): void {
 }
 
 // 获取用户排名 — 委托给 UserCenter
-export function getUserRank(req: Request, res: Response, ctx: Context): void {
+export async function getUserRank(req: Request, res: Response, ctx: Context): Promise<void> {
   const userId = ctx.url.searchParams.get('userId');
   const playerName = ctx.url.searchParams.get('playerName');
   try {
-    const data = UserCenter.getUserRank(userId, playerName);
+    const data = await UserCenter.getUserRank(userId, playerName);
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify(data));
     res.end();

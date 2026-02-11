@@ -33,6 +33,7 @@ import {Ranks} from './Ranks';
 import UserProfile from './UserProfile.vue';
 import MePage from './Me.vue';
 import NavBar from './common/NavBar.vue';
+import AdminHome from './admin/AdminHome.vue';
 import TfmButton from './common/TfmButton.vue';
 import TfmIcon from './common/TfmIcon.vue';
 
@@ -117,6 +118,7 @@ export const mainAppSettings = {
     'nav-bar': NavBar,
     'tfm-button': TfmButton,
     'tfm-icon': TfmIcon,
+    'admin-home': AdminHome,
     // 这里引入是为了统一编译进去，渲染 card 并在card_HTML.spec.ts中获取html 保存到json中
     // 'cardHTML': CardHTML,
   },
@@ -157,7 +159,11 @@ export const mainAppSettings = {
       }
       xhr.open('GET', url);
       xhr.onerror = function() {
-        alert('Error getting game data');
+        console.warn('XHR error for', url, xhr.status);
+        // Don't alert for 404 errors as they may be transient
+        if (xhr.status !== statusCode.notFound) {
+          alert('Error getting game data');
+        }
       };
       xhr.onload = function() {
         try {
@@ -215,7 +221,11 @@ export const mainAppSettings = {
               }
             }
           } else {
-            alert('Unexpected server response: ' + xhr.statusText);
+            console.warn('Unexpected status code:', xhr.status, 'for', url);
+            // Don't alert for 404 errors in polling scenario
+            if (xhr.status !== statusCode.notFound) {
+              alert('Unexpected server response: ' + xhr.statusText);
+            }
           }
         } catch (e) {
           console.warn('Error processing XHR response: ' + e);

@@ -2,7 +2,7 @@
 // 每2个月为一个赛季，在下一个月1号0点刷新
 // S1: 1-2月, S2: 3-4月, S3: 5-6月, S4: 7-8月, S5: 9-10月, S6: 11-12月
 
-import {DEFAULT_MU, DEFAULT_SIGMA} from './constants';
+import {DEFAULT_SIGMA} from './constants';
 
 // 赛季积分奖励
 export const SEASON_POINTS_REWARDS: Record<number, number> = {
@@ -59,6 +59,22 @@ export function getPreviousSeasonId(seasonId: string): string {
 }
 
 /**
+ * 获取指定赛季的下一个赛季ID
+ */
+export function getNextSeasonId(seasonId: string): string {
+  const match = seasonId.match(/^(\d{4})-S([1-6])$/);
+  if (match === null) {
+    return seasonId;
+  }
+  const year = Number(match[1]);
+  const seasonNumber = Number(match[2]);
+  if (seasonNumber < 6) {
+    return `${year}-S${seasonNumber + 1}`;
+  }
+  return `${year + 1}-S1`;
+}
+
+/**
  * 获取赛季信息
  */
 export function getSeasonInfo(date: Date = new Date()): ISeasonInfo {
@@ -109,6 +125,20 @@ export function softResetMu(oldMu: number): number {
 export function softResetSigma(_oldSigma: number): number {
   // 重置不确定性到初始值，让新赛季更快重新校准匹配
   return DEFAULT_SIGMA;
+}
+
+/**
+ * 根据赛季ID计算赛季的开始日期
+ */
+export function nowFromSeasonId(seasonId: string): Date {
+  const match = seasonId.match(/^(\d{4})-S([1-6])$/);
+  if (match === null) {
+    return new Date();
+  }
+  const year = Number(match[1]);
+  const seasonNumber = Number(match[2]);
+  const month = (seasonNumber - 1) * 2;
+  return new Date(year, month, 1, 0, 0, 0);
 }
 
 /**

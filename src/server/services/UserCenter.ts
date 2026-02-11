@@ -17,7 +17,7 @@
 
 import {Database} from '../database/Database';
 import {GameLoader} from '../database/GameLoader';
-import {getSeasonId, getSeasonInfo as getSeasonInfoFn, ISeasonInfo, getPreviousSeasonId} from '../../common/rank/SeasonManager';
+import {getSeasonId, getSeasonInfo as getSeasonInfoFn, ISeasonInfo, getPreviousSeasonId, nowFromSeasonId} from '../../common/rank/SeasonManager';
 import {tryMatchPlayers, IMatchResult} from '../rank/MatchmakingHandler';
 import {UserRank} from '../../common/rank/RankManager';
 import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../common/rank/constants';
@@ -31,6 +31,7 @@ export interface ISeasonInfoResponse {
   seasonName: string;
   startDate: string;
   endDate: string;
+  seasons: Array<{seasonId: string, seasonName: string, startDate: string, endDate: string}>;
 }
 
 export interface ISeasonSnapshotEntry {
@@ -118,9 +119,64 @@ export class ServiceError extends Error {
 
 export class UserCenter {
   /**
+   * 获取所有可用赛季列表
+   */
+  private static async getAllSeasons(): Promise<Array<{seasonId: string, seasonName: string, startDate: string, endDate: string}>> {
+    const db = Database.getInstance();
+    const currentSeason = await db.getCurrentSeason();
+    const seasons: Array<{seasonId: string, seasonName: string, startDate: string, endDate: string}> = [];
+
+    // 添加当前赛季
+    if (currentSeason) {
+      seasons.push({
+        seasonId: currentSeason.seasonId,
+        seasonName: currentSeason.seasonName,
+        startDate: currentSeason.startDate,
+        endDate: currentSeason.endDate,
+      });
+    }
+
+    // 从 rank_seasons 表获取所有有历史数据的赛季
+    const dbSeasons = await db.getAvailableSeasons();
+    for (const seasonId of dbSeasons) {
+      // 避免重复添加当前赛季
+      if (currentSeason && seasonId === currentSeason.seasonId) {
+        continue;
+      }
+      // 使用 seasonId 计算 seasonName 和日期
+      const seasonInfo = getSeasonInfoFn(nowFromSeasonId(seasonId));
+      seasons.push({
+        seasonId,
+        seasonName: seasonInfo.seasonName,
+        startDate: seasonInfo.startDate.toISOString(),
+        endDate: seasonInfo.endDate.toISOString(),
+      });
+    }
+
+    // 按 seasonId 排序
+    seasons.sort((a, b) => a.seasonId.localeCompare(b.seasonId));
+    return seasons;
+  }
+
+  /**
    * 获取当前赛季信息
    */
-  static getSeasonInfo(now: Date = new Date()): ISeasonInfoResponse {
+  static async getSeasonInfo(): Promise<ISeasonInfoResponse> {
+    const currentSeason = await Database.getInstance().getCurrentSeason();
+    const seasons = await this.getAllSeasons();
+
+    if (currentSeason) {
+      return {
+        seasonId: currentSeason.seasonId,
+        seasonName: currentSeason.seasonName,
+        startDate: currentSeason.startDate,
+        endDate: currentSeason.endDate,
+        seasons,
+      };
+    }
+
+    // 如果数据库中没有设置当前赛季，使用时间计算（向后兼容）
+    const now = new Date();
     const seasonInfo: ISeasonInfo = getSeasonInfoFn(now);
     const currentSeasonId = getSeasonId(now);
 
@@ -129,6 +185,7 @@ export class UserCenter {
       seasonName: seasonInfo.seasonName,
       startDate: seasonInfo.startDate.toISOString(),
       endDate: seasonInfo.endDate.toISOString(),
+      seasons,
     };
   }
 
@@ -155,8 +212,14 @@ export class UserCenter {
   /**
    * 返回可选的赛季信息（当前与上一赛季）
    */
-  static getSeasonList(now: Date = new Date()): ISeasonListResponse {
-    const currentSeasonId = getSeasonId(now);
+  static async getSeasonList(now: Date = new Date()): Promise<ISeasonListResponse> {
+    const currentSeason = await Database.getInstance().getCurrentSeason();
+    let currentSeasonId: string;
+    if (currentSeason) {
+      currentSeasonId = currentSeason.seasonId;
+    } else {
+      currentSeasonId = getSeasonId(now);
+    }
     return {
       currentSeasonId,
       previousSeasonId: getPreviousSeasonId(currentSeasonId),
@@ -172,7 +235,9 @@ export class UserCenter {
     if (!seasonId) {
       throw new ServiceError(400, 'Missing seasonId parameter');
     }
-    const currentSeasonId = getSeasonId();
+    // 从数据库读取当前赛季，而不是基于时间计算
+    const currentSeasonData = await Database.getInstance().getCurrentSeason();
+    const currentSeasonId = currentSeasonData?.seasonId || getSeasonId();
     if (seasonId === currentSeasonId) {
       const allUserRanks = await Database.getInstance().getUserRanks(Math.min(100, limit));
       const rankList = Array.isArray(allUserRanks) ? allUserRanks : [];
@@ -290,7 +355,7 @@ export class UserCenter {
   /**
    * 获取/创建用户排名
    */
-  static getUserRank(userId: string | null, playerName: string | null): IUserRankResponse {
+  static async getUserRank(userId: string | null, playerName: string | null): Promise<IUserRankResponse> {
     let resolvedUserId = userId;
 
     if (!resolvedUserId && playerName) {
@@ -304,9 +369,13 @@ export class UserCenter {
       throw new ServiceError(404, 'not find user id or player name');
     }
 
+    // 从数据库读取当前赛季，而不是基于时间计算
+    const currentSeasonData = await Database.getInstance().getCurrentSeason();
+    const currentSeasonId = currentSeasonData?.seasonId || getSeasonId();
+
     let userRank: UserRank | undefined = GameLoader.getInstance().userRankMap.get(resolvedUserId);
     if (userRank === undefined) {
-      userRank = new UserRank(resolvedUserId, DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0, 0, getSeasonId());
+      userRank = new UserRank(resolvedUserId, DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0, 0, currentSeasonId);
       Database.getInstance().addUserRank(userRank);
       GameLoader.getInstance().addOrUpdateUserRank(userRank);
     }
@@ -325,12 +394,15 @@ export class UserCenter {
   /**
    * 激活用户排名
    */
-  static activateRank(userId: string): void {
+   static async activateRank(userId: string): Promise<void> {
     if (!userId) {
       throw new ServiceError(400, 'Missing userId');
     }
 
-    const currentSeasonId = getSeasonId();
+    // 从数据库读取当前赛季，而不是基于时间计算
+    const currentSeasonData = await Database.getInstance().getCurrentSeason();
+    const currentSeasonId = currentSeasonData?.seasonId || getSeasonId();
+
     let userRank = GameLoader.getInstance().userRankMap.get(userId);
     if (userRank === null || userRank === undefined) {
       userRank = new UserRank(userId, DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0, 0, currentSeasonId);

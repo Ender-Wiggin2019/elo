@@ -488,23 +488,23 @@
 
           <div class="create-game-action">
             <template v-if="lobbyMode">
-              <AppButton title="Create Room" size="big" @click="createLobbyRoom" />
-              <AppButton title="Cancel" size="big" @click="$emit('lobby-cancel')" />
+              <button class="btn-create-game" @click="createLobbyRoom" v-i18n>Create Room</button>
+              <button class="btn-cancel-game" @click="$emit('lobby-cancel')" v-i18n>Cancel</button>
             </template>
-            <AppButton v-else title="Create game" size="big" @click="createGame" />
-            <span v-if="isvip">
+            <button v-else class="btn-create-game" @click="createGame" v-i18n>Create game</button>
+            <div v-if="isvip" class="create-game-settings-buttons">
               <label>
-                <div class="btn btn-primary btn-action btn-lg"><i class="icon icon-upload"></i></div>
+                <div class="btn-settings-upload" title="Upload settings"><i class="icon icon-upload"></i></div>
                 <input style="display: none" type="file" accept=".json" id="settings-file" ref="file"
                   v-on:change="uploadSettings()" />
               </label>
 
               <label>
-                <div v-on:click="downloadSettings()" class="btn btn-primary btn-action btn-lg"><i
+                <div v-on:click="downloadSettings()" class="btn-settings-download" title="Download settings"><i
                     class="icon icon-download"></i>
                 </div>
               </label>
-            </span>
+            </div>
           </div>
         </div>
       </div>
@@ -571,7 +571,6 @@ import {translateText, translateTextWithParams} from '@/client/directives/i18n';
 import ColoniesFilter from '@/client/components/create/ColoniesFilter.vue';
 import {ColonyName} from '@/common/colonies/ColonyName';
 import CardsFilter from '@/client/components/create/CardsFilter.vue';
-import AppButton from '@/client/components/common/AppButton.vue';
 import {playerColorClass} from '@/common/utils/utils';
 import {PreferencesManager} from '../../utils/PreferencesManager';
 import {RandomMAOptionType} from '@/common/ma/RandomMAOptionType';
@@ -729,7 +728,6 @@ export default (Vue as WithRefs<Refs>).extend({
     };
   },
   components: {
-    AppButton,
     CardsFilter,
     ColoniesFilter,
     CorporationsFilter,

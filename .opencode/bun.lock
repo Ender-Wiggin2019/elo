@@ -5,7 +5,7 @@
     "": {
       "name": "opencode-plugins",
       "dependencies": {
-        "@opencode-ai/plugin": "1.1.56",
+        "@opencode-ai/plugin": "1.1.57",
       },
       "devDependencies": {
         "jsonc-parser": "3.3.1",
@@ -14,9 +14,9 @@
     },
   },
   "packages": {
-    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.1.56", "https://nexus.npt.seabank.io/repository/npm-bank/@opencode-ai/plugin/-/plugin-1.1.56.tgz", { "dependencies": { "@opencode-ai/sdk": "1.1.56", "zod": "4.1.8" } }, "sha512-THvL3RR30D2c7J6gClE3mMN2dOCkNlfNfAB6yQroqLK8Lm5pxnuW3z3LeP9/oIXpQBM7gzTt9HCedolxpK+P9A=="],
+    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.1.57", "", { "dependencies": { "@opencode-ai/sdk": "1.1.57", "zod": "4.1.8" } }, "sha512-G8Vx6EQErd9g15EB7DIML9MGQXsw0XS8W8DdvWO74/9CB4K2bnubOpEPzO80hq2/OOglE/cXRmZ1fScBrysfWA=="],
 
-    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.1.56", "https://nexus.npt.seabank.io/repository/npm-bank/@opencode-ai/sdk/-/sdk-1.1.56.tgz", {}, "sha512-VFIk4wS7chc1fbodMXstBHV6uj9z25g3c72SlwBYjzPZZLgtr9IUK+FyGMUYefXYeeXJ/l91CdmfjCjDZTmD1g=="],
+    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.1.57", "", {}, "sha512-JieE1NjYr99XBli7vtBTY09TLRfZ0mfbZsYZL7GIahft1JpUv8DVECRZOWOn/RUn2lPJ7LKglZBJgiGtcO2e9w=="],
 
     "jsonc-parser": ["jsonc-parser@3.3.1", "https://nexus.npt.seabank.io/repository/npm-bank/jsonc-parser/-/jsonc-parser-3.3.1.tgz", {}, "sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ=="],
 

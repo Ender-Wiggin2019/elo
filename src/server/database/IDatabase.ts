@@ -200,7 +200,10 @@ export interface IDatabase {
     // 赛季相关
     saveSeasonSnapshot(userId: string, seasonId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number): Promise<void>;
     getSeasonSnapshots(seasonId: string): Promise<Array<{userId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number}>>;
+    getAvailableSeasons(): Promise<Array<string>>;
     updateUserPoints(userId: string, points: number): Promise<void>;
+    setCurrentSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void>;
+    getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined>;
 
     // 匹配队列相关
     addToMatchmakingQueue(userId: string, trueskill: number, gameOptions: string): Promise<void>;

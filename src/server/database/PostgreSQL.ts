@@ -130,6 +130,13 @@ export class PostgreSQL implements IDatabase {
       createtime timestamp(0) default now(),
       PRIMARY KEY (user_id, season_id))`);
 
+    // 当前赛季信息表（只存储一个当前赛季）
+    await this.client.query(`CREATE TABLE IF NOT EXISTS current_season (
+      season_id varchar not null,
+      season_name varchar,
+      start_date timestamp(0) default now(),
+      end_date timestamp(0))`);
+
     // 匹配队列表
     await this.client.query(`CREATE TABLE IF NOT EXISTS matchmaking_queue (
       user_id varchar not null,
@@ -557,7 +564,7 @@ export class PostgreSQL implements IDatabase {
   }
 
   public async updateUserRank(userRank:UserRank): Promise<void> {
-    await this.client.query('UPDATE user_rank SET rank_value = $1, mu = $2, sigma = $3 , trueskill = $4, points = $5, season_id = $6 WHERE id = $7', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill, userRank.points || 0, userRank.seasonId || '', userRank.userId]);
+    await this.client.query('UPDATE user_rank SET rank_value = $1, mu = $2, sigma = $3, trueskill = $4, points = $5, season_id = $6 WHERE id = $7', [userRank.rankValue, userRank.mu, userRank.sigma, userRank.trueskill, userRank.points || 0, userRank.seasonId || '', userRank.userId]);
   }
 
   // @param position: 这局游戏第几名
@@ -626,14 +633,14 @@ export class PostgreSQL implements IDatabase {
   // 赛季相关方法
   public async saveSeasonSnapshot(userId: string, seasonId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number): Promise<void> {
     await this.client.query(
-      'INSERT INTO rank_seasons (user_id, season_id, rank_value, mu, sigma, trueskill, points_earned, final_position) VALUES($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (user_id, season_id) DO UPDATE SET rank_value=$3, mu=$4, sigma=$5, trueskill=$6, points_earned=$7, final_position=$8',
+      'INSERT INTO rank_seasons (user_id, season_id, rank_value, mu, sigma, trueskill, points_earned, final_position) VALUES($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (user_id, season_id) DO NOTHING',
       [userId, seasonId, rankValue, mu, sigma, trueskill, pointsEarned, finalPosition],
     );
   }
 
   public async getSeasonSnapshots(seasonId: string): Promise<Array<{userId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number}>> {
-    const res = await this.client.query('SELECT user_id, rank_value, mu, sigma, trueskill, points_earned, final_position FROM rank_seasons WHERE season_id = $1 ORDER BY final_position ASC', [seasonId]);
-    return res.rows.map((row: any) => ({
+    const result = await this.client.query('SELECT user_id, rank_value, mu, sigma, trueskill, points_earned, final_position FROM rank_seasons WHERE season_id = $1 ORDER BY final_position ASC', [seasonId]);
+    return result.rows.map((row: any) => ({
       userId: row.user_id,
       rankValue: row.rank_value,
       mu: row.mu,
@@ -644,8 +651,36 @@ export class PostgreSQL implements IDatabase {
     }));
   }
 
+  public async getAvailableSeasons(): Promise<Array<string>> {
+    const result = await this.client.query('SELECT DISTINCT season_id FROM rank_seasons ORDER BY season_id DESC', []);
+    return result.rows.map((row: any) => row.season_id);
+  }
+
   public async updateUserPoints(userId: string, points: number): Promise<void> {
     await this.client.query('UPDATE user_rank SET points = $1 WHERE id = $2', [points, userId]);
+  }
+
+  public async setCurrentSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void> {
+    // 先删除旧记录，再插入新记录（确保只有一条当前赛季记录）
+    await this.client.query('DELETE FROM current_season');
+    await this.client.query(
+      'INSERT INTO current_season (season_id, season_name, start_date, end_date) VALUES ($1, $2, $3, $4)',
+      [seasonId, seasonName, startDate.toISOString(), endDate.toISOString()],
+    );
+  }
+
+  public async getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
+    const result = await this.client.query('SELECT season_id, season_name, start_date, end_date FROM current_season', []);
+    if (result.rows.length === 0) {
+      return undefined;
+    }
+    const row = result.rows[0];
+    return {
+      seasonId: row.season_id,
+      seasonName: row.season_name,
+      startDate: row.start_date,
+      endDate: row.end_date,
+    };
   }
 
   // 匹配队列相关方法

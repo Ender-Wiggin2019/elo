@@ -11,6 +11,7 @@ import {
   getSeasonInfo,
   getSeasonPointsReward,
   getPreviousSeasonId,
+  getNextSeasonId,
   shouldResetSeason,
   softResetMu,
   softResetSigma,
@@ -118,7 +119,11 @@ export async function runSeasonReset(options: ISeasonResetOptions = {}): Promise
     const previousSeasonId = options.expectedFromSeasonId || getPreviousSeasonId(currentSeasonId);
     const dryRun = options.dryRun === true;
     const triggeredBy = options.triggeredBy || 'admin';
-    return await performSeasonReset(previousSeasonId, currentSeasonId, dryRun, triggeredBy);
+    // When admin triggers, move to next season instead of staying in current season
+    const newSeasonId = triggeredBy === 'admin' && options.expectedFromSeasonId
+      ? getNextSeasonId(previousSeasonId)
+      : currentSeasonId;
+    return await performSeasonReset(previousSeasonId, newSeasonId, dryRun, triggeredBy);
   } finally {
     isSeasonResetRunning = false;
   }
@@ -153,36 +158,45 @@ async function performSeasonReset(
   const seasonInfo = getSeasonInfo(nowFromSeasonId(newSeasonId));
   console.log(`[Season] Season reset triggered! Previous: ${previousSeasonId} -> Current: ${newSeasonId}`);
   console.log(`[Season] ${seasonInfo.seasonName}, triggeredBy=${triggeredBy}, dryRun=${dryRun}`);
-  console.log(`[Season] Processing ${allRanks.length} players for season reset`);
 
-  const mismatchedPlayers = allRanks.filter((rank) => rank.seasonId && rank.seasonId !== previousSeasonId).length;
-  if (mismatchedPlayers > 0) {
+  // 只处理那些在源赛季的用户，跳过已经在目标赛季的用户
+  const ranksToReset = allRanks.filter((rank) => rank.seasonId === previousSeasonId);
+  const playersInNewSeason = allRanks.filter((rank) => rank.seasonId === newSeasonId);
+
+  if (ranksToReset.length === 0) {
+    console.log(`[Season] No players found in season ${previousSeasonId}. All players are already in ${newSeasonId} or have no season ID.`);
     return {
       status: 'skipped',
-      reason: `Found ${mismatchedPlayers} users not in expected season ${previousSeasonId}`,
+      reason: `No players found in season ${previousSeasonId}. All players are already in ${newSeasonId} or have no season ID.`,
       fromSeasonId: previousSeasonId,
       toSeasonId: newSeasonId,
       playerCount: allRanks.length,
-      preview: buildResetPreview(allRanks, 20),
+      preview: [],
       triggeredBy,
     };
   }
 
-  const preview = buildResetPreview(allRanks, 20);
+  if (playersInNewSeason.length > 0) {
+    console.log(`[Season] Warning: ${playersInNewSeason.length} players are already in season ${newSeasonId}, they will be skipped.`);
+  }
+
+  console.log(`[Season] Processing ${ranksToReset.length} players for season reset (skipping ${playersInNewSeason.length} players already in new season)`);
+
+  const preview = buildResetPreview(ranksToReset, 20);
   if (dryRun) {
     return {
       status: 'dry-run',
       fromSeasonId: previousSeasonId,
       toSeasonId: newSeasonId,
-      playerCount: allRanks.length,
+      playerCount: ranksToReset.length,
       preview,
       triggeredBy,
     };
   }
 
   // 2 & 3. 保存快照并发放积分
-  for (let i = 0; i < allRanks.length; i++) {
-    const userRank = allRanks[i];
+  for (let i = 0; i < ranksToReset.length; i++) {
+    const userRank = ranksToReset[i];
     const position = i + 1; // 1-indexed
     const pointsEarned = getSeasonPointsReward(position);
 
@@ -220,12 +234,16 @@ async function performSeasonReset(
     gameLoader.addOrUpdateUserRank(userRank);
   }
 
-  console.log(`[Season] Season reset complete. ${allRanks.length} players processed.`);
+  // 更新当前赛季信息
+  await db.setCurrentSeason(newSeasonId, seasonInfo.seasonName, seasonInfo.startDate, seasonInfo.endDate);
+
+  console.log(`[Season] Season reset complete. ${ranksToReset.length} players processed.`);
+  console.log(`[Season] Current season updated to: ${newSeasonId} (${seasonInfo.seasonName})`);
   return {
     status: 'completed',
     fromSeasonId: previousSeasonId,
     toSeasonId: newSeasonId,
-    playerCount: allRanks.length,
+    playerCount: ranksToReset.length,
     preview,
     triggeredBy,
   };

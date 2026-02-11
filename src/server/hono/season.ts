@@ -10,12 +10,13 @@
 import {Hono} from 'hono';
 import {UserCenter, ServiceError} from '../services/UserCenter';
 import {serverId as expectedServerId} from '../utils/server-ids';
+import {isProduction} from '../utils/server';
 
 const seasonRoutes = new Hono();
 
-seasonRoutes.get('/info', (c) => {
-  return c.json(UserCenter.getSeasonInfo());
-});
+ seasonRoutes.get('/info', async (c) => {
+   return c.json(await UserCenter.getSeasonInfo());
+ });
 
 seasonRoutes.get('/history', async (c) => {
   const seasonId = c.req.query('seasonId');
@@ -31,8 +32,8 @@ seasonRoutes.get('/history', async (c) => {
   }
 });
 
-seasonRoutes.get('/list', (c) => {
-  return c.json(UserCenter.getSeasonList());
+seasonRoutes.get('/list', async (c) => {
+  return c.json(await UserCenter.getSeasonList());
 });
 
 seasonRoutes.get('/leaderboard', async (c) => {
@@ -51,9 +52,10 @@ seasonRoutes.get('/leaderboard', async (c) => {
   }
 });
 
-seasonRoutes.post('/admin/reset', async (c) => {
+ seasonRoutes.post('/admin/reset', async (c) => {
   const serverId = c.req.query('serverId');
-  if (!serverId || serverId !== expectedServerId) {
+  // Skip serverId verification in development mode
+  if (isProduction() && (!serverId || serverId !== expectedServerId)) {
     return c.json({error: 'not authorized'}, 401);
   }
   let payload: {expectedFromSeasonId?: string; dryRun?: boolean};

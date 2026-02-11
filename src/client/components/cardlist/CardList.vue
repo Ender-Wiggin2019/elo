@@ -38,10 +38,12 @@
         </button>
       </div>
 
-      <div id="selections" v-show="showAdvanced">
-        <!-- expansions -->
-        <div class="selection-row">
-          <button id="toggle-checkbox" v-on:click="invertExpansions()">Invert</button>
+       <div id="selections" v-show="showAdvanced">
+         <!-- expansions -->
+         <div class="selection-row">
+           <button id="toggle-checkbox-invert" v-on:click="invertExpansions()">
+             <span v-i18n>Invert</span>
+           </button>
 
           <span v-for="expansion in allModules" :key="expansion">
             <input type="checkbox" :name="expansion" :id="`${expansion}-checkbox`" v-model="expansions[expansion]">
@@ -52,11 +54,11 @@
           </span>
         </div>
 
-        <!-- types -->
-        <div class="selection-row">
-          <button id="toggle-checkbox" v-on:click="invertTypes()">
-              <span v-i18n>Invert</span>
-          </button>
+         <!-- types -->
+         <div class="selection-row">
+           <button id="toggle-checkbox-invert" v-on:click="invertTypes()">
+               <span v-i18n>Invert</span>
+           </button>
 
           <span v-for="type in allTypes" :key="type">
             <input type="checkbox" :name="`${type}-cardType`" :id="`${type}-cardType-checkbox`" v-model="types[type]">
@@ -68,11 +70,11 @@
           </span>
         </div>
 
-        <!-- tags -->
-        <div class="selection-row">
-          <button id="toggle-checkbox" v-on:click="invertTags()">
-              <span v-i18n>Invert</span>
-          </button>
+         <!-- tags -->
+         <div class="selection-row">
+           <button id="toggle-checkbox-invert" v-on:click="invertTags()">
+               <span v-i18n>Invert</span>
+           </button>
           <span v-for="tag in allTags" :key="tag">
             <input v-if="tag === 'event'" type="checkbox" :name="`${tag}-cardType`" :id="`${tag}-tag-checkbox`" v-model="types.event">
             <input v-else type="checkbox" :name="`${tag}-cardType`" :id="`${tag}-tag-checkbox`" v-model="tags[tag]">
@@ -461,3 +463,38 @@ export default (Vue as WithRefs<Refs>).extend({
   },
 });
 </script>
+
+<style scoped>
+/* Invert button style - distinct from other buttons */
+#toggle-checkbox-invert {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+  border: 2px solid #D4AF37;
+  color: #FFFFFF;
+  font-weight: bold;
+  text-shadow: 0 0 4px rgba(212, 175, 55, 0.5);
+  transition: all 0.3s ease;
+}
+
+#toggle-checkbox-invert:hover {
+  background: linear-gradient(135deg, #A0522D 0%, #C74C3C 100%);
+  border-color: #4CAF50;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#toggle-checkbox-invert:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Language class adjustments */
+.language-cn #toggle-checkbox-invert {
+  background: linear-gradient(135deg, #FF9800 0%, #FF6F00 100%);
+  border-color: #FFD54F;
+}
+
+.language-cn #toggle-checkbox-invert:hover {
+  background: linear-gradient(135deg, #FF6F00 0%, #E65100 100%);
+  border-color: #FFA000;
+}
+</style>
