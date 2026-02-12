@@ -48,6 +48,9 @@ const FAKE_DATABASE: IDatabase = {
   saveSeasonSnapshot: () => Promise.resolve(),
   getSeasonSnapshots: () => Promise.resolve([]),
   updateUserPoints: () => Promise.resolve(),
+  getCurrentSeason: () => Promise.resolve(undefined),
+  setCurrentSeason: () => Promise.resolve(),
+  getAvailableSeasons: () => Promise.resolve([]),
 
   // 兼容
   // getGameIds: () => Promise.resolve([]),

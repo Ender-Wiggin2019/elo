@@ -25,8 +25,7 @@ export default defineConfig({
     // Test file patterns
     include: ['tests/client/**/*.spec.ts'],
 
-    // The old setup.ts manually set up jsdom globals — vitest's jsdom environment handles this
-    // No setupFiles needed since vitest's jsdom environment provides all DOM globals
+    setupFiles: ['./tests/client/components/setup.ts'],
 
     // Timeout for slow tests (e.g., Card_HTML)
     testTimeout: 60000,

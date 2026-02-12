@@ -8,7 +8,6 @@ import {
   softResetMu,
   softResetSigma,
   getSeasonPointsReward,
-  SEASON_POINTS_TOP_TEN,
   SEASON_POINTS_TOP_HUNDRED,
   SEASON_POINTS_DEFAULT,
 } from '../../src/common/rank/SeasonManager';
@@ -114,17 +113,21 @@ describe('SeasonManager', () => {
       expect(getSeasonPointsReward(1)).to.eq(100);
     });
 
-    it('should return 50 for 2nd place', () => {
-      expect(getSeasonPointsReward(2)).to.eq(50);
+    it('should return 75 for 2nd place', () => {
+      expect(getSeasonPointsReward(2)).to.eq(75);
     });
 
-    it('should return 35 for 3rd place', () => {
-      expect(getSeasonPointsReward(3)).to.eq(35);
+    it('should return 60 for 3rd place', () => {
+      expect(getSeasonPointsReward(3)).to.eq(60);
     });
 
-    it('should return 20 for top ten except top three', () => {
-      expect(getSeasonPointsReward(4)).to.eq(SEASON_POINTS_TOP_TEN);
-      expect(getSeasonPointsReward(10)).to.eq(SEASON_POINTS_TOP_TEN);
+    it('should return 45 for 4th place', () => {
+      expect(getSeasonPointsReward(4)).to.eq(45);
+    });
+
+    it('should return 20 for 9th-10th place', () => {
+      expect(getSeasonPointsReward(9)).to.eq(20);
+      expect(getSeasonPointsReward(10)).to.eq(20);
     });
 
     it('should return 10 for top hundred except top ten', () => {
