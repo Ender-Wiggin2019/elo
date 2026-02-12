@@ -768,6 +768,7 @@ export enum CardName {
   JOVIAN_DEFENSE_DEPARTMENT = 'Jovian Defense Department',
   SPACE_MONSTER_PARK = 'Space Monster Park',
   ENERGY_STATION = 'Energy Station',
+  MAKE_IT_RAIN = '淘金潮',
   LUNA_CHAIN = 'Luna Chain',
 
   // The Moon.
