@@ -2,6 +2,10 @@
   <dialog ref="dialog" class="confirm-dialog">
     <div class="confirm-dialog__container">
       <p class="confirm-dialog__message" v-i18n>{{ message }}</p>
+      <label v-if="enableDontShowAgainCheckbox" class="confirm-dialog__checkbox">
+        <input type="checkbox" v-model="hide" />
+        <span v-i18n>Don't show this again</span>
+      </label>
       <menu class="confirm-dialog__actions">
         <button class="confirm-dialog__button confirm-dialog__button--primary" v-on:click="accept()" v-i18n>Yes</button>
         <button class="confirm-dialog__button confirm-dialog__button--secondary" v-on:click="dismiss()" v-i18n>No</button>
@@ -83,12 +87,28 @@ export default (Vue as WithRefs<Refs>).extend({
 }
 
 .confirm-dialog__message {
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: #f1f5f9;
   font-size: 16px;
   line-height: 1.6;
   text-align: center;
   white-space: pre-wrap;
+}
+
+.confirm-dialog__checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.confirm-dialog__checkbox input[type="checkbox"] {
+  accent-color: #e2520e;
+  cursor: pointer;
 }
 
 .confirm-dialog__actions {

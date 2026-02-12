@@ -34,6 +34,11 @@ export class MoltenReserve extends Card implements IProjectCard {
     });
   }
 
+  public override bespokePlay(player: IPlayer): undefined {
+    player.stock.add(Resource.MEGACREDITS, 1, {log: true});
+    return undefined;
+  }
+
   /**
    * Hook for production phase: if the player produced heat, gain 1 MC.
    * During production, heat is added directly (not via stock.add),

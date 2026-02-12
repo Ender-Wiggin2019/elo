@@ -40,6 +40,11 @@ export class LostBounty extends Card implements IProjectCard {
     });
   }
 
+  public override bespokePlay(player: IPlayer): undefined {
+    player.stock.add(Resource.MEGACREDITS, 2, {log: true});
+    return undefined;
+  }
+
   public onProductionGain(player: IPlayer, _resource: Resource, amount: number): void {
     if (amount < 0) {
       player.stock.add(Resource.MEGACREDITS, 2, {log: true});

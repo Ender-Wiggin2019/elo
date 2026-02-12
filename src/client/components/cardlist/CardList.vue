@@ -40,9 +40,9 @@
 
        <div id="selections" v-show="showAdvanced">
          <!-- expansions -->
-         <div class="selection-row">
-           <button id="toggle-checkbox-invert" v-on:click="invertExpansions()">
-             <span v-i18n>Invert</span>
+          <div class="selection-row">
+           <button id="toggle-checkbox-invert" v-on:click="invertExpansions()" title="Invert selection">
+             <i class="fas fa-sync-alt"></i>
            </button>
 
           <span v-for="expansion in allModules" :key="expansion">
@@ -55,9 +55,9 @@
         </div>
 
          <!-- types -->
-         <div class="selection-row">
-           <button id="toggle-checkbox-invert" v-on:click="invertTypes()">
-               <span v-i18n>Invert</span>
+          <div class="selection-row">
+           <button id="toggle-checkbox-invert" v-on:click="invertTypes()" title="Invert selection">
+               <i class="fas fa-sync-alt"></i>
            </button>
 
           <span v-for="type in allTypes" :key="type">
@@ -71,9 +71,9 @@
         </div>
 
          <!-- tags -->
-         <div class="selection-row">
-           <button id="toggle-checkbox-invert" v-on:click="invertTags()">
-               <span v-i18n>Invert</span>
+          <div class="selection-row">
+           <button id="toggle-checkbox-invert" v-on:click="invertTags()" title="Invert selection">
+               <i class="fas fa-sync-alt"></i>
            </button>
           <span v-for="tag in allTags" :key="tag">
             <input v-if="tag === 'event'" type="checkbox" :name="`${tag}-cardType`" :id="`${tag}-tag-checkbox`" v-model="types.event">
@@ -465,36 +465,24 @@ export default (Vue as WithRefs<Refs>).extend({
 </script>
 
 <style scoped>
-/* Invert button style - distinct from other buttons */
 #toggle-checkbox-invert {
-  background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
-  border: 2px solid #D4AF37;
-  color: #FFFFFF;
-  font-weight: bold;
-  text-shadow: 0 0 4px rgba(212, 175, 55, 0.5);
-  transition: all 0.3s ease;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 32px;
 }
 
 #toggle-checkbox-invert:hover {
-  background: linear-gradient(135deg, #A0522D 0%, #C74C3C 100%);
-  border-color: #4CAF50;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 #toggle-checkbox-invert:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-/* Language class adjustments */
-.language-cn #toggle-checkbox-invert {
-  background: linear-gradient(135deg, #FF9800 0%, #FF6F00 100%);
-  border-color: #FFD54F;
-}
-
-.language-cn #toggle-checkbox-invert:hover {
-  background: linear-gradient(135deg, #FF6F00 0%, #E65100 100%);
-  border-color: #FFA000;
+  background: rgba(255, 255, 255, 0.1);
 }
 </style>

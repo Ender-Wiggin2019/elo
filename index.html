@@ -9,23 +9,21 @@
         <meta name="description" content="Terraforming Mars Open Source Web Application" />
     </head>
     <body id="ts-preferences-target">
+        <dialog id="alert-dialog" class="alert-dialog">
+            <div class="alert-dialog__content">
+                <div class="alert-dialog__header">
+                    <div class="alert-dialog__icon"></div>
+                    <h3 class="alert-dialog__title" v-i18n>Error</h3>
+                </div>
+                <div class="alert-dialog__body">
+                    <p id="alert-dialog-message"></p>
+                </div>
+                <div class="alert-dialog__footer">
+                    <button id="alert-dialog-button" class="alert-dialog__btn" v-i18n>OK</button>
+                </div>
+            </div>
+        </dialog>
         <div id="app" :class="'topmost-'+screen">
-            <section>
-                <dialog id="alert-dialog" class="alert-dialog">
-                    <div class="alert-dialog__content">
-                        <div class="alert-dialog__header">
-                            <div class="alert-dialog__icon"></div>
-                            <h3 class="alert-dialog__title" v-i18n>Error</h3>
-                        </div>
-                        <div class="alert-dialog__body">
-                            <p id="alert-dialog-message"></p>
-                        </div>
-                        <div class="alert-dialog__footer">
-                            <button id="alert-dialog-button" class="alert-dialog__btn" v-i18n>OK</button>
-                        </div>
-                    </div>
-                </dialog>
-            </section>
             <nav-bar v-if="['start-screen','create-game-form','game-lobby','load','cards','help','login','register','my-games','me-page','donate','ranks','user-profile','games-overview'].indexOf(screen) !== -1"></nav-bar>
             <div class="main-container">
                 <start-screen v-if="screen === 'start-screen'" :version="settings.version"></start-screen>
