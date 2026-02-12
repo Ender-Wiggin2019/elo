@@ -1,6 +1,9 @@
 
 import Vue from 'vue';
 import {$t} from '@/client/directives/i18n';
+import {showError, showWarning} from '../utils/showAlert';
+import {authService} from '../services';
+
 export const Register = Vue.component('register', {
   data: function() {
     return {
@@ -9,30 +12,22 @@ export const Register = Vue.component('register', {
     };
   },
   methods: {
-    register: function() {
+    async register() {
       if (this.userName === undefined || this.userName.length <=1) {
-        alert($t('Please enter at least 2 characters for userName'));
+        showWarning($t('Please enter at least 2 characters for userName'));
         return;
       }
       if (this.password === undefined || this.password.length <=2) {
-        alert($t('Please enter at least 3 characters for password'));
+        showWarning($t('Please enter at least 3 characters for password'));
         return;
       }
-      const dataToSend = JSON.stringify({userName: this.userName, password: this.password});
 
-      const onSucces = (response: any) => {
-        if (!response.ok) {
-          response.text().then((msg: any) =>{
-            alert($t(msg));
-          });
-        } else {
-          window.location.href = '/login';
-        }
-      };
-
-      fetch('/api/register', {'method': 'POST', 'body': dataToSend, 'headers': {'Content-Type': 'application/json'}})
-        .then(onSucces)
-        .catch((_) => alert('Unexpected server response'));
+      try {
+        await authService.register(this.userName, this.password);
+        window.location.href = '/login';
+      } catch (err: any) {
+        showError($t(err.body) || 'Unexpected server response');
+      }
     },
   },
   template: `

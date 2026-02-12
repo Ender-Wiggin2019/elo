@@ -82,15 +82,6 @@ export class SQLite implements IDatabase {
       start_date timestamp default (datetime(CURRENT_TIMESTAMP,'localtime')),
       end_date timestamp)`);
 
-    // 匹配队列表
-    await this.asyncRun(`CREATE TABLE IF NOT EXISTS matchmaking_queue (
-      user_id varchar not null,
-      trueskill double,
-      join_time timestamp default (datetime(CURRENT_TIMESTAMP,'localtime')),
-      status varchar default 'waiting',
-      game_options text,
-      PRIMARY KEY (user_id))`);
-
     // 兼容性：为已有的 user_rank 表添加 points 和 season_id 列
     try {
       await this.asyncRun('ALTER TABLE user_rank ADD COLUMN points integer default 0');
@@ -578,31 +569,5 @@ export class SQLite implements IDatabase {
       startDate: rows[0].start_date,
       endDate: rows[0].end_date,
     };
-  }
-
-  // 匹配队列相关方法
-  public async addToMatchmakingQueue(userId: string, trueskill: number, gameOptions: string): Promise<void> {
-    await this.asyncRun(
-      'INSERT OR REPLACE INTO matchmaking_queue (user_id, trueskill, game_options, status) VALUES(?, ?, ?, \'waiting\')',
-      [userId, trueskill, gameOptions],
-    );
-  }
-
-  public async removeFromMatchmakingQueue(userId: string): Promise<void> {
-    await this.asyncRun('DELETE FROM matchmaking_queue WHERE user_id = ?', [userId]);
-  }
-
-  public async getMatchmakingQueue(): Promise<Array<{userId: string, trueskill: number, joinTime: string, gameOptions: string}>> {
-    const rows = await this.asyncAll('SELECT user_id, trueskill, join_time, game_options FROM matchmaking_queue WHERE status = \'waiting\' ORDER BY join_time ASC');
-    return rows.map((row) => ({
-      userId: row.user_id,
-      trueskill: row.trueskill,
-      joinTime: row.join_time,
-      gameOptions: row.game_options,
-    }));
-  }
-
-  public async clearMatchmakingQueue(): Promise<void> {
-    await this.asyncRun('DELETE FROM matchmaking_queue');
   }
 }

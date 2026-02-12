@@ -1,141 +1,155 @@
 <template>
-  <div class="min-h-screen bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
-    style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
-    <div class="max-w-3xl mx-auto">
-
-      <!-- Page Title -->
-      <div class="flex items-center gap-3 mb-3">
-        <div style="width:7px;height:7px;border-radius:50%;background:#2dd4bf;box-shadow:0 0 8px rgba(45,212,191,0.7);"></div>
-        <h1 class="text-lg font-bold text-mars-text uppercase tracking-widest" v-i18n>Profile</h1>
-      </div>
-      <div class="mb-6" style="height:1px;background:linear-gradient(to right,rgba(226,82,14,0.7),rgba(226,82,14,0.3) 25%,rgba(38,48,80,0.5) 55%,transparent 100%);"></div>
-
-      <!-- Loading -->
-      <div v-if="loading" class="text-center py-20">
-        <div class="text-mars-text-faint text-sm font-mono uppercase tracking-widest" v-i18n>Loading profile...</div>
+  <div class="profile-page" :class="{ 'profile-page--vip': isVip }">
+    <div class="profile-container">
+      <!-- Loading State -->
+      <div v-if="loading" class="profile-loading">
+        <div class="profile-loading__spinner"></div>
+        <span v-i18n>Loading profile...</span>
       </div>
 
-      <!-- Error -->
-      <div v-else-if="error" class="text-center py-20">
-        <div class="text-mars-red text-sm font-mono uppercase tracking-widest mb-2">{{ error }}</div>
-        <a href="/" class="text-mars-cyan text-xs hover:underline font-mono uppercase" v-i18n>Back to Home</a>
+      <!-- Error State -->
+      <div v-else-if="error" class="profile-error">
+        <div class="profile-error__icon">&#9888;</div>
+        <div class="profile-error__message">{{ error }}</div>
+        <a href="/" class="profile-btn" v-i18n>Back to Home</a>
       </div>
 
       <!-- Profile Content -->
-      <div v-else-if="profile" class="space-y-6">
+      <template v-else-if="profile">
+        <!-- Profile Header Card -->
+        <div class="profile-header" :class="{ 'profile-header--vip': isVip }">
+          <div class="profile-header__glow" v-if="isVip"></div>
+          <div class="profile-header__bg"></div>
 
-        <!-- Main Profile Card -->
-        <div class="profile-card relative overflow-hidden">
-          <!-- Background glow -->
-          <div class="absolute inset-0" style="background:radial-gradient(ellipse at 20% 30%, rgba(194,65,12,0.08) 0%, transparent 60%);"></div>
+          <div class="profile-header__content">
+            <!-- Avatar -->
+            <div class="profile-avatar" :style="avatarStyle" :class="{ 'profile-avatar--vip': isVip }">
+              {{ avatarLetter }}
+              <div class="profile-avatar__ring" v-if="isVip"></div>
+            </div>
 
-          <div class="relative z-10 p-6 sm:p-8">
-            <div class="flex items-start gap-5">
-              <!-- Large Avatar -->
-              <div class="flex-shrink-0 w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold uppercase"
-                :style="avatarStyle">
-                {{ avatarLetter }}
+            <!-- User Info -->
+            <div class="profile-info">
+              <div class="profile-info__top">
+                <h1 class="profile-info__name" :class="{ 'profile-info__name--vip': isVip }">
+                  {{ profile.name }}
+                </h1>
+                <span v-if="isVip" class="profile-vip-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+                  </svg>
+                  VIP
+                </span>
               </div>
 
-              <!-- Name & Rank -->
-              <div class="flex-1 min-w-0 pt-1">
-                <div class="flex items-center gap-3 mb-1">
-                  <h1 class="text-2xl font-bold truncate"
-                    :class="profile.isvip > 0 ? 'vip-name' : 'text-mars-text'">{{ profile.name }}</h1>
-                  <span v-if="profile.isvip > 0" class="inline-block px-2 py-0.5 text-xs font-bold uppercase tracking-wider rounded-sm"
-                    :class="profile.isvip === 2 ? 'bg-mars-amber/20 text-mars-amber' : 'bg-mars-amber/15 text-mars-amber'">
-                    VIP
-                  </span>
-                </div>
+              <!-- Rank Display -->
+              <div class="profile-info__rank" v-if="profile.rank">
+                <RankBadge :rankTier="rankTierObj" :showName="true" :vertical="true"/>
+              </div>
+              <div class="profile-info__unranked" v-else v-i18n>Unranked</div>
 
-                <!-- Rank display -->
-                <div v-if="profile.rank" class="flex items-center gap-3 mb-2">
-                  <RankTier :rankTier="rankTierObj" :showNumber="false"/>
-                  <span class="text-sm font-mono text-mars-text-dim uppercase tracking-wider">{{ profile.rank.tier.name }}</span>
-                </div>
-                <div v-else class="text-sm text-mars-text-faint font-mono uppercase tracking-wider mb-2" v-i18n>Unranked</div>
-
-                <!-- Join date -->
-                <div v-if="profile.createtime" class="text-xs text-mars-text-faint font-mono">
-                  <span v-i18n>Joined</span>: {{ profile.createtime }}
-                </div>
+              <!-- Join Date -->
+              <div class="profile-info__joined" v-if="profile.createtime">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span v-i18n>Joined</span> {{ profile.createtime }}
               </div>
             </div>
           </div>
 
           <!-- Corner accents -->
-          <div class="absolute top-0 left-0 w-10 h-px" style="background:linear-gradient(to right,#e2520e,transparent);"></div>
-          <div class="absolute top-0 left-0 w-px h-10" style="background:linear-gradient(to bottom,#e2520e,transparent);"></div>
-          <div class="absolute bottom-0 right-0 w-10 h-px" style="background:linear-gradient(to left,#e2520e80,transparent);"></div>
-          <div class="absolute bottom-0 right-0 w-px h-10" style="background:linear-gradient(to top,#e2520e80,transparent);"></div>
+          <div class="profile-header__corner profile-header__corner--tl"></div>
+          <div class="profile-header__corner profile-header__corner--br"></div>
         </div>
 
-        <!-- Quick overview cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div class="stat-card p-4 text-center">
-            <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Games</div>
-            <div class="text-2xl font-bold font-mono text-mars-text">{{ profile.totalGames }}</div>
-          </div>
-          <div class="stat-card p-4 text-center">
-            <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Win Rate</div>
-            <div class="text-2xl font-bold font-mono" :class="allTimeWinRate >= 50 ? 'text-mars-teal' : 'text-mars-amber'">
-              {{ allTimeWinRate }}%
+        <!-- Stats Overview -->
+        <div class="profile-stats">
+          <div class="profile-stat" :class="{ 'profile-stat--highlight': allTimeWinRate >= 50 }">
+            <div class="profile-stat__value">
+              {{ profile.totalGames }}
             </div>
+            <div class="profile-stat__label" v-i18n>Games</div>
           </div>
-          <div class="stat-card p-4 text-center">
-            <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Flee Rate</div>
-            <div class="text-2xl font-bold font-mono" :class="fleeRateCardClass">{{ allTimeFleeRate }}%</div>
+          <div class="profile-stat" :class="winRateClass">
+            <div class="profile-stat__value">
+              {{ allTimeWinRate }}<span class="profile-stat__unit">%</span>
+            </div>
+            <div class="profile-stat__label" v-i18n>Win Rate</div>
           </div>
-          <div class="stat-card p-4 text-center" v-if="profile.rank">
-            <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Rating</div>
-            <div class="text-2xl font-bold font-mono text-mars-cyan">{{ displayRating }}</div>
+          <div class="profile-stat" :class="fleeRateClass">
+            <div class="profile-stat__value">
+              {{ allTimeFleeRate }}<span class="profile-stat__unit">%</span>
+            </div>
+            <div class="profile-stat__label" v-i18n>Flee Rate</div>
           </div>
-          <div class="stat-card p-4 text-center" v-else>
-            <div class="text-xs font-mono text-mars-text-faint uppercase tracking-widest mb-1" v-i18n>Rating</div>
-            <div class="text-2xl font-bold font-mono text-mars-text-dim">&mdash;</div>
+          <div class="profile-stat profile-stat--cyan" v-if="profile.rank">
+            <div class="profile-stat__value">
+              {{ displayRating }}
+            </div>
+            <div class="profile-stat__label" v-i18n>Rating</div>
+          </div>
+          <div class="profile-stat" v-else>
+            <div class="profile-stat__value profile-stat__value--muted">&mdash;</div>
+            <div class="profile-stat__label" v-i18n>Rating</div>
           </div>
         </div>
 
-        <!-- ============ Game Stats (shared component) ============ -->
-        <div v-if="profile.gameStats" class="profile-card relative overflow-hidden">
-          <div class="relative z-10">
+        <!-- Game Stats Section -->
+        <div class="profile-section" v-if="profile.gameStats">
+          <div class="profile-section__header">
+            <span class="profile-section__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </span>
+            <h2 class="profile-section__title" v-i18n>Game Statistics</h2>
+          </div>
+          <div class="profile-card">
             <UserGameStats
               :allTime="profile.gameStats.allTime"
               :recent3Months="profile.gameStats.recent3Months"
             />
           </div>
-          <div class="absolute top-0 left-0 w-6 h-px bg-mars-rust"></div>
-          <div class="absolute bottom-0 right-0 w-6 h-px bg-mars-rust"></div>
         </div>
 
-        <!-- Rank Details -->
-        <div v-if="profile.rank" class="profile-card relative overflow-hidden">
-          <div class="relative z-10 p-5">
-            <div class="text-xs uppercase tracking-widest text-mars-rust font-mono font-bold mb-4" v-i18n>Rank Details</div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              <div>
-                <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>Tier</div>
-                <div class="text-sm font-bold text-mars-text">{{ profile.rank.tier.name }}</div>
+        <!-- Rank Details Section -->
+        <div class="profile-section" v-if="profile.rank">
+          <div class="profile-section__header">
+            <span class="profile-section__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </span>
+            <h2 class="profile-section__title" v-i18n>Rank Details</h2>
+          </div>
+          <div class="profile-card">
+            <div class="profile-rank-grid">
+              <div class="profile-rank-item">
+                <span class="profile-rank-item__label" v-i18n>Tier</span>
+                <span class="profile-rank-item__value">{{ profile.rank.tier.name }}</span>
               </div>
-              <div v-if="profile.rank.tier.measurement === 'star'">
-                <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>Stars</div>
-                <div class="text-sm font-bold text-mars-text">{{ profile.rank.tier.stars }} / {{ profile.rank.tier.maxStars }}</div>
+              <div class="profile-rank-item" v-if="profile.rank.tier.measurement === 'star'">
+                <span class="profile-rank-item__label" v-i18n>Stars</span>
+                <span class="profile-rank-item__value">
+                  {{ profile.rank.tier.stars }} / {{ profile.rank.tier.maxStars }}
+                </span>
               </div>
-              <div>
-                <div class="text-xs font-mono text-mars-text-faint uppercase tracking-wider mb-0.5" v-i18n>Rank Value</div>
-                <div class="text-sm font-bold text-mars-text">{{ profile.rank.rankValue }}</div>
+              <div class="profile-rank-item">
+                <span class="profile-rank-item__label" v-i18n>Rank Value</span>
+                <span class="profile-rank-item__value profile-rank-item__value--cyan">
+                  {{ profile.rank.rankValue }}
+                </span>
               </div>
-              <!-- Season Points and internal skill values (mu/sigma/trueskill) are private -->
             </div>
           </div>
-
-          <!-- Accent -->
-          <div class="absolute top-0 left-0 w-6 h-px bg-mars-rust"></div>
-          <div class="absolute bottom-0 right-0 w-6 h-px bg-mars-rust"></div>
         </div>
-
-      </div>
+      </template>
     </div>
   </div>
 </template>
@@ -143,55 +157,14 @@
 <script lang="ts">
 import Vue from 'vue';
 import {RankTier} from '@/common/rank/RankTier';
-import RankTierComponent from '@/client/components/RankTier.vue';
+import RankBadge from '@/client/components/common/RankBadge.vue';
 import UserGameStats from '@/client/components/common/UserGameStats.vue';
-
-interface IProfileRank {
-  rankValue: number;
-  mu: number;
-  sigma: number;
-  trueskill: number;
-  points: number;
-  seasonId: string;
-  tier: {
-    name: string;
-    measurement: string;
-    maxStars: number;
-    stars: number;
-    value: number;
-  };
-}
-
-interface IGameStatsBlock {
-  totalGames: number;
-  wins: number;
-  losses: number;
-  winRate: number;
-  fleeCount: number;
-  fleeRate: number;
-  avgScore: number;
-  avgPosition: number;
-  totalRankGames: number;
-  rankWins: number;
-}
-
-interface IProfile {
-  id: string;
-  name: string;
-  createtime: string;
-  isvip: number;
-  rank: IProfileRank | null;
-  totalGames: number;
-  gameStats: {
-    allTime: IGameStatsBlock;
-    recent3Months: IGameStatsBlock;
-  } | null;
-}
+import {userService, UserProfile as IProfile} from '@/client/services';
 
 export default Vue.extend({
   name: 'UserProfile',
   components: {
-    RankTier: RankTierComponent,
+    RankBadge,
     UserGameStats,
   },
   props: {
@@ -208,18 +181,26 @@ export default Vue.extend({
     };
   },
   computed: {
+    isVip(): boolean {
+      return this.profile ? this.profile.isvip > 0 : false;
+    },
     avatarLetter(): string {
       return this.profile ? this.profile.name.charAt(0).toUpperCase() : '?';
     },
     avatarStyle(): Record<string, string> {
-      const isVip = this.profile && this.profile.isvip > 0;
+      if (this.isVip) {
+        return {
+          background: 'linear-gradient(135deg, #fcd34d, #f59e0b, #d97706)',
+          boxShadow: '0 0 32px rgba(251,191,36,0.5), inset 0 1px 0 rgba(255,255,255,0.3)',
+          color: '#fff',
+          textShadow: '0 2px 6px rgba(0,0,0,0.4)',
+        };
+      }
       return {
-        background: isVip
-          ? 'linear-gradient(135deg, #facc15, #f59e0b)'
-          : 'linear-gradient(135deg, #e2520e, #f97316)',
+        background: 'linear-gradient(135deg, #e2520e, #f97316)',
+        boxShadow: '0 0 20px rgba(226,82,14,0.35)',
         color: '#fff',
         textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-        boxShadow: isVip ? '0 0 20px rgba(245,158,11,0.35)' : '0 0 12px rgba(226,82,14,0.2)',
       };
     },
     rankTierObj(): RankTier | null {
@@ -239,12 +220,17 @@ export default Vue.extend({
     allTimeFleeRate(): number {
       return this.profile?.gameStats?.allTime?.fleeRate ?? 0;
     },
-    fleeRateCardClass(): string {
+    winRateClass(): string {
+      const rate = this.allTimeWinRate;
+      if (rate >= 50) return 'profile-stat--success';
+      if (rate >= 40) return 'profile-stat--warn';
+      return '';
+    },
+    fleeRateClass(): string {
       const rate = this.allTimeFleeRate;
-      if (rate > 20) return 'text-red-500';
-      if (rate > 10) return 'text-red-400';
-      if (rate > 5) return 'text-mars-amber';
-      return 'text-mars-teal';
+      if (rate > 20) return 'profile-stat--danger';
+      if (rate > 10) return 'profile-stat--warn';
+      return '';
     },
     displayRating(): string {
       if (!this.profile?.rank) return '\u2014';
@@ -268,16 +254,8 @@ export default Vue.extend({
       this.error = '';
       this.profile = null;
 
-      fetch(`/api/v2/user-profile/${encodeURIComponent(this.identifier)}`)
-        .then((res) => {
-          if (!res.ok) {
-            return res.json().then((data: any) => {
-              throw new Error(data.error || 'User not found');
-            });
-          }
-          return res.json();
-        })
-        .then((data: IProfile) => {
+      userService.getUserProfile(this.identifier)
+        .then((data) => {
           this.profile = data;
         })
         .catch((err: Error) => {
@@ -292,84 +270,482 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.profile-card {
-  background: linear-gradient(135deg, rgba(17,26,46,0.98) 0%, rgba(26,37,64,0.9) 100%);
-  border: 1px solid #263050;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
+.profile-page {
+  min-height: 100vh;
+  background-color: #0a0e1a;
+  background-image:
+    radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%),
+    linear-gradient(rgba(38,48,80,0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(38,48,80,0.25) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  padding: 24px;
 }
 
-.stat-card {
+.profile-container {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ============ LOADING & ERROR ============ */
+.profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+  color: #64748b;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.profile-loading__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(38,48,80,0.6);
+  border-top-color: #e2520e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.profile-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 12px;
+  text-align: center;
+}
+
+.profile-error__icon {
+  font-size: 48px;
+  color: #ef4444;
+}
+
+.profile-error__message {
+  color: #f87171;
+  font-size: 14px;
+  font-family: monospace;
+}
+
+.profile-btn {
+  display: inline-block;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #e2520e, #f97316);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.profile-btn:hover {
+  box-shadow: 0 0 20px rgba(226,82,14,0.4);
+}
+
+/* ============ HEADER CARD ============ */
+.profile-header {
+  position: relative;
+  background: linear-gradient(135deg, rgba(17,26,46,0.98) 0%, rgba(26,37,64,0.9) 100%);
+  border: 1px solid rgba(38,48,80,0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.profile-header--vip {
+  border-color: rgba(251,191,36,0.35);
+}
+
+.profile-header__glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(251,191,36,0.1) 0%, transparent 50%);
+  animation: vipShimmer 4s ease-in-out infinite;
+}
+
+@keyframes vipShimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.profile-header__bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 100% 0%, rgba(226,82,14,0.08) 0%, transparent 50%);
+}
+
+.profile-header__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 32px;
+}
+
+.profile-header__corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid transparent;
+}
+
+.profile-header__corner--tl {
+  top: 0;
+  left: 0;
+  border-top-color: rgba(226,82,14,0.6);
+  border-left-color: rgba(226,82,14,0.6);
+}
+
+.profile-header__corner--br {
+  bottom: 0;
+  right: 0;
+  border-bottom-color: rgba(226,82,14,0.4);
+  border-right-color: rgba(226,82,14,0.4);
+}
+
+/* Avatar */
+.profile-avatar {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.profile-avatar--vip {
+  animation: vipPulse 3s ease-in-out infinite;
+}
+
+@keyframes vipPulse {
+  0%, 100% { box-shadow: 0 0 32px rgba(251,191,36,0.5); }
+  50% { box-shadow: 0 0 48px rgba(251,191,36,0.7); }
+}
+
+.profile-avatar__ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(251,191,36,0.5);
+  animation: ringRotate 8s linear infinite;
+}
+
+@keyframes ringRotate {
+  to { transform: rotate(360deg); }
+}
+
+/* Info */
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-info__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.profile-info__name {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.profile-info__name--vip {
+  background: linear-gradient(135deg, #fcd34d, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 10px rgba(251,191,36,0.4));
+}
+
+.profile-vip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(245,158,11,0.15));
+  border: 1px solid rgba(251,191,36,0.4);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.profile-info__rank {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.profile-info__unranked {
+  font-size: 13px;
+  color: #64748b;
+  font-family: monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+}
+
+.profile-info__joined {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+  font-family: monospace;
+}
+
+/* ============ STATS OVERVIEW ============ */
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.profile-stat {
   background: linear-gradient(135deg, rgba(17,26,46,0.95) 0%, rgba(26,37,64,0.8) 100%);
   border: 1px solid rgba(38,48,80,0.5);
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  border-radius: 8px;
+  padding: 20px 16px;
+  text-align: center;
   transition: all 0.25s ease;
 }
 
-.stat-card:hover {
+.profile-stat:hover {
   border-color: rgba(226,82,14,0.35);
   transform: translateY(-2px);
 }
 
-.vip-name {
-  background: linear-gradient(135deg, #facc15, #f59e0b, #f97316);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.35));
+.profile-stat--success .profile-stat__value {
+  color: #2dd4bf;
+  text-shadow: 0 0 16px rgba(45,212,191,0.4);
 }
 
-/* ============ Mobile Responsive ============ */
+.profile-stat--cyan .profile-stat__value {
+  color: #22d3ee;
+  text-shadow: 0 0 16px rgba(34,211,238,0.4);
+}
+
+.profile-stat--warn .profile-stat__value {
+  color: #f59e0b;
+  text-shadow: 0 0 12px rgba(245,158,11,0.3);
+}
+
+.profile-stat--danger .profile-stat__value {
+  color: #ef4444;
+  text-shadow: 0 0 16px rgba(239,68,68,0.4);
+}
+
+.profile-stat__value {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: monospace;
+  color: #f1f5f9;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.profile-stat__value--muted {
+  color: #64748b;
+}
+
+.profile-stat__unit {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+.profile-stat__label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  font-family: monospace;
+}
+
+/* ============ SECTIONS ============ */
+.profile-section {
+  margin-bottom: 24px;
+}
+
+.profile-section__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.profile-section__icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e2520e;
+}
+
+.profile-section__title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+  font-family: monospace;
+  margin: 0;
+}
+
+.profile-card {
+  background: linear-gradient(135deg, rgba(17,26,46,0.98) 0%, rgba(26,37,64,0.9) 100%);
+  border: 1px solid rgba(38,48,80,0.6);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(to right, #e2520e, rgba(226,82,14,0.3), transparent);
+}
+
+/* Rank grid */
+.profile-rank-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 20px;
+  padding: 24px;
+}
+
+.profile-rank-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-rank-item__label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.profile-rank-item__value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.profile-rank-item__value--cyan {
+  color: #22d3ee;
+}
+
+/* ============ VIP PAGE ACCENTS ============ */
+.profile-page--vip .profile-stat:hover {
+  border-color: rgba(251,191,36,0.4);
+}
+
+.profile-page--vip .profile-section__icon {
+  color: #fbbf24;
+}
+
+.profile-page--vip .profile-card::before {
+  background: linear-gradient(to right, #fbbf24, rgba(251,191,36,0.3), transparent);
+}
+
+/* ============ RESPONSIVE ============ */
 @media (max-width: 640px) {
-  /* Profile card: stack avatar and info vertically */
-  .profile-card .flex.items-start.gap-5 {
+  .profile-page {
+    padding: 16px;
+  }
+
+  .profile-header__content {
     flex-direction: column;
-    align-items: center;
     text-align: center;
-    gap: 12px;
+    padding: 24px 20px;
+    gap: 16px;
   }
 
-  .profile-card .flex.items-start.gap-5 .flex-1 {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .profile-card .flex.items-start.gap-5 .flex-1 .flex.items-center {
+  .profile-info__top {
     justify-content: center;
   }
 
-  /* Avatar size */
-  .profile-card .w-20.h-20 {
-    width: 64px !important;
-    height: 64px !important;
-    font-size: 24px !important;
+  .profile-info__rank {
+    justify-content: center;
   }
 
-  /* Name size */
-  .profile-card h1 {
-    font-size: 20px !important;
+  .profile-info__joined {
+    justify-content: center;
   }
 
-  /* Rank details grid */
-  .profile-card .grid.grid-cols-2 {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
+  .profile-info__name {
+    font-size: 22px;
   }
 
-  /* Stat cards: reduce padding */
-  .stat-card {
-    padding: 10px 8px !important;
+  .profile-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 28px;
   }
 
-  .stat-card .text-2xl {
-    font-size: 20px !important;
+  .profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .profile-stat {
+    padding: 16px 12px;
+  }
+
+  .profile-stat__value {
+    font-size: 22px;
+  }
+
+  .profile-rank-grid {
+    padding: 20px;
+    gap: 16px;
   }
 }
 
 @media (max-width: 480px) {
-  .stat-card .text-xs {
-    font-size: 10px !important;
+  .profile-page {
+    padding: 12px;
+  }
+
+  .profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .profile-stat__label {
+    font-size: 9px;
   }
 }
 </style>

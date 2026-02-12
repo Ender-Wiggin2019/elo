@@ -44,14 +44,10 @@ const FAKE_DATABASE: IDatabase = {
     recent3Months: {totalGames: 0, wins: 0, losses: 0, winRate: 0, fleeCount: 0, fleeRate: 0, avgScore: 0, avgPosition: 0, totalRankGames: 0, rankWins: 0},
   }),
 
-  // 赛季 & 匹配
+  // 赛季
   saveSeasonSnapshot: () => Promise.resolve(),
   getSeasonSnapshots: () => Promise.resolve([]),
   updateUserPoints: () => Promise.resolve(),
-  addToMatchmakingQueue: () => Promise.resolve(),
-  removeFromMatchmakingQueue: () => Promise.resolve(),
-  getMatchmakingQueue: () => Promise.resolve([]),
-  clearMatchmakingQueue: () => Promise.resolve(),
 
   // 兼容
   // getGameIds: () => Promise.resolve([]),

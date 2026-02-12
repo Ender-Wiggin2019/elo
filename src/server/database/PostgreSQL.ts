@@ -137,15 +137,6 @@ export class PostgreSQL implements IDatabase {
       start_date timestamp(0) default now(),
       end_date timestamp(0))`);
 
-    // 匹配队列表
-    await this.client.query(`CREATE TABLE IF NOT EXISTS matchmaking_queue (
-      user_id varchar not null,
-      trueskill float4,
-      join_time timestamp(0) default now(),
-      status varchar default 'waiting',
-      game_options text,
-      PRIMARY KEY (user_id))`);
-
     // 兼容性：为已有的 user_rank 表添加 points 和 season_id 列
     try {
       await this.client.query('ALTER TABLE user_rank ADD COLUMN IF NOT EXISTS points integer default 0');
@@ -681,31 +672,5 @@ export class PostgreSQL implements IDatabase {
       startDate: row.start_date,
       endDate: row.end_date,
     };
-  }
-
-  // 匹配队列相关方法
-  public async addToMatchmakingQueue(userId: string, trueskill: number, gameOptions: string): Promise<void> {
-    await this.client.query(
-      'INSERT INTO matchmaking_queue (user_id, trueskill, game_options, status) VALUES($1, $2, $3, \'waiting\') ON CONFLICT (user_id) DO UPDATE SET trueskill=$2, game_options=$3, status=\'waiting\', join_time=now()',
-      [userId, trueskill, gameOptions],
-    );
-  }
-
-  public async removeFromMatchmakingQueue(userId: string): Promise<void> {
-    await this.client.query('DELETE FROM matchmaking_queue WHERE user_id = $1', [userId]);
-  }
-
-  public async getMatchmakingQueue(): Promise<Array<{userId: string, trueskill: number, joinTime: string, gameOptions: string}>> {
-    const res = await this.client.query('SELECT user_id, trueskill, join_time, game_options FROM matchmaking_queue WHERE status = \'waiting\' ORDER BY join_time ASC');
-    return res.rows.map((row: any) => ({
-      userId: row.user_id,
-      trueskill: row.trueskill,
-      joinTime: row.join_time,
-      gameOptions: row.game_options,
-    }));
-  }
-
-  public async clearMatchmakingQueue(): Promise<void> {
-    await this.client.query('DELETE FROM matchmaking_queue');
   }
 }

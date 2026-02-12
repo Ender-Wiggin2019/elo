@@ -6,4 +6,5 @@
  * and rejects _Response objects. By importing this module first, we capture
  * the original native constructor.
  */
+// eslint-disable-next-line no-undef
 export const BunNativeResponse = globalThis.Response;

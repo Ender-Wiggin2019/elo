@@ -5,75 +5,49 @@
  *
  * GET  /info       - 获取当前赛季信息
  * GET  /history    - 获取赛季历史快照
+ * GET  /list       - 获取赛季列表
+ * GET  /leaderboard - 获取赛季排行榜
+ * POST /admin/reset - 管理员触发赛季重置
  */
 
 import {Hono} from 'hono';
-import {UserCenter, ServiceError} from '../services/UserCenter';
-import {serverId as expectedServerId} from '../utils/server-ids';
-import {isProduction} from '../utils/server';
+import {SeasonService} from '../services/SeasonService';
+import {createSafeHandler, requireAdmin} from './middleware';
 
 const seasonRoutes = new Hono();
 
- seasonRoutes.get('/info', async (c) => {
-   return c.json(await UserCenter.getSeasonInfo());
- });
+seasonRoutes.get('/info', createSafeHandler(() => SeasonService.getSeasonInfo()));
 
-seasonRoutes.get('/history', async (c) => {
-  const seasonId = c.req.query('seasonId');
-  try {
-    const result = await UserCenter.getSeasonHistory(seasonId || '');
-    return c.json(result);
-  } catch (err) {
-    if (err instanceof ServiceError) {
-      return c.json({error: err.message}, err.statusCode as any);
+seasonRoutes.get(
+  '/history',
+  createSafeHandler((c) => SeasonService.getSeasonHistory(c.req.query('seasonId') || '')),
+);
+
+seasonRoutes.get('/list', createSafeHandler(() => SeasonService.getSeasonList()));
+
+seasonRoutes.get(
+  '/leaderboard',
+  createSafeHandler((c) => {
+    const seasonId = c.req.query('seasonId') || '';
+    const rawLimit = Number(c.req.query('limit') || 100);
+    const limit =
+      Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(100, Math.floor(rawLimit)) : 100;
+    return SeasonService.getSeasonLeaderboard(seasonId, limit);
+  }),
+);
+
+seasonRoutes.post(
+  '/admin/reset',
+  requireAdmin,
+  createSafeHandler(async (c) => {
+    let payload: {expectedFromSeasonId?: string; dryRun?: boolean} = {};
+    try {
+      payload = await c.req.json();
+    } catch {
+      // 空body也是合法的
     }
-    console.error('[Hono] getSeasonHistory error:', err);
-    return c.json({error: 'Error fetching season history'}, 500);
-  }
-});
-
-seasonRoutes.get('/list', async (c) => {
-  return c.json(await UserCenter.getSeasonList());
-});
-
-seasonRoutes.get('/leaderboard', async (c) => {
-  const seasonId = c.req.query('seasonId');
-  const rawLimit = Number(c.req.query('limit') || 100);
-  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(100, Math.floor(rawLimit)) : 100;
-  try {
-    const result = await UserCenter.getSeasonLeaderboard(seasonId || '', limit);
-    return c.json(result);
-  } catch (err) {
-    if (err instanceof ServiceError) {
-      return c.json({error: err.message}, err.statusCode as any);
-    }
-    console.error('[Hono] getSeasonLeaderboard error:', err);
-    return c.json({error: 'Error fetching season leaderboard'}, 500);
-  }
-});
-
- seasonRoutes.post('/admin/reset', async (c) => {
-  const serverId = c.req.query('serverId');
-  // Skip serverId verification in development mode
-  if (isProduction() && (!serverId || serverId !== expectedServerId)) {
-    return c.json({error: 'not authorized'}, 401);
-  }
-  let payload: {expectedFromSeasonId?: string; dryRun?: boolean};
-  try {
-    payload = await c.req.json();
-  } catch (err) {
-    return c.json({error: 'invalid request body'}, 400);
-  }
-  try {
-    const result = await UserCenter.triggerSeasonReset(payload || {});
-    return c.json(result);
-  } catch (err) {
-    if (err instanceof ServiceError) {
-      return c.json({error: err.message}, err.statusCode as any);
-    }
-    const message = err instanceof Error ? err.message : 'season reset failed';
-    return c.json({error: message}, 500);
-  }
-});
+    return SeasonService.triggerSeasonReset(payload);
+  }),
+);
 
 export {seasonRoutes};

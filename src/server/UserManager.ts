@@ -392,5 +392,5 @@ export async function endGameByEvent(userReq: any, req: Request, res: Response):
   res.end();
 }
 
-// 赛季和匹配 API 已迁移到 Hono (/api/v2/season/*, /api/v2/matchmaking/*)
+// 赛季 API 已迁移到 Hono (/api/v2/season/*)
 // 业务逻辑统一在 UserCenter 中，参见 src/server/services/UserCenter.ts

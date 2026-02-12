@@ -76,9 +76,4 @@ export type CreateGameModel = {
   startingPreludes: number;
   // twoCorpsVariant: boolean;
   undoOption: boolean;
-  matchmakingActive?: boolean;
-  matchmakingLoading?: boolean;
-  matchmakingQueueSize?: number;
-  matchmakingResult?: any | null;
-  matchmakingPollTimer?: any | null;
 }

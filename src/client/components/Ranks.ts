@@ -1,5 +1,8 @@
 import Vue from 'vue';
 import './Ranks.css';
+import {getTierColor} from '../utils/rankUtils';
+import {showError} from '../utils/showAlert';
+import {seasonService, rankService} from '../services';
 
 // import {PreferencesManager} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
@@ -29,80 +32,54 @@ export const Ranks = Vue.component('ranks', {
   },
   methods: {
     loadSeasonData: function() {
-      const infoXhr = new XMLHttpRequest();
-      infoXhr.open('GET', '/api/v2/season/info');
-      infoXhr.responseType = 'json';
-      infoXhr.onerror = () => {
-        alert('Error loading season info');
-      };
-      infoXhr.onload = () => {
-        if (infoXhr.status === 200 && infoXhr.response) {
-          this.seasonInfo = infoXhr.response;
-        }
-      };
-      infoXhr.send();
+      seasonService.getSeasonInfo()
+        .then((data) => {
+          this.seasonInfo = data;
+        })
+        .catch(() => {
+          showError('Error loading season info');
+        });
 
-      const listXhr = new XMLHttpRequest();
-      listXhr.open('GET', '/api/v2/season/list');
-      listXhr.responseType = 'json';
-      listXhr.onerror = () => {
-        this.loadLegacyLeaderboard();
-      };
-      listXhr.onload = () => {
-        if (listXhr.status === 200 && listXhr.response) {
-          this.seasonList = listXhr.response;
-          this.selectedSeasonId = listXhr.response.currentSeasonId;
+      seasonService.getSeasonList()
+        .then((data) => {
+          this.seasonList = data;
+          this.selectedSeasonId = data.currentSeasonId;
           this.isCurrentSeason = true;
           this.loadLeaderboard(this.selectedSeasonId);
-        } else {
+        })
+        .catch(() => {
           this.loadLegacyLeaderboard();
-        }
-      };
-      listXhr.send();
+        });
     },
     loadLegacyLeaderboard: function() {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/userranks?limit=' + RANK_LIMIT);
-      xhr.onerror = () => {
-        alert('Error getting ranking data');
-      };
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const result = xhr.response;
+      rankService.getLeaderboard(RANK_LIMIT)
+        .then((result) => {
           if (result && result.allUserRanks && result.allUserRanks instanceof Array) {
             this.allUserRanks = result.allUserRanks;
           }
-        }
-      };
-      xhr.responseType = 'json';
-      xhr.send();
+        })
+        .catch(() => {
+          showError('Error getting ranking data');
+        });
     },
     loadLeaderboard: function(seasonId: string) {
       this.isLoadingLeaderboard = true;
       const querySeasonId = seasonId || (this.seasonInfo ? this.seasonInfo.seasonId : '');
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/v2/season/leaderboard?seasonId=' + encodeURIComponent(querySeasonId) + '&limit=' + RANK_LIMIT);
-      xhr.onerror = () => {
-        this.isLoadingLeaderboard = false;
-        alert('Error getting ranking data');
-      };
-      xhr.onload = () => {
-        this.isLoadingLeaderboard = false;
-        if (xhr.status === 200) {
-          const result = xhr.response;
+      seasonService.getLeaderboard(querySeasonId, RANK_LIMIT)
+        .then((result) => {
+          this.isLoadingLeaderboard = false;
           if (result && result.allUserRanks && result.allUserRanks instanceof Array) {
             this.allUserRanks = result.allUserRanks;
             this.selectedSeasonId = result.seasonId || querySeasonId;
             this.isCurrentSeason = result.isCurrentSeason === true;
           } else {
-            alert('Unexpected response fetching leaderboard from API');
+            showError('Unexpected response fetching leaderboard from API');
           }
-        } else {
+        })
+        .catch(() => {
+          this.isLoadingLeaderboard = false;
           console.log('No Ranking Data yet.');
-        }
-      };
-      xhr.responseType = 'json';
-      xhr.send();
+        });
     },
     toggleTabs: function(tabNumber: number) {
       this.openTab = tabNumber;
@@ -132,21 +109,10 @@ export const Ranks = Vue.component('ranks', {
       return singleUserRank.finalPosition || index + 1;
     },
     getTierColor: function(rankTier: any): string {
-      const colors: Record<string, string> = {
-        'Iron': '#a8a29e',
-        'Bronze': '#d4945a',
-        'Silver': '#cbd5e1',
-        'Gold': '#facc15',
-        'Platinum': '#22d3ee',
-        'Diamond': '#60a5fa',
-        'Master': '#a78bfa',
-        'Grandmaster': '#f87171',
-        'Challenger': '#fbbf24',
-      };
-      return colors[rankTier.name] || '#cbd5e1';
+      return getTierColor(rankTier.name);
     },
     getTierCardStyle: function(rankTier: any, _idx: number): Record<string, string> {
-      const color = (this as any).getTierColor(rankTier);
+      const color = getTierColor(rankTier.name);
       return {
         background: `linear-gradient(135deg, rgba(24,33,54,0.95) 0%, rgba(31,43,68,0.8) 100%)`,
         borderColor: `${color}30`,
@@ -155,7 +121,7 @@ export const Ranks = Vue.component('ranks', {
       };
     },
     getTierGlowStyle: function(rankTier: any): Record<string, string> {
-      const color = (this as any).getTierColor(rankTier);
+      const color = getTierColor(rankTier.name);
       return {
         background: `radial-gradient(ellipse at 0% 50%, ${color}15 0%, transparent 70%)`,
       };

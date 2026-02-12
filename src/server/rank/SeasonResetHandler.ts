@@ -120,9 +120,9 @@ export async function runSeasonReset(options: ISeasonResetOptions = {}): Promise
     const dryRun = options.dryRun === true;
     const triggeredBy = options.triggeredBy || 'admin';
     // When admin triggers, move to next season instead of staying in current season
-    const newSeasonId = triggeredBy === 'admin' && options.expectedFromSeasonId
-      ? getNextSeasonId(previousSeasonId)
-      : currentSeasonId;
+    const newSeasonId = triggeredBy === 'admin' && options.expectedFromSeasonId ?
+      getNextSeasonId(previousSeasonId) :
+      currentSeasonId;
     return await performSeasonReset(previousSeasonId, newSeasonId, dryRun, triggeredBy);
   } finally {
     isSeasonResetRunning = false;
@@ -226,9 +226,8 @@ async function performSeasonReset(
     // 更新赛季ID
     userRank.seasonId = newSeasonId;
 
-    // 保存到数据库
+    // 保存到数据库（updateUserRank 已包含 points 字段更新）
     await db.updateUserRank(userRank);
-    await db.updateUserPoints(userRank.userId, userRank.points);
 
     // 更新内存缓存
     gameLoader.addOrUpdateUserRank(userRank);

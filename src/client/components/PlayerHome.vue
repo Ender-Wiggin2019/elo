@@ -313,6 +313,7 @@ import {sortActiveCards} from '@/client/utils/ActiveCardsSortingOrder';
 
 import {CardModel} from '@/common/models/CardModel';
 import {getCardOrThrow} from '../cards/ClientCardManifest';
+import {showError} from '../utils/showAlert';
 
 export interface PlayerHomeModel {
   showHand: boolean;
@@ -483,14 +484,14 @@ export default Vue.extend({
       }).then(function(response) {
         console.log(response);
         if (response.data !== 'success' && response.data?.length > 0) {
-          alert(response.data);
+          showError(response.data);
         } else {
           window.location.href = window.location.href + '';
         }
       }, function(error) {
-        alert(error);
+        showError(error);
       }).catch(function(error) {
-        alert(error);
+        showError(error);
       });
     },
     toggle(type: string): void {

@@ -11,10 +11,10 @@
  *   const data = await request.get<{seasonId: string}>('/api/v2/season/info');
  *
  *   // GET with query params
- *   const data = await request.get('/api/v2/matchmaking/poll', {userId: '123'});
+ *   const data = await request.get('/api/v2/season/history', {seasonId: '123'});
  *
  *   // POST（自动序列化 body 为 JSON）
- *   const data = await request.post<{status: string}>('/api/v2/matchmaking/join', {userId, gameOptions: {}});
+ *   const data = await request.post<{status: string}>('/api/v2/season/reset', {seasonId: '2024-S1'});
  *
  *   // PUT
  *   const data = await request.put('/api/v2/some/resource', {name: 'foo'});

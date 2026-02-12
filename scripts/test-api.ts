@@ -11,8 +11,7 @@
  *   6. 坐下（sitDown）
  *   7. 触发游戏结束 / 放弃
  *   8. 检查 UserRank 变化
- *   9. 匹配队列操作
- *   10. 清理（可选）
+ *   9. 清理（可选）
  *
  * 用法:
  *   npm start                     # 先启动服务
@@ -175,40 +174,8 @@ async function main(): Promise<void> {
     });
   }
 
-  // ─── 6. 匹配队列操作 ───
-  section('6. Matchmaking Queue');
-
-  await test('Join matchmaking for user 0', async () => {
-    const {status, data} = await req('POST', '/api/v2/matchmaking/join', {
-      userId: users[0].token,
-      gameOptions: {},
-    });
-    assert(status === 200, `Expected 200, got ${status}: ${JSON.stringify(data)}`);
-    assert(data.status === 'queued', `Expected status 'queued', got ${data.status}`);
-  });
-
-  await test('Poll matchmaking — user 0 in queue', async () => {
-    const {status, data} = await req('GET', `/api/v2/matchmaking/poll?userId=${users[0].token}`);
-    assert(status === 200, `Expected 200, got ${status}`);
-    assert(data.inQueue === true, 'Expected user to be in queue');
-    assert(data.queueSize >= 1, `Expected queueSize >= 1, got ${data.queueSize}`);
-    console.log(`    Queue size: ${data.queueSize}`);
-  });
-
-  await test('Leave matchmaking for user 0', async () => {
-    const {status, data} = await req('POST', '/api/v2/matchmaking/leave', {userId: users[0].token});
-    assert(status === 200, `Expected 200, got ${status}`);
-    assert(data.status === 'left', `Expected status 'left', got ${data.status}`);
-  });
-
-  await test('Poll matchmaking — user 0 no longer in queue', async () => {
-    const {status, data} = await req('GET', `/api/v2/matchmaking/poll?userId=${users[0].token}`);
-    assert(status === 200, `Expected 200, got ${status}`);
-    assert(data.inQueue === false, 'Expected user to NOT be in queue');
-  });
-
-  // ─── 7. 创建天梯游戏 ───
-  section('7. Create Rank Game');
+  // ─── 6. 创建天梯游戏 ───
+  section('6. Create Rank Game');
 
   let gameId = '';
   let playerIds: Array<string> = [];
@@ -276,10 +243,10 @@ async function main(): Promise<void> {
     playerIds = data.players.map((p: any) => p.id);
     console.log(`    Game ID: ${gameId}`);
     console.log(`    Player IDs: ${playerIds.join(', ')}`);
-  });
+  }
 
-  // ─── 8. 坐下（绑定用户到座位）───
-  section('8. Sit Down');
+  // ─── 7. 坐下（绑定用户到座位）───
+  section('7. Sit Down');
 
   if (gameId && playerIds.length >= 2) {
     await test(`User 0 sits down at player ${playerIds[0]}`, async () => {
@@ -300,9 +267,9 @@ async function main(): Promise<void> {
     });
   }
 
-  // ─── 9. 触发游戏结束（模拟全员放弃）───
+  // ─── 8. 触发游戏结束（模拟全员放弃）───
   // 注意：当所有玩家都放弃时，phase=ABANDON，按设计不更新排名（玩家放弃游戏，无事发生）
-  section('9. Trigger Game End (All Abandon)');
+  section('8. Trigger Game End (All Abandon)');
 
   if (gameId && playerIds.length >= 2) {
     // 两个玩家都触发 endgame（模拟放弃）
@@ -320,9 +287,9 @@ async function main(): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
-  // ─── 10. 检查排名（全员放弃场景：预期不变）───
+  // ─── 9. 检查排名（全员放弃场景：预期不变）───
   // 全员放弃(Phase.ABANDON) 时，设计上不更新排名，所以 mu/sigma/trueskill 应保持不变
-  section('10. Check Rank After Game (Abandon = No Change)');
+  section('9. Check Rank After Game (Abandon = No Change)');
 
   for (let i = 0; i < Math.min(2, users.length); i++) {
     await test(`Rank unchanged for "${users[i].name}" after abandon`, async () => {
@@ -339,14 +306,14 @@ async function main(): Promise<void> {
     });
   }
 
-  // ─── 10b. 正常结束流程（需 TEST_API=true）───
+  // ─── 9b. 正常结束流程（需 TEST_API=true）───
   // 创建第二个天梯游戏，通过测试 API 强制正常结束，验证排名会更新
   let normalEndGameId = '';
   let normalEndPlayerIds: Array<string> = [];
   const ranksBeforeNormalEnd: Array<{mu: number, sigma: number, trueskill: number}> = [];
 
   if (process.env.TEST_API === 'true') {
-    section('10b. Normal End Flow (Rank Update)');
+    section('9b. Normal End Flow (Rank Update)');
 
     await test('Get current ranks before normal-end game', async () => {
       for (let i = 0; i < 2; i++) {
@@ -517,13 +484,8 @@ async function main(): Promise<void> {
     console.log('\n  (Skipping game stats tests: set TEST_API=true to run)');
   }
 
-  // ─── 11. 错误场景验证 ───
-  section('11. Error Scenarios');
-
-  await test('Join matchmaking without userId → 400', async () => {
-    const {status} = await req('POST', '/api/v2/matchmaking/join', {});
-    assert(status === 400, `Expected 400, got ${status}`);
-  });
+  // ─── 10. 错误场景验证 ───
+  section('10. Error Scenarios');
 
   await test('Season history without seasonId → 400', async () => {
     const {status} = await req('GET', '/api/v2/season/history');

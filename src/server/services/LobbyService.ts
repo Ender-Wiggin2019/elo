@@ -14,7 +14,7 @@ import {
   IKickPlayerRequest,
 } from '../../common/lobby/LobbyTypes';
 import {NewGameConfig, NewPlayerModel} from '../../common/game/NewGameConfig';
-import {ServiceError} from './UserCenter';
+import {ServiceError} from './ServiceError';
 
 /** 房间存储 */
 const rooms = new Map<string, ILobbyRoom>();

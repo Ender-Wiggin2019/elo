@@ -4,10 +4,12 @@
       <span v-i18n>{{ constants.APP_NAME }}</span> — <span v-i18n>Create New Game</span>
     </h1>
     <div class="create-game-discord-invite" v-if="!isvip">
-      <span v-i18n>Want to play more DIY expansion? Join us qq group: 859050306</span> .
+      <span v-i18n>Want to play more DIY expansion? Join us qq group: 859050306</span>
+      <QrCode/>
     </div>
     <div class="discord-invite" v-else-if="playersCount === 1">
-      <span v-i18n>Looking for people to play with? Join us qq group: 859050306</span> .
+      <span v-i18n>Looking for people to play with? Join us qq group: 859050306</span>
+      <QrCode/>
     </div>
 
     <div class="create-game-form create-game-panel create-game--block">
@@ -509,7 +511,6 @@
         </div>
       </div>
     </div>
-    <QrCode/>
     <div class="create-game--block" v-if="showCorporationList">
               <CorporationsFilter
                   ref="corporationsFilter"
@@ -585,7 +586,8 @@ import {mainAppSettings} from '../App';
 import {CreateGameModel} from './CreateGameModel';
 import {statusCode} from '../../../common/http/statusCode';
 import {paths} from '@/common/app/paths';
-import {request} from '@/client/utils/request';
+import {showError, showWarning} from '../../utils/showAlert';
+import {lobbyService, rankService} from '../../services';
 // import * as HTTPResponseCode from '@/client/utils/HTTPResponseCode';
 
 const REVISED_COUNT_ALGORITHM = false;
@@ -949,17 +951,17 @@ export default (Vue as WithRefs<Refs>).extend({
                 component.solarPhaseOption = Boolean(capturedSolarPhaseOption);
                 this.uploading = false;
               } catch (e) {
-                window.alert('Error reading JSON ' + e);
+                showError('Error reading JSON ' + e);
               }
             });
           }
           if (warnings.length > 0) {
-            window.alert('Settings loaded, with these warnings: \n' + warnings.join('\n'));
+            showWarning('Settings loaded, with these warnings: \n' + warnings.join('\n'));
           } else {
             // window.alert('Settings loaded.');
           }
         } catch (e) {
-          window.alert('Error loading settings ' + e);
+          showError('Error loading settings ' + e);
         }
       }, false);
       if (file) {
@@ -1207,7 +1209,7 @@ export default (Vue as WithRefs<Refs>).extend({
         }
 
         if (customColonies.length < neededColoniesCount) {
-          window.alert(translateTextWithParams('Must select at least ${0} colonies', [neededColoniesCount.toString()]));
+          showWarning(translateTextWithParams('Must select at least ${0} colonies', [neededColoniesCount.toString()]));
           return;
         }
       }
@@ -1268,7 +1270,7 @@ export default (Vue as WithRefs<Refs>).extend({
           // }
         }
         if (customCorporations.length < neededCorpsCount) {
-          window.alert(translateTextWithParams('Must select at least ${0} corporations', [neededCorpsCount.toString()]));
+          showWarning(translateTextWithParams('Must select at least ${0} corporations', [neededCorpsCount.toString()]));
           return;
         }
         let valid = true;
@@ -1294,7 +1296,7 @@ export default (Vue as WithRefs<Refs>).extend({
       if (this.showPreludesList && customPreludes.length > 0) {
         const requiredPreludeCount = players.length * startingPreludes;
         if (customPreludes.length < requiredPreludeCount) {
-          window.alert(translateTextWithParams('Must select at least ${0} Preludes', [requiredPreludeCount.toString()]));
+          showWarning(translateTextWithParams('Must select at least ${0} Preludes', [requiredPreludeCount.toString()]));
           return;
         }
         let valid = true;
@@ -1372,15 +1374,10 @@ export default (Vue as WithRefs<Refs>).extend({
     },
     // 天梯 检查玩家id是否可以参加排名模式
     async checkUsersForRankMode(): Promise<boolean> {
-      const players = this.players.slice(0, this.playersCount);
-      for (const player of players) {
-        if (player.name === '') {
-          return false;
-        }
-        const result = await fetch('/api/userrank?playerName=' + player.name).then(
-          (response) => response.status,
-        );
-        if (result !== statusCode.ok) return false;
+      for (const player of this.players) {
+        if (!player.name) continue;
+        const isValid = await rankService.checkUserRankByPlayerName(player.name);
+        if (!isValid) return false;
       }
       return true;
     },
@@ -1388,7 +1385,7 @@ export default (Vue as WithRefs<Refs>).extend({
       const lastcreated = Number(PreferencesManager.load('lastcreated')) || 0;
       const nowtime = new Date().getTime();
       if (nowtime - lastcreated < 60000 && !this.isvip || nowtime - lastcreated < 3000) { // location.href.indexOf("localhost") < 0){
-        alert('请不要频繁创建游戏');
+        showWarning('请不要频繁创建游戏');
         return;
       }
 
@@ -1396,13 +1393,13 @@ export default (Vue as WithRefs<Refs>).extend({
       if (this.rankOption === true) {
         const vaildForCreate = await this.checkUsersForRankMode();
         if (!vaildForCreate) {
-          alert('存在玩家不符合天梯规则，请检查');
+          showWarning('存在玩家不符合天梯规则，请检查');
           return;
         }
       }
 
       if (this.seededGame && (this.seed === undefined || this.seed.length < 6)) {
-        alert('请输入至少6位随机种子');
+        showWarning('请输入至少6位随机种子');
         return;
       }
 
@@ -1440,7 +1437,7 @@ export default (Vue as WithRefs<Refs>).extend({
         })
         .catch((error: Error) => {
           root.isServerSideRequestInProgress = false;
-          alert(error.message);
+          showError(error.message);
         });
     },
     async createLobbyRoom() {
@@ -1455,12 +1452,12 @@ export default (Vue as WithRefs<Refs>).extend({
       const userName = PreferencesManager.load('userName');
 
       if (!userId || !userName) {
-        alert('Please login first');
+        showWarning('Please login first');
         return;
       }
 
       try {
-        const result = await request.post<{room: any}>('/api/v2/lobby/create', {
+        const result = await lobbyService.createRoom({
           userId,
           userName,
           gameConfig,
@@ -1468,7 +1465,7 @@ export default (Vue as WithRefs<Refs>).extend({
         });
         this.$emit('lobby-room-created', result.room);
       } catch (err: any) {
-        alert(err.body || err.message || 'Failed to create room');
+        showError(err.body || err.message || 'Failed to create room');
       }
     },
   },

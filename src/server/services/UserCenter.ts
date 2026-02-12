@@ -1,413 +1,73 @@
 /**
  * UserCenter — 用户相关的业务逻辑服务层
  *
- * 将业务逻辑从 HTTP handler 中剥离，使得 Hono 路由和旧的 requestProcessor 路由
- * 可以共享相同的业务逻辑，避免代码重复。
- *
- * 使用方式：
- *   import {UserCenter} from '../services/UserCenter';
- *
- *   // 在 Hono 路由中
- *   const data = UserCenter.getSeasonInfo();
- *
- *   // 在旧的 UserManager 中
- *   const data = UserCenter.getSeasonInfo();
- *   res.write(JSON.stringify(data));
+ * 作为各子服务的聚合入口，保持向后兼容。
+ * 具体实现委托给各个专用服务：
+ * - SeasonService: 赛季相关
+ * - UserRankService: 用户排名相关
  */
 
-import {Database} from '../database/Database';
-import {GameLoader} from '../database/GameLoader';
-import {getSeasonId, getSeasonInfo as getSeasonInfoFn, ISeasonInfo, getPreviousSeasonId, nowFromSeasonId} from '../../common/rank/SeasonManager';
-import {tryMatchPlayers, IMatchResult} from '../rank/MatchmakingHandler';
-import {UserRank} from '../../common/rank/RankManager';
-import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../common/rank/constants';
-import {runSeasonReset, ISeasonResetResult} from '../rank/SeasonResetHandler';
-import {RankTier} from '../../common/rank/RankTier';
+// 重新导出错误类型（兼容性）
+export {ServiceError} from './ServiceError';
 
-// ========== 返回类型定义 ==========
+// 重新导出类型（兼容性）
+export type {
+  ISeasonInfoResponse,
+  ISeasonSnapshotEntry,
+  ISeasonHistoryResponse,
+  ISeasonListResponse,
+  ISeasonLeaderboardEntry,
+  ISeasonLeaderboardResponse,
+  ISeasonResetRequest,
+} from './SeasonService';
 
-export interface ISeasonInfoResponse {
-  seasonId: string;
-  seasonName: string;
-  startDate: string;
-  endDate: string;
-  seasons: Array<{seasonId: string, seasonName: string, startDate: string, endDate: string}>;
-}
+export type {IUserRankResponse} from './UserRankService';
 
-export interface ISeasonSnapshotEntry {
-  userId: string;
-  rankValue: number;
-  mu: number;
-  sigma: number;
-  trueskill: number;
-  pointsEarned: number;
-  finalPosition: number;
-  userName: string;
-}
+// 导入服务
+import {SeasonService} from './SeasonService';
+import {UserRankService} from './UserRankService';
 
-export interface ISeasonHistoryResponse {
-  seasonId: string;
-  snapshots: Array<ISeasonSnapshotEntry>;
-}
+// 导入类型用于方法签名
+import type {
+  ISeasonInfoResponse,
+  ISeasonHistoryResponse,
+  ISeasonListResponse,
+  ISeasonLeaderboardResponse,
+  ISeasonResetRequest,
+} from './SeasonService';
 
-export interface ISeasonListResponse {
-  currentSeasonId: string;
-  previousSeasonId: string;
-}
+import type {IUserRankResponse} from './UserRankService';
 
-export interface ISeasonLeaderboardEntry {
-  userName: string;
-  userTier: RankTier;
-  rankValue: number;
-  trueskill: number;
-  seasonId: string;
-  finalPosition?: number;
-  pointsEarned?: number;
-}
-
-export interface ISeasonLeaderboardResponse {
-  seasonId: string;
-  isCurrentSeason: boolean;
-  allUserRanks: Array<ISeasonLeaderboardEntry>;
-}
-
-export interface IJoinMatchmakingResponse {
-  status: string;
-  match: IMatchResult | null;
-}
-
-export interface ILeaveMatchmakingResponse {
-  status: string;
-}
-
-export interface IPollMatchmakingResponse {
-  inQueue: boolean;
-  queueSize: number;
-  match: IMatchResult | null;
-}
-
-export interface IUserRankResponse {
-  userId: string;
-  rankValue: number;
-  mu: number;
-  sigma: number;
-  trueskill: number;
-  points: number;
-  seasonId: string;
-}
-
-export interface ISeasonResetRequest {
-  expectedFromSeasonId?: string;
-  dryRun?: boolean;
-}
-
-// ========== 错误类型 ==========
-
-export class ServiceError extends Error {
-  constructor(
-    public readonly statusCode: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'ServiceError';
-    // 必须：ES5 target 下 extends Error 的 instanceof 不生效
-    Object.setPrototypeOf(this, ServiceError.prototype);
-  }
-}
-
-// ========== UserCenter 业务逻辑 ==========
+// ========== UserCenter 聚合层（委托给各子服务） ==========
 
 export class UserCenter {
-  /**
-   * 获取所有可用赛季列表
-   */
-  private static async getAllSeasons(): Promise<Array<{seasonId: string, seasonName: string, startDate: string, endDate: string}>> {
-    const db = Database.getInstance();
-    const currentSeason = await db.getCurrentSeason();
-    const seasons: Array<{seasonId: string, seasonName: string, startDate: string, endDate: string}> = [];
-
-    // 添加当前赛季
-    if (currentSeason) {
-      seasons.push({
-        seasonId: currentSeason.seasonId,
-        seasonName: currentSeason.seasonName,
-        startDate: currentSeason.startDate,
-        endDate: currentSeason.endDate,
-      });
-    }
-
-    // 从 rank_seasons 表获取所有有历史数据的赛季
-    const dbSeasons = await db.getAvailableSeasons();
-    for (const seasonId of dbSeasons) {
-      // 避免重复添加当前赛季
-      if (currentSeason && seasonId === currentSeason.seasonId) {
-        continue;
-      }
-      // 使用 seasonId 计算 seasonName 和日期
-      const seasonInfo = getSeasonInfoFn(nowFromSeasonId(seasonId));
-      seasons.push({
-        seasonId,
-        seasonName: seasonInfo.seasonName,
-        startDate: seasonInfo.startDate.toISOString(),
-        endDate: seasonInfo.endDate.toISOString(),
-      });
-    }
-
-    // 按 seasonId 排序
-    seasons.sort((a, b) => a.seasonId.localeCompare(b.seasonId));
-    return seasons;
+  // ===== 赛季相关 =====
+  static getSeasonInfo(): Promise<ISeasonInfoResponse> {
+    return SeasonService.getSeasonInfo();
   }
 
-  /**
-   * 获取当前赛季信息
-   */
-  static async getSeasonInfo(): Promise<ISeasonInfoResponse> {
-    const currentSeason = await Database.getInstance().getCurrentSeason();
-    const seasons = await this.getAllSeasons();
-
-    if (currentSeason) {
-      return {
-        seasonId: currentSeason.seasonId,
-        seasonName: currentSeason.seasonName,
-        startDate: currentSeason.startDate,
-        endDate: currentSeason.endDate,
-        seasons,
-      };
-    }
-
-    // 如果数据库中没有设置当前赛季，使用时间计算（向后兼容）
-    const now = new Date();
-    const seasonInfo: ISeasonInfo = getSeasonInfoFn(now);
-    const currentSeasonId = getSeasonId(now);
-
-    return {
-      seasonId: currentSeasonId,
-      seasonName: seasonInfo.seasonName,
-      startDate: seasonInfo.startDate.toISOString(),
-      endDate: seasonInfo.endDate.toISOString(),
-      seasons,
-    };
+  static getSeasonHistory(seasonId: string): Promise<ISeasonHistoryResponse> {
+    return SeasonService.getSeasonHistory(seasonId);
   }
 
-  /**
-   * 获取赛季历史快照
-   */
-  static async getSeasonHistory(seasonId: string): Promise<ISeasonHistoryResponse> {
-    if (!seasonId) {
-      throw new ServiceError(400, 'Missing seasonId parameter');
-    }
-
-    const snapshots = await Database.getInstance().getSeasonSnapshots(seasonId);
-    const result: Array<ISeasonSnapshotEntry> = snapshots.map((s) => {
-      const user = GameLoader.getInstance().userIdMap.get(s.userId);
-      return {
-        ...s,
-        userName: user?.name || 'Unknown',
-      };
-    });
-
-    return {seasonId, snapshots: result};
+  static getSeasonList(now?: Date): Promise<ISeasonListResponse> {
+    return SeasonService.getSeasonList(now);
   }
 
-  /**
-   * 返回可选的赛季信息（当前与上一赛季）
-   */
-  static async getSeasonList(now: Date = new Date()): Promise<ISeasonListResponse> {
-    const currentSeason = await Database.getInstance().getCurrentSeason();
-    let currentSeasonId: string;
-    if (currentSeason) {
-      currentSeasonId = currentSeason.seasonId;
-    } else {
-      currentSeasonId = getSeasonId(now);
-    }
-    return {
-      currentSeasonId,
-      previousSeasonId: getPreviousSeasonId(currentSeasonId),
-    };
+  static getSeasonLeaderboard(seasonId: string, limit?: number): Promise<ISeasonLeaderboardResponse> {
+    return SeasonService.getSeasonLeaderboard(seasonId, limit);
   }
 
-  /**
-   * 获取赛季排行榜
-   * - 当前赛季: 读取实时 user_rank
-   * - 历史赛季: 读取赛季快照 rank_seasons
-   */
-  static async getSeasonLeaderboard(seasonId: string, limit = 100): Promise<ISeasonLeaderboardResponse> {
-    if (!seasonId) {
-      throw new ServiceError(400, 'Missing seasonId parameter');
-    }
-    // 从数据库读取当前赛季，而不是基于时间计算
-    const currentSeasonData = await Database.getInstance().getCurrentSeason();
-    const currentSeasonId = currentSeasonData?.seasonId || getSeasonId();
-    if (seasonId === currentSeasonId) {
-      const allUserRanks = await Database.getInstance().getUserRanks(Math.min(100, limit));
-      const rankList = Array.isArray(allUserRanks) ? allUserRanks : [];
-      const entries = rankList.map((userRank) => {
-        const user = GameLoader.getInstance().userIdMap.get(userRank.userId);
-        return {
-          userName: user?.name || 'Unknown',
-          userTier: userRank.getTier(),
-          rankValue: userRank.rankValue,
-          trueskill: userRank.trueskill,
-          seasonId: userRank.seasonId || currentSeasonId,
-        };
-      });
-      return {
-        seasonId,
-        isCurrentSeason: true,
-        allUserRanks: entries,
-      };
-    }
-    const snapshots = await Database.getInstance().getSeasonSnapshots(seasonId);
-    const entries = snapshots.slice(0, Math.min(100, limit)).map((snapshot) => {
-      const user = GameLoader.getInstance().userIdMap.get(snapshot.userId);
-      const userRank = new UserRank(
-        snapshot.userId,
-        snapshot.rankValue,
-        snapshot.mu,
-        snapshot.sigma,
-        snapshot.trueskill,
-        0,
-        seasonId,
-      );
-      return {
-        userName: user?.name || 'Unknown',
-        userTier: userRank.getTier(),
-        rankValue: snapshot.rankValue,
-        trueskill: snapshot.trueskill,
-        seasonId,
-        finalPosition: snapshot.finalPosition,
-        pointsEarned: snapshot.pointsEarned,
-      };
-    });
-    return {
-      seasonId,
-      isCurrentSeason: false,
-      allUserRanks: entries,
-    };
+  static triggerSeasonReset(payload: ISeasonResetRequest) {
+    return SeasonService.triggerSeasonReset(payload);
   }
 
-  /**
-   * 触发赛季重置（admin）
-   */
-  static async triggerSeasonReset(payload: ISeasonResetRequest): Promise<ISeasonResetResult> {
-    return await runSeasonReset({
-      expectedFromSeasonId: payload.expectedFromSeasonId,
-      dryRun: payload.dryRun === true,
-      triggeredBy: 'admin',
-    });
+  // ===== 用户排名相关 =====
+  static getUserRank(userId: string | null, playerName: string | null): Promise<IUserRankResponse> {
+    return UserRankService.getUserRank(userId, playerName);
   }
 
-  /**
-   * 加入匹配队列
-   */
-  static async joinMatchmaking(userId: string, gameOptions: any): Promise<IJoinMatchmakingResponse> {
-    if (!userId) {
-      throw new ServiceError(400, 'Missing userId');
-    }
-
-    const userRank = GameLoader.getInstance().userRankMap.get(userId);
-    if (userRank === undefined) {
-      throw new ServiceError(404, 'User has no rank. Please activate rank first.');
-    }
-
-    await Database.getInstance().addToMatchmakingQueue(
-      userId,
-      userRank.trueskill,
-      JSON.stringify(gameOptions || {}),
-    );
-    console.log(`[Matchmaking] User ${userId} joined queue (trueskill: ${userRank.trueskill})`);
-
-    const matchResult = await tryMatchPlayers();
-
-    return {status: 'queued', match: matchResult};
-  }
-
-  /**
-   * 离开匹配队列
-   */
-  static async leaveMatchmaking(userId: string): Promise<ILeaveMatchmakingResponse> {
-    if (!userId) {
-      throw new ServiceError(400, 'Missing userId');
-    }
-
-    await Database.getInstance().removeFromMatchmakingQueue(userId);
-    console.log(`[Matchmaking] User ${userId} left queue`);
-
-    return {status: 'left'};
-  }
-
-  /**
-   * 轮询匹配状态
-   */
-  static async pollMatchmaking(userId: string): Promise<IPollMatchmakingResponse> {
-    if (!userId) {
-      throw new ServiceError(400, 'Missing userId');
-    }
-
-    const matchResult = await tryMatchPlayers();
-    const queue = await Database.getInstance().getMatchmakingQueue();
-    const inQueue = queue.some((q) => q.userId === userId);
-    const queueSize = queue.length;
-
-    return {inQueue, queueSize, match: matchResult};
-  }
-
-  /**
-   * 获取/创建用户排名
-   */
-  static async getUserRank(userId: string | null, playerName: string | null): Promise<IUserRankResponse> {
-    let resolvedUserId = userId;
-
-    if (!resolvedUserId && playerName) {
-      const user = GameLoader.getInstance().userNameMap.get(playerName);
-      if (user !== undefined) {
-        resolvedUserId = user.id;
-      }
-    }
-
-    if (!resolvedUserId) {
-      throw new ServiceError(404, 'not find user id or player name');
-    }
-
-    // 从数据库读取当前赛季，而不是基于时间计算
-    const currentSeasonData = await Database.getInstance().getCurrentSeason();
-    const currentSeasonId = currentSeasonData?.seasonId || getSeasonId();
-
-    let userRank: UserRank | undefined = GameLoader.getInstance().userRankMap.get(resolvedUserId);
-    if (userRank === undefined) {
-      userRank = new UserRank(resolvedUserId, DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0, 0, currentSeasonId);
-      Database.getInstance().addUserRank(userRank);
-      GameLoader.getInstance().addOrUpdateUserRank(userRank);
-    }
-
-    return {
-      userId: userRank.userId,
-      rankValue: userRank.rankValue,
-      mu: userRank.mu,
-      sigma: userRank.sigma,
-      trueskill: userRank.trueskill,
-      points: userRank.points || 0,
-      seasonId: userRank.seasonId || '',
-    };
-  }
-
-  /**
-   * 激活用户排名
-   */
-   static async activateRank(userId: string): Promise<void> {
-    if (!userId) {
-      throw new ServiceError(400, 'Missing userId');
-    }
-
-    // 从数据库读取当前赛季，而不是基于时间计算
-    const currentSeasonData = await Database.getInstance().getCurrentSeason();
-    const currentSeasonId = currentSeasonData?.seasonId || getSeasonId();
-
-    let userRank = GameLoader.getInstance().userRankMap.get(userId);
-    if (userRank === null || userRank === undefined) {
-      userRank = new UserRank(userId, DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0, 0, currentSeasonId);
-      Database.getInstance().addUserRank(userRank);
-      GameLoader.getInstance().addOrUpdateUserRank(userRank);
-    }
+  static activateRank(userId: string): Promise<void> {
+    return UserRankService.activateRank(userId);
   }
 }

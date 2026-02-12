@@ -12,13 +12,18 @@
         <div id="app" :class="'topmost-'+screen">
             <section>
                 <dialog id="alert-dialog" class="alert-dialog">
-                    <form method="dialog">
-                        <p class="title" v-i18n>Error with input</p>
-                        <p id="alert-dialog-message"></p>
-                        <menu class="dialog-menu centered-content">
-                            <button id="alert-dialog-button" class="btn btn-lg btn-primary">OK</button>
-                        </menu>
-                    </form>
+                    <div class="alert-dialog__content">
+                        <div class="alert-dialog__header">
+                            <div class="alert-dialog__icon"></div>
+                            <h3 class="alert-dialog__title" v-i18n>Error</h3>
+                        </div>
+                        <div class="alert-dialog__body">
+                            <p id="alert-dialog-message"></p>
+                        </div>
+                        <div class="alert-dialog__footer">
+                            <button id="alert-dialog-button" class="alert-dialog__btn" v-i18n>OK</button>
+                        </div>
+                    </div>
                 </dialog>
             </section>
             <nav-bar v-if="['start-screen','create-game-form','game-lobby','load','cards','help','login','register','my-games','me-page','donate','ranks','user-profile','games-overview'].indexOf(screen) !== -1"></nav-bar>

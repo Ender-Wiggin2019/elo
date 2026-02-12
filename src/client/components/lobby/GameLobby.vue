@@ -277,7 +277,6 @@
       </div>
     </div>
 
-    <preferences-icon></preferences-icon>
     <lobby-room-settings-modal ref="settingsModal" :room="activeSettingsRoom"></lobby-room-settings-modal>
   </div>
 </template>
@@ -286,14 +285,15 @@
 import Vue from 'vue';
 import {Color, PLAYER_COLORS} from '@/common/Color';
 import {ILobbyRoom, ELobbyRoomStatus} from '@/common/lobby/LobbyTypes';
-import {request} from '@/client/utils/request';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
 import {playerColorClass} from '@/common/utils/utils';
 import {paths} from '@/common/app/paths';
 import {translateText} from '@/client/directives/i18n';
 import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
-import PreferencesIcon from '@/client/components/PreferencesIcon.vue';
 import LobbyRoomSettingsModal from '@/client/components/lobby/LobbyRoomSettingsModal.vue';
+import {showError, showWarning} from '@/client/utils/showAlert';
+import {lobbyService} from '@/client/services';
+import {request} from '@/client/utils/request';
 
 const POLL_INTERVAL = 3000;
 
@@ -301,7 +301,6 @@ export default Vue.extend({
   name: 'GameLobby',
   components: {
     CreateGameForm,
-    PreferencesIcon,
     LobbyRoomSettingsModal,
   },
   data() {
@@ -407,35 +406,59 @@ export default Vue.extend({
       }
     },
     async fetchRooms() {
+      this.loading = true;
       try {
-        const data = await request.get<{rooms: Array<ILobbyRoom>}>('/api/v2/lobby/list');
-        this.rooms = data.rooms;
-
-        // 初始化颜色选择
-        for (const room of this.rooms) {
-          if (!this.selectedColors[room.roomId]) {
-            const available = this.getAvailableColors(room);
-            if (available.length > 0) {
-              this.$set(this.selectedColors, room.roomId, available[0]);
-            }
-          }
-        }
-
-        // 检查我所在房间的状态
-        for (const room of this.rooms) {
-          if (!this.isInRoom(room)) continue;
-
-          // 房主：确认阶段且所有人已确认 -> 创建游戏
-          if (room.status === 'confirming' && this.isOwner(room)) {
-            const allReady = room.players.every((p) => p.isReady);
-            if (allReady) {
-              await this.pollAndCreateGame(room.roomId);
-              break;
-            }
-          }
-        }
-      } catch (err) {
+        const data = await lobbyService.getRooms();
+        this.rooms = data.rooms || [];
+      } catch (err: any) {
         console.error('Failed to fetch rooms:', err);
+      } finally {
+        this.loading = false;
+      }
+    },
+    async joinRoom(roomId: string) {
+      const color = this.selectedColors[roomId];
+      if (!color) {
+        showWarning(translateText('Please select a color'));
+        return;
+      }
+      if (!this.userId) {
+        showWarning(translateText('Please login first'));
+        return;
+      }
+      try {
+        await lobbyService.joinRoom(roomId, {
+          userId: this.userId,
+          userName: this.userName,
+          color,
+        });
+        await this.fetchRooms();
+      } catch (err: any) {
+        showError(err.body || err.message);
+      }
+    },
+    async leaveRoom(roomId: string) {
+      try {
+        await lobbyService.leaveRoom(roomId, this.userId);
+        await this.fetchRooms();
+      } catch (err: any) {
+        showError(err.body || err.message);
+      }
+    },
+    async kickPlayer(roomId: string, targetUserId: string) {
+      try {
+        await lobbyService.kickPlayer(roomId, this.userId, targetUserId);
+        await this.fetchRooms();
+      } catch (err: any) {
+        showError(err.body || err.message);
+      }
+    },
+    async startGame(roomId: string) {
+      try {
+        await lobbyService.startGame(roomId, this.userId);
+        await this.fetchRooms();
+      } catch (err: any) {
+        showError(err.body || err.message);
       }
     },
     async pollAndCreateGame(roomId: string) {
@@ -549,82 +572,24 @@ export default Vue.extend({
 
       return tags;
     },
-    async joinRoom(roomId: string) {
-      const color = this.selectedColors[roomId];
-      if (!color) {
-        alert(translateText('Please select a color'));
-        return;
-      }
-      if (!this.userId) {
-        alert(translateText('Please login first'));
-        return;
-      }
+    async closeRoom(roomId: string) {
       try {
-        await request.post(`/api/v2/lobby/${roomId}/join`, {
-          userId: this.userId,
-          userName: this.userName,
-          color,
-        });
+        await lobbyService.leaveRoom(roomId, this.userId);
         await this.fetchRooms();
       } catch (err: any) {
-        alert(err.body || err.message);
-      }
-    },
-    async leaveRoom(roomId: string) {
-      try {
-        await request.post(`/api/v2/lobby/${roomId}/leave`, {
-          userId: this.userId,
-        });
-        await this.fetchRooms();
-      } catch (err: any) {
-        alert(err.body || err.message);
-      }
-    },
-    async kickPlayer(roomId: string, targetUserId: string) {
-      try {
-        await request.post(`/api/v2/lobby/${roomId}/kick`, {
-          userId: this.userId,
-          targetUserId,
-        });
-        await this.fetchRooms();
-      } catch (err: any) {
-        alert(err.body || err.message);
-      }
-    },
-    async startGame(roomId: string) {
-      try {
-        await request.post(`/api/v2/lobby/${roomId}/start`, {
-          userId: this.userId,
-        });
-        await this.fetchRooms();
-      } catch (err: any) {
-        alert(err.body || err.message);
+        showError(err.body || err.message);
       }
     },
     async confirmReady(roomId: string) {
       try {
-        const data = await request.post<{room: ILobbyRoom; allReady: boolean; gameConfig?: any}>(
-          `/api/v2/lobby/${roomId}/confirm`,
-          {userId: this.userId},
-        );
+        const data = await lobbyService.confirmReady(roomId, this.userId);
 
         if (data.allReady && data.gameConfig) {
-          // 所有人已确认，创建游戏
           await this.createGameFromLobby(roomId, data.gameConfig);
         }
         await this.fetchRooms();
       } catch (err: any) {
-        alert(err.body || err.message);
-      }
-    },
-    async closeRoom(roomId: string) {
-      try {
-        await request.post(`/api/v2/lobby/${roomId}/leave`, {
-          userId: this.userId,
-        });
-        await this.fetchRooms();
-      } catch (err: any) {
-        alert(err.body || err.message);
+        showError(err.body || err.message);
       }
     },
     async createGameFromLobby(roomId: string, gameConfig: any) {
@@ -637,13 +602,9 @@ export default Vue.extend({
         const text = await response.text();
         const json = JSON.parse(text);
 
-        // 标记房间已启动，将游戏数据保存到房间中供其他玩家查看
-        await request.post(`/api/v2/lobby/${roomId}/markStarted`, {
-          gameId: json.id,
-          gameData: json,
-        });
+        await lobbyService.markStarted(roomId, json.id, json);
       } catch (err: any) {
-        alert('Failed to create game: ' + (err.message || err));
+        showError('Failed to create game: ' + (err.message || err));
       }
     },
     navigateToGame(gameData: any) {

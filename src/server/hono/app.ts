@@ -11,7 +11,6 @@
 
 import {Hono} from 'hono';
 import {seasonRoutes} from './season';
-import {matchmakingRoutes} from './matchmaking';
 import {lobbyRoutes} from './lobby';
 import {testRoutes} from './test';
 import {userProfileRoutes} from './userProfile';
@@ -28,7 +27,6 @@ app.onError((err, c) => {
 
 // 路由挂载
 app.route('/season', seasonRoutes);
-app.route('/matchmaking', matchmakingRoutes);
 app.route('/lobby', lobbyRoutes);
 app.route('/test', testRoutes);
 app.route('/user-profile', userProfileRoutes);

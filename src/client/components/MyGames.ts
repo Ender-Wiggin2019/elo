@@ -1,12 +1,14 @@
 import Vue from 'vue';
 
-import axios from 'axios';
 import {Phase} from '@/common/Phase';
-import {getPreferences, PreferencesManager} from '../utils/PreferencesManager';
+import {getPreferences} from '../utils/PreferencesManager';
 import ConfirmDialog from './common/ConfirmDialog.vue';
 import RankTier from '@/client/components/RankTier.vue';
 import {UserRank} from '../../common/rank/RankManager';
 import {DEFAULT_MU, DEFAULT_RANK_VALUE, DEFAULT_SIGMA} from '../../common/rank/constants';
+import {showError} from '../utils/showAlert';
+import {userService} from '../services';
+import {userStore, preferencesStore} from '../stores';
 
 export const MyGames = Vue.component('my-games', {
   data: function() {
@@ -26,8 +28,8 @@ export const MyGames = Vue.component('my-games', {
     RankTier,
   },
   mounted: function() {
-    this.userId = PreferencesManager.load('userId');
-    this.userName = PreferencesManager.load('userName');
+    this.userId = userStore.userId;
+    this.userName = userStore.userName;
     if (this.userId.length > 0) {
       this.getGames();
       this.getUserRank();
@@ -35,14 +37,8 @@ export const MyGames = Vue.component('my-games', {
   },
   methods: {
     getGames: function() {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/mygames?id='+this.userId);
-      xhr.onerror = function() {
-        alert('Error getting games data');
-      };
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const result = xhr.response;
+      userService.getMyGames(this.userId)
+        .then((result) => {
           if (result && result.mygames && result.mygames instanceof Array) {
             this.games = result.mygames;
             if (result.vipDate) {
@@ -50,32 +46,22 @@ export const MyGames = Vue.component('my-games', {
             }
             this.showhandcards = result.showhandcards;
           } else {
-            alert('Unexpected response fetching games from API');
+            showError('Unexpected response fetching games from API');
           }
-        } else {
-          alert('Unexpected response fetching games from API');
-        }
-      };
-      xhr.responseType = 'json';
-      xhr.send();
+        })
+        .catch(() => {
+          showError('Error getting games data');
+        });
     },
     getUserRank: function() {
       if (this.userId === '') return;
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', '/api/userrank?userId='+this.userId);
-      xhr.onerror = function() {
-        alert('Error getting user rank data');
-      };
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          const result = xhr.response;
-          if (result && result.rankValue >= 0) {
-            this.userRank = new UserRank(this.userId, result.rankValue, result.mu, result.sigma, result.trueskill); // 更新userRank的值
-          }
-        }
-      };
-      xhr.responseType = 'json';
-      xhr.send();
+      userService.getUserRankInstance(this.userId)
+        .then((userRank) => {
+          this.userRank = userRank;
+        })
+        .catch(() => {
+          showError('Error getting user rank data');
+        });
     },
     getTier() {
       return this.userRank.getTier();
@@ -98,13 +84,13 @@ export const MyGames = Vue.component('my-games', {
         this.userName = '';
         this.vipDate = '';
         this.games = [];
-        PreferencesManager.loginOut();
+        userStore.logout();
       } else {
         window.location.href = '/login';
       }
     },
     updateTips: function() {
-      PreferencesManager.INSTANCE.set('enable_sounds', this.enable_sounds );
+      preferencesStore.set('enable_sounds', this.enable_sounds);
     },
     updateShowHandCards: function() {
       if (this.showhandcards) {
@@ -117,38 +103,31 @@ export const MyGames = Vue.component('my-games', {
       this.showhandcards = false;
     },
     confimUpdate: function() {
-      const userId = PreferencesManager.load('userId');
+      const userId = userStore.userId;
       if ( userId === undefined || userId === '') {
         return;
       }
-      axios.post('/api/showHand', {
-        userId: userId,
-        showhandcards: this.showhandcards,
-      }).then(function(response) {
-        console.log(response);
-      }).catch(function(error) {
-        alert(error);
-      });
+      userService.updateShowHandCards(userId, this.showhandcards)
+        .catch(function(error: any) {
+          showError(error);
+        });
     },
 
     // 天梯，激活排名，在`user_rank`表中创建对应数据
     activateRank: function() {
-      const userId = PreferencesManager.load('userId');
+      const userId = userStore.userId;
       if ( userId === undefined || userId === '') {
         return;
       }
       console.log('activateRank');
       const $this = this;
-      axios.post('/api/activateRank', {
-        userId: userId,
-      }).then(function(response) {
-        if (response && response.data ) {
-          const result = response.data;
-          $this.userRank = new UserRank($this.userId, result.rankValue, result.mu, result.sigma, result.trueskill); // 更新userRank的值
-        }
-      }).catch(function(error) {
-        alert(error);
-      });
+      userService.activateRankInstance(userId)
+        .then(function(userRank) {
+          $this.userRank = userRank;
+        })
+        .catch(function(error: any) {
+          showError(error);
+        });
     },
     toggleTabs: function(tabNumber: number) {
       this.openTab = tabNumber;
@@ -157,7 +136,7 @@ export const MyGames = Vue.component('my-games', {
   created() {
     if (window.localStorage) {
       this.enable_sounds = getPreferences().enable_sounds;
-      this.userName = PreferencesManager.load('userName');
+      this.userName = userStore.userName;
     }
   },
   template: `

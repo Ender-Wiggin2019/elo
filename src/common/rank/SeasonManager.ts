@@ -7,12 +7,28 @@ import {DEFAULT_SIGMA} from './constants';
 // 赛季积分奖励
 export const SEASON_POINTS_REWARDS: Record<number, number> = {
   1: 100, // 第一名
-  2: 50, // 第二名
-  3: 35, // 第三名
+  2: 75, // 第二名
+  3: 60, // 第三名
+  4: 45, // 第四名
+  5: 40, // 第五名
+  6: 35, // 第六名
+  7: 30, // 第七名
+  8: 25, // 第八名
+  9: 20, // 第九名
+  10: 20, // 第十名
 };
 export const SEASON_POINTS_TOP_TEN = 20; // 前十
 export const SEASON_POINTS_TOP_HUNDRED = 10; // 前一百
-export const SEASON_POINTS_DEFAULT = 0; // 其他玩家
+export const SEASON_POINTS_DEFAULT = 2; // 其他玩家
+
+// 胜者积分奖励配置（根据玩家人数）
+export const WINNER_POINTS_SMALL_GAME = 1; // 2-3人局
+export const WINNER_POINTS_LARGE_GAME = 2; // 4-5人局
+
+export function getWinnerPointsReward(playerCount: number): number {
+  if (playerCount <= 3) return WINNER_POINTS_SMALL_GAME;
+  return WINNER_POINTS_LARGE_GAME;
+}
 
 // 赛季软重置参数：保留60%的旧分数
 export const SEASON_MU_RETENTION = 0.6;

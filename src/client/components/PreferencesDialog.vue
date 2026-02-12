@@ -1,6 +1,12 @@
 <template>
     <dialog ref="dialog" class="preferences-dialog">
       <div class="preferences-dialog__container">
+        <button class="preferences-dialog__close" @click="closeDialog" aria-label="Close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
         <div class="preferences-panel__item">
           <label class="preferences-panel__switch">
             <input type="checkbox" v-on:change="updatePreferences" v-model="prefs.hide_awards_and_milestones" data-test="hide_awards_and_milestones">
@@ -198,6 +204,9 @@ export default (Vue as WithRefs<Refs>).extend({
     okClicked(): void {
       this.$emit('okButtonClicked');
     },
+    closeDialog(): void {
+      (this.$refs.dialog as HTMLDialogElement).close();
+    },
     show() {
       showModal(this.$refs.dialog);
     },
@@ -230,7 +239,32 @@ export default (Vue as WithRefs<Refs>).extend({
 
 .preferences-dialog__container {
   padding: 20px;
+  padding-top: 48px;
   overflow-y: auto;
+  position: relative;
+}
+
+.preferences-dialog__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.preferences-dialog__close:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
 }
 
 .preferences-panel__item {
@@ -370,7 +404,5 @@ export default (Vue as WithRefs<Refs>).extend({
   color: #f1f5f9;
 }
 </style>
-
-
 
 

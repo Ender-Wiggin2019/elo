@@ -204,10 +204,4 @@ export interface IDatabase {
     updateUserPoints(userId: string, points: number): Promise<void>;
     setCurrentSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void>;
     getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined>;
-
-    // 匹配队列相关
-    addToMatchmakingQueue(userId: string, trueskill: number, gameOptions: string): Promise<void>;
-    removeFromMatchmakingQueue(userId: string): Promise<void>;
-    getMatchmakingQueue(): Promise<Array<{userId: string, trueskill: number, joinTime: string, gameOptions: string}>>;
-    clearMatchmakingQueue(): Promise<void>;
 }

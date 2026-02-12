@@ -21,7 +21,7 @@ describe('MarsHotSpring', function() {
     expect(card.canPlay(player)).to.be.false;
     // 先放3个海洋，满足前置条件
     for (let i = 0; i < 3; i++) {
-      const oceanSpace = game.board.spaces.find((s) => s.tile == null && s.spaceType === SpaceType.OCEAN);
+      const oceanSpace = game.board.spaces.find((s) => s.tile === null && s.spaceType === SpaceType.OCEAN);
       if (oceanSpace) game.addTile(player, oceanSpace, {tileType: TileType.OCEAN});
     }
     expect(card.canPlay(player)).to.be.true;
@@ -30,7 +30,7 @@ describe('MarsHotSpring', function() {
   it('play 增加2热产出和2M产出，并放置温泉地块', function() {
     // 先放3个海洋，满足前置条件
     for (let i = 0; i < 3; i++) {
-      const oceanSpace = game.board.spaces.find((s) => s.tile == null && s.spaceType === SpaceType.OCEAN);
+      const oceanSpace = game.board.spaces.find((s) => s.tile === null && s.spaceType === SpaceType.OCEAN);
       if (oceanSpace) game.addTile(player, oceanSpace, {tileType: TileType.OCEAN});
     }
 

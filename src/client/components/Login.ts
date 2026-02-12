@@ -1,6 +1,8 @@
 
 import Vue from 'vue';
-import {PreferencesManager} from '../utils/PreferencesManager';
+import {showError, showWarning} from '../utils/showAlert';
+import {authService} from '../services';
+import {userStore} from '../stores';
 
 export const Login = Vue.component('login', {
   data: function() {
@@ -10,34 +12,23 @@ export const Login = Vue.component('login', {
     };
   },
   methods: {
-    login: function() {
+    async login() {
       if (this.userName === undefined || this.userName.length === 0) {
-        alert('Please enter userName');
+        showWarning('Please enter userName');
         return;
       }
       if (this.password === undefined || this.password.length <=1) {
-        alert('Please enter more than 1 characters for password');
+        showWarning('Please enter more than 1 characters for password');
         return;
       }
-      const dataToSend = JSON.stringify({userName: this.userName, password: this.password});
 
-      const onSucces = (response: any) => {
-        if (!response.ok) {
-          response.text().then((msg: string) =>{
-            alert(msg);
-          });
-        } else {
-          response.json().then((data: { id: string; name: string; }) => {
-            PreferencesManager.INSTANCE.set('userId', data.id);
-            PreferencesManager.INSTANCE.set('userName', data.name);
-            window.location.href = '/mygames';
-          });
-        }
-      };
-
-      fetch('/api/login', {'method': 'POST', 'body': dataToSend, 'headers': {'Content-Type': 'application/json'}})
-        .then(onSucces)
-        .catch((_) => alert('Unexpected server response'));
+      try {
+        const data = await authService.login(this.userName, this.password);
+        userStore.setUser(data.id, data.name);
+        window.location.href = '/mygames';
+      } catch (err: any) {
+        showError(err.body || 'Unexpected server response');
+      }
     },
   },
   template: `

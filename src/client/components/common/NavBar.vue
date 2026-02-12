@@ -27,6 +27,7 @@
             :href="link.path"
             class="tfm-navbar__link"
             :class="{ 'tfm-navbar__link--active': isActive(link.path) }"
+            @click.prevent="navigate(link.path)"
           >
             <span class="tfm-navbar__link-icon"><tfm-icon :name="link.icon" :size="16" /></span>
             <span class="tfm-navbar__link-label" v-i18n>{{ link.label }}</span>
@@ -36,13 +37,13 @@
         <!-- Right: User area + hamburger -->
         <div class="tfm-navbar__right">
           <template v-if="userName">
-            <a href="/me" class="tfm-navbar__user">
-              <span class="tfm-navbar__avatar">{{ avatarLetter }}</span>
-              <span class="tfm-navbar__username">{{ userName }}</span>
-            </a>
+          <a href="/me" class="tfm-navbar__user" @click.prevent="navigate('/me')">
+            <span class="tfm-navbar__avatar">{{ avatarLetter }}</span>
+            <span class="tfm-navbar__username">{{ userName }}</span>
+          </a>
           </template>
           <template v-else>
-            <a href="/login" class="tfm-navbar__login" v-i18n>Sign In</a>
+            <a href="/login" class="tfm-navbar__login" @click.prevent="navigate('/login')" v-i18n>Sign In</a>
           </template>
 
           <!-- Hamburger toggle (mobile only) -->
@@ -78,7 +79,7 @@
               :href="link.path"
               class="tfm-navbar__modal-link"
               :class="{ 'tfm-navbar__modal-link--active': isActive(link.path) }"
-              @click="mobileMenuOpen = false"
+              @click.prevent="navigateMobile(link.path)"
             >
               <span class="tfm-navbar__modal-link-icon"><tfm-icon :name="link.icon" :size="18" /></span>
               <span v-i18n>{{ link.label }}</span>
@@ -88,13 +89,13 @@
           <!-- User section in modal -->
           <div class="tfm-navbar__modal-footer">
             <template v-if="userName">
-              <a href="/me" class="tfm-navbar__modal-user" @click="mobileMenuOpen = false">
+              <a href="/me" class="tfm-navbar__modal-user" @click.prevent="navigateMobile('/me')">
                 <span class="tfm-navbar__avatar" style="width:36px;height:36px;font-size:14px;">{{ avatarLetter }}</span>
                 <span class="tfm-navbar__modal-user-name">{{ userName }}</span>
               </a>
             </template>
             <template v-else>
-              <a href="/login" class="tfm-navbar__modal-signin" @click="mobileMenuOpen = false" v-i18n>Sign In</a>
+              <a href="/login" class="tfm-navbar__modal-signin" @click.prevent="navigateMobile('/login')" v-i18n>Sign In</a>
             </template>
           </div>
         </div>
@@ -105,7 +106,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {PreferencesManager} from '@/client/utils/PreferencesManager';
+import {userStore} from '@/client/stores';
 import TfmIcon from '@/client/components/common/TfmIcon.vue';
 
 export default Vue.extend({
@@ -118,11 +119,12 @@ export default Vue.extend({
       userName: '' as string,
       currentPath: '' as string,
       mobileMenuOpen: false,
+      unsubscribe: null as (() => void) | null,
     };
   },
   computed: {
     avatarLetter(): string {
-      return this.userName ? this.userName.charAt(0).toUpperCase() : '?';
+      return userStore.avatarLetter;
     },
     navLinks(): Array<{ path: string; label: string; icon: string }> {
       return [
@@ -135,8 +137,12 @@ export default Vue.extend({
     },
   },
   mounted() {
-    this.userName = PreferencesManager.load('userName');
+    this.userName = userStore.userName;
     this.currentPath = window.location.pathname;
+    window.addEventListener('popstate', this.updateCurrentPath);
+    this.unsubscribe = userStore.subscribe((state) => {
+      this.userName = state.userName;
+    });
   },
   watch: {
     mobileMenuOpen(val: boolean) {
@@ -145,8 +151,22 @@ export default Vue.extend({
   },
   beforeDestroy() {
     document.body.style.overflow = '';
+    window.removeEventListener('popstate', this.updateCurrentPath);
+    if (this.unsubscribe) {
+      this.unsubscribe();
+    }
   },
   methods: {
+    navigate(path: string) {
+      if (window.location.pathname !== path) {
+        window.history.pushState({}, '', path);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    },
+    navigateMobile(path: string) {
+      this.mobileMenuOpen = false;
+      this.navigate(path);
+    },
     goBack() {
       if (window.history.length > 1) {
         window.history.back();
@@ -162,6 +182,9 @@ export default Vue.extend({
     },
     toggleMobileMenu() {
       this.mobileMenuOpen = !this.mobileMenuOpen;
+    },
+    updateCurrentPath() {
+      this.currentPath = window.location.pathname;
     },
   },
 });

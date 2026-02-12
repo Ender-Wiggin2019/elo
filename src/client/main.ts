@@ -7,6 +7,7 @@ import i18nPlugin from '@/client/plugins/i18n.plugin';
 // import {startOauth} from '@/client/oauth';
 
 import '../styles/tailwindcss.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 declare global {
   interface Window {
