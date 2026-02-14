@@ -55,7 +55,7 @@ export async function checkAndResetSeason(): Promise<void> {
   const now = new Date();
   const currentSeason = await Database.getInstance().getCurrentSeason();
   const currentSeasonId = currentSeason?.seasonId || getSeasonId(now);
-  const seasonInfo = getSeasonInfo(now);
+  const seasonName = currentSeason?.seasonName || getSeasonInfo(now)?.seasonName;
   const gameLoader = GameLoader.getInstance();
   const userRankMap = gameLoader.userRankMap;
 
@@ -88,7 +88,7 @@ export async function checkAndResetSeason(): Promise<void> {
       }
       return;
     }
-    console.log(`[Season] Current season: ${currentSeasonId} (${seasonInfo.seasonName}). No reset needed.`);
+    console.log(`[Season] Current season: ${currentSeasonId} (${seasonName}). No reset needed.`);
     return;
   }
 
