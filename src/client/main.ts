@@ -19,7 +19,7 @@ async function bootstrap() {
 
   if (lang !== 'en') {
     try {
-      window._translations = await fetch(`assets/locales/${lang}.json`).then((res) => res.json());
+      window._translations = await fetch(`/assets/locales/${lang}.json`).then((res) => res.json());
       for (const key in window._translations) {
         if (key.length > 10) {// 由于部分文案由大写更换成了小写,这里做个兼容
           window._translations[key.toLocaleLowerCase()] = window._translations[key];

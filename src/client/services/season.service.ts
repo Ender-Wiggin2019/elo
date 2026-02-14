@@ -1,9 +1,9 @@
 import {request} from '@/client/utils/request';
-import {SeasonInfo, SeasonList, LeaderboardResponse} from './types';
+import {SeasonInfoResponse, SeasonList, LeaderboardResponse} from './types';
 
 class SeasonService {
-  async getSeasonInfo(): Promise<SeasonInfo> {
-    return request.get<SeasonInfo>('/api/v2/season/info');
+  async getSeasonInfo(): Promise<SeasonInfoResponse> {
+    return request.get<SeasonInfoResponse>('/api/v2/season/info');
   }
 
   async getSeasonList(): Promise<SeasonList> {

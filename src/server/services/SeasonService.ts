@@ -74,15 +74,10 @@ export class SeasonService {
     > {
     const db = Database.getInstance();
     const currentSeason = await db.getCurrentSeason();
-    const seasons: Array<{
-      seasonId: string;
-      seasonName: string;
-      startDate: string;
-      endDate: string;
-    }> = [];
+    const seasonsMap = new Map<string, {seasonId: string; seasonName: string; startDate: string; endDate: string}>();
 
     if (currentSeason) {
-      seasons.push({
+      seasonsMap.set(currentSeason.seasonId, {
         seasonId: currentSeason.seasonId,
         seasonName: currentSeason.seasonName,
         startDate: currentSeason.startDate,
@@ -92,18 +87,24 @@ export class SeasonService {
 
     const dbSeasons = await db.getAvailableSeasons();
     for (const seasonId of dbSeasons) {
-      if (currentSeason && seasonId === currentSeason.seasonId) {
+      if (seasonsMap.has(seasonId)) {
         continue;
       }
-      const seasonInfo = getSeasonInfoFn(nowFromSeasonId(seasonId));
-      seasons.push({
-        seasonId,
-        seasonName: seasonInfo.seasonName,
-        startDate: seasonInfo.startDate.toISOString(),
-        endDate: seasonInfo.endDate.toISOString(),
-      });
+      const savedSeason = await db.getSeason(seasonId);
+      if (savedSeason) {
+        seasonsMap.set(seasonId, savedSeason);
+      } else {
+        const seasonInfo = getSeasonInfoFn(nowFromSeasonId(seasonId));
+        seasonsMap.set(seasonId, {
+          seasonId,
+          seasonName: seasonInfo.seasonName,
+          startDate: seasonInfo.startDate.toISOString(),
+          endDate: seasonInfo.endDate.toISOString(),
+        });
+      }
     }
 
+    const seasons = Array.from(seasonsMap.values());
     seasons.sort((a, b) => a.seasonId.localeCompare(b.seasonId));
     return seasons;
   }

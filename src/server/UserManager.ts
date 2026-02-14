@@ -166,7 +166,7 @@ export function register(userReq: any, _req: Request, res: Response): void {
   GameLoader.getInstance().userNameMap.set(userName, user);
   GameLoader.getInstance().userIdMap.set(userId, user);
   res.setHeader('Content-Type', 'application/json');
-  res.write('success');
+  res.write(JSON.stringify({success: true}));
   res.end();
   return;
 }

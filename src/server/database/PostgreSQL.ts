@@ -137,6 +137,13 @@ export class PostgreSQL implements IDatabase {
       start_date timestamp(0) default now(),
       end_date timestamp(0))`);
 
+    // 所有赛季元数据表
+    await this.client.query(`CREATE TABLE IF NOT EXISTS seasons (
+      season_id varchar not null PRIMARY KEY,
+      season_name varchar,
+      start_date timestamp(0),
+      end_date timestamp(0))`);
+
     // 兼容性：为已有的 user_rank 表添加 points 和 season_id 列
     try {
       await this.client.query('ALTER TABLE user_rank ADD COLUMN IF NOT EXISTS points integer default 0');
@@ -578,8 +585,9 @@ export class PostgreSQL implements IDatabase {
     const buildStatsQuery = (dateFilter: string) => `
       SELECT
         COUNT(*) as total_games,
-        SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN position > 1 THEN 1 ELSE 0 END) as losses,
+        SUM(CASE WHEN is_timeout = 0 THEN 1 ELSE 0 END) as non_timeout_games,
+        SUM(CASE WHEN position = 1 AND is_timeout = 0 THEN 1 ELSE 0 END) as wins,
+        SUM(CASE WHEN position > 1 AND is_timeout = 0 THEN 1 ELSE 0 END) as losses,
         SUM(CASE WHEN is_timeout = 1 THEN 1 ELSE 0 END) as flee_count,
         COALESCE(AVG(player_score), 0) as avg_score,
         COALESCE(AVG(position), 0) as avg_position,
@@ -599,13 +607,14 @@ export class PostgreSQL implements IDatabase {
 
     const mapRow = (row: any): import('./IDatabase').IUserGameStatsBlock => {
       const totalGames = parseInt(row.total_games) || 0;
+      const nonTimeoutGames = parseInt(row.non_timeout_games) || 0;
       const wins = parseInt(row.wins) || 0;
       const fleeCount = parseInt(row.flee_count) || 0;
       return {
         totalGames,
         wins,
         losses: parseInt(row.losses) || 0,
-        winRate: totalGames > 0 ? Math.round((wins / totalGames) * 10000) / 100 : 0,
+        winRate: nonTimeoutGames > 0 ? Math.round((wins / nonTimeoutGames) * 10000) / 100 : 0,
         fleeCount,
         fleeRate: totalGames > 0 ? Math.round((fleeCount / totalGames) * 10000) / 100 : 0,
         avgScore: Math.round(parseFloat(row.avg_score) * 100) / 100,
@@ -662,6 +671,28 @@ export class PostgreSQL implements IDatabase {
 
   public async getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
     const result = await this.client.query('SELECT season_id, season_name, start_date, end_date FROM current_season', []);
+    if (result.rows.length === 0) {
+      return undefined;
+    }
+    const row = result.rows[0];
+    return {
+      seasonId: row.season_id,
+      seasonName: row.season_name,
+      startDate: row.start_date,
+      endDate: row.end_date,
+    };
+  }
+
+  public async saveSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void> {
+    await this.client.query(
+      `INSERT INTO seasons (season_id, season_name, start_date, end_date) VALUES ($1, $2, $3, $4)
+       ON CONFLICT(season_id) DO UPDATE SET season_name = EXCLUDED.season_name, start_date = EXCLUDED.start_date, end_date = EXCLUDED.end_date`,
+      [seasonId, seasonName, startDate.toISOString(), endDate.toISOString()],
+    );
+  }
+
+  public async getSeason(seasonId: string): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
+    const result = await this.client.query('SELECT season_id, season_name, start_date, end_date FROM seasons WHERE season_id = $1', [seasonId]);
     if (result.rows.length === 0) {
       return undefined;
     }

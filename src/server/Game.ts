@@ -1344,7 +1344,8 @@ export class Game implements IGame, Logger {
     const sortedPlayers = this.getSortedPlayers(); // 玩家排名，包含体退玩家，尽管目前排名模式不能体退
     // 天梯 更新段位和排名
     if (this.isRankMode() && this.players.length > 1) {
-      const currentSeasonId = getSeasonId();
+      const currentSeason = await Database.getInstance().getCurrentSeason();
+      const currentSeasonId = currentSeason?.seasonId || getSeasonId();
       const userRanks: Array<UserRank> = [];
       const rankedPlayers: Array<IPlayer> = [];
       // const timeOutPlayer = this.checkTimeOutPlayer();

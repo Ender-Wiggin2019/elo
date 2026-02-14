@@ -56,7 +56,7 @@
                   <line x1="8" y1="2" x2="8" y2="6"></line>
                   <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                <span v-i18n>Joined</span> {{ profile.createtime }}
+                <span v-i18n>Joined</span> {{ formattedJoinDate }}
               </div>
             </div>
           </div>
@@ -86,15 +86,14 @@
             </div>
             <div class="profile-stat__label" v-i18n>Flee Rate</div>
           </div>
-          <div class="profile-stat profile-stat--cyan" v-if="profile.rank">
-            <div class="profile-stat__value">
-              {{ displayRating }}
+          <div class="profile-stat profile-stat--rank" v-if="profile.rank">
+            <div class="profile-stat__rank-badge">
+              <RankBadge :rankTier="rankTierObj" :showName="true" :vertical="false"/>
             </div>
-            <div class="profile-stat__label" v-i18n>Rating</div>
           </div>
           <div class="profile-stat" v-else>
             <div class="profile-stat__value profile-stat__value--muted">&mdash;</div>
-            <div class="profile-stat__label" v-i18n>Rating</div>
+            <div class="profile-stat__label" v-i18n>Tier</div>
           </div>
         </div>
 
@@ -118,37 +117,6 @@
           </div>
         </div>
 
-        <!-- Rank Details Section -->
-        <div class="profile-section" v-if="profile.rank">
-          <div class="profile-section__header">
-            <span class="profile-section__icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-              </svg>
-            </span>
-            <h2 class="profile-section__title" v-i18n>Rank Details</h2>
-          </div>
-          <div class="profile-card">
-            <div class="profile-rank-grid">
-              <div class="profile-rank-item">
-                <span class="profile-rank-item__label" v-i18n>Tier</span>
-                <span class="profile-rank-item__value">{{ profile.rank.tier.name }}</span>
-              </div>
-              <div class="profile-rank-item" v-if="profile.rank.tier.measurement === 'star'">
-                <span class="profile-rank-item__label" v-i18n>Stars</span>
-                <span class="profile-rank-item__value">
-                  {{ profile.rank.tier.stars }} / {{ profile.rank.tier.maxStars }}
-                </span>
-              </div>
-              <div class="profile-rank-item">
-                <span class="profile-rank-item__label" v-i18n>Rank Value</span>
-                <span class="profile-rank-item__value profile-rank-item__value--cyan">
-                  {{ profile.rank.rankValue }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
       </template>
     </div>
   </div>
@@ -181,6 +149,12 @@ export default Vue.extend({
     };
   },
   computed: {
+    formattedJoinDate(): string {
+      if (!this.profile?.createtime) return '';
+      const date = new Date(this.profile.createtime);
+      const lang = navigator.language || 'en-US';
+      return date.toLocaleDateString(lang, {year: 'numeric', month: 'long', day: 'numeric'});
+    },
     isVip(): boolean {
       return this.profile ? this.profile.isvip > 0 : false;
     },
@@ -232,13 +206,6 @@ export default Vue.extend({
       if (rate > 10) return 'profile-stat--warn';
       return '';
     },
-    displayRating(): string {
-      if (!this.profile?.rank) return '\u2014';
-      if (this.profile.rank.tier.measurement === 'value') {
-        return String(Math.round(this.profile.rank.trueskill * 100));
-      }
-      return String(this.profile.rank.rankValue);
-    },
   },
   mounted() {
     this.fetchProfile();
@@ -271,7 +238,9 @@ export default Vue.extend({
 
 <style scoped>
 .profile-page {
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   background-color: #0a0e1a;
   background-image:
     radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%),
@@ -293,7 +262,7 @@ export default Vue.extend({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: 200px;
   gap: 16px;
   color: #64748b;
   font-family: monospace;
@@ -318,7 +287,7 @@ export default Vue.extend({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: 200px;
   gap: 12px;
   text-align: center;
 }
@@ -544,9 +513,16 @@ export default Vue.extend({
   text-shadow: 0 0 16px rgba(45,212,191,0.4);
 }
 
-.profile-stat--cyan .profile-stat__value {
-  color: #22d3ee;
-  text-shadow: 0 0 16px rgba(34,211,238,0.4);
+.profile-stat--rank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-stat__rank-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile-stat--warn .profile-stat__value {
@@ -635,39 +611,6 @@ export default Vue.extend({
   background: linear-gradient(to right, #e2520e, rgba(226,82,14,0.3), transparent);
 }
 
-/* Rank grid */
-.profile-rank-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 20px;
-  padding: 24px;
-}
-
-.profile-rank-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.profile-rank-item__label {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #64748b;
-  font-family: monospace;
-}
-
-.profile-rank-item__value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #f1f5f9;
-}
-
-.profile-rank-item__value--cyan {
-  color: #22d3ee;
-}
-
 /* ============ VIP PAGE ACCENTS ============ */
 .profile-page--vip .profile-stat:hover {
   border-color: rgba(251,191,36,0.4);
@@ -727,11 +670,6 @@ export default Vue.extend({
 
   .profile-stat__value {
     font-size: 22px;
-  }
-
-  .profile-rank-grid {
-    padding: 20px;
-    gap: 16px;
   }
 }
 

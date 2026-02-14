@@ -274,4 +274,10 @@ export class LocalStorage implements IDatabase {
   getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
     throw new Error('Method not implemented.');
   }
+  saveSeason(_seasonId: string, _seasonName: string, _startDate: Date, _endDate: Date): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  getSeason(_seasonId: string): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
+    throw new Error('Method not implemented.');
+  }
 }

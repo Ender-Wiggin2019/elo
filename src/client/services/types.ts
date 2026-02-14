@@ -40,15 +40,18 @@ export interface GameInfo {
 
 export interface SeasonInfo {
   seasonId: string;
-  name?: string;
-  startDate?: string;
-  endDate?: string;
+  seasonName: string;
+  startDate: string;
+  endDate: string;
+}
+
+export interface SeasonInfoResponse extends SeasonInfo {
+  seasons: SeasonInfo[];
 }
 
 export interface SeasonList {
   currentSeasonId: string;
   previousSeasonId?: string;
-  seasons?: SeasonInfo[];
 }
 
 export interface LeaderboardResponse {

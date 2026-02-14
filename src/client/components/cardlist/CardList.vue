@@ -1,6 +1,6 @@
 <template>
-  <div class="card-list-page min-h-screen bg-mars-void text-mars-text"
-    style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
+  <div class="card-list-page bg-mars-void text-mars-text"
+    style="flex: 1; min-height: 0; overflow-y: auto; background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
 
   <div class="card-list-container" :class="getLanguageCssClass()">
     <!-- Page Title -->
@@ -261,11 +261,11 @@ export default (Vue as WithRefs<Refs>).extend({
         CardType.PRELUDE,
         CardType.CORPORATION,
         CardType.STANDARD_PROJECT,
-        CardType.CEO,
         'colonyTiles',
         'globalEvents',
         'milestones',
         'awards',
+        CardType.CEO,
         'agendas',
       ];
     },

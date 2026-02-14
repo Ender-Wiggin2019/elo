@@ -53,7 +53,8 @@ let isSeasonResetRunning = false;
  */
 export async function checkAndResetSeason(): Promise<void> {
   const now = new Date();
-  const currentSeasonId = getSeasonId(now);
+  const currentSeason = await Database.getInstance().getCurrentSeason();
+  const currentSeasonId = currentSeason?.seasonId || getSeasonId(now);
   const seasonInfo = getSeasonInfo(now);
   const gameLoader = GameLoader.getInstance();
   const userRankMap = gameLoader.userRankMap;
@@ -150,17 +151,30 @@ async function performSeasonReset(
   for (const [, userRank] of gameLoader.userRankMap) {
     allRanks.push(userRank);
   }
+
   allRanks.sort((a, b) => {
     if (b.rankValue !== a.rankValue) return b.rankValue - a.rankValue;
     return b.trueskill - a.trueskill;
   });
 
-  const seasonInfo = getSeasonInfo(nowFromSeasonId(newSeasonId));
-  console.log(`[Season] Season reset triggered! Previous: ${previousSeasonId} -> Current: ${newSeasonId}`);
-  console.log(`[Season] ${seasonInfo.seasonName}, triggeredBy=${triggeredBy}, dryRun=${dryRun}`);
+  // 计算新赛季的开始和结束日期：开始日期为当天，结束日期为3个月后
+  const now = new Date();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const endDate = new Date(now.getFullYear(), now.getMonth() + 3, now.getDate(), 0, 0, 0);
+  const seasonName = `Season ${newSeasonId.split('-S')[1]} (${startDate.toLocaleDateString('en-US', {month: 'short'})}-${endDate.toLocaleDateString('en-US', {month: 'short'})} ${startDate.getFullYear()})`;
 
-  // 只处理那些在源赛季的用户，跳过已经在目标赛季的用户
-  const ranksToReset = allRanks.filter((rank) => rank.seasonId === previousSeasonId);
+  console.log(`[Season] Season reset triggered! Previous: ${previousSeasonId} -> Current: ${newSeasonId}`);
+  console.log(`[Season] ${seasonName}, triggeredBy=${triggeredBy}, dryRun=${dryRun}`);
+  console.log(`[Season] Start: ${startDate.toISOString()}, End: ${endDate.toISOString()}`);
+
+  // 需要重置的用户：seasonId 为空或等于 previousSeasonId 的用户
+  // 排除已经在 newSeasonId 的用户
+  const ranksToReset = allRanks.filter((rank) => {
+    const seasonId = rank.seasonId;
+    if (!seasonId || seasonId.length === 0) return true;
+    if (seasonId === newSeasonId) return false;
+    return seasonId === previousSeasonId;
+  });
   const playersInNewSeason = allRanks.filter((rank) => rank.seasonId === newSeasonId);
 
   if (ranksToReset.length === 0) {
@@ -192,6 +206,22 @@ async function performSeasonReset(
       preview,
       triggeredBy,
     };
+  }
+
+  // 更新上一个赛季的结束时间为新赛季的开始时间
+  const previousSeason = await db.getCurrentSeason();
+  if (previousSeason && previousSeason.seasonId === previousSeasonId) {
+    const prevStartDate = new Date(previousSeason.startDate);
+    await db.saveSeason(previousSeasonId, previousSeason.seasonName, prevStartDate, startDate);
+    console.log(`[Season] Updated previous season ${previousSeasonId} end date to ${startDate.toISOString()}`);
+  } else {
+    // 尝试从 seasons 表获取
+    const savedPrevSeason = await db.getSeason(previousSeasonId);
+    if (savedPrevSeason) {
+      const prevStartDate = new Date(savedPrevSeason.startDate);
+      await db.saveSeason(previousSeasonId, savedPrevSeason.seasonName, prevStartDate, startDate);
+      console.log(`[Season] Updated previous season ${previousSeasonId} end date to ${startDate.toISOString()}`);
+    }
   }
 
   // 2 & 3. 保存快照并发放积分
@@ -234,10 +264,12 @@ async function performSeasonReset(
   }
 
   // 更新当前赛季信息
-  await db.setCurrentSeason(newSeasonId, seasonInfo.seasonName, seasonInfo.startDate, seasonInfo.endDate);
+  await db.setCurrentSeason(newSeasonId, seasonName, startDate, endDate);
+  // 同时保存到 seasons 表
+  await db.saveSeason(newSeasonId, seasonName, startDate, endDate);
 
   console.log(`[Season] Season reset complete. ${ranksToReset.length} players processed.`);
-  console.log(`[Season] Current season updated to: ${newSeasonId} (${seasonInfo.seasonName})`);
+  console.log(`[Season] Current season updated to: ${newSeasonId} (${seasonName})`);
   return {
     status: 'completed',
     fromSeasonId: previousSeasonId,
@@ -274,15 +306,4 @@ function computeSeasonResetRankValue(userRank: UserRank): number {
     return DEFAULT_RANK_VALUE;
   }
   return DEFAULT_RANK_VALUE + tierIndex;
-}
-
-function nowFromSeasonId(seasonId: string): Date {
-  const match = seasonId.match(/^(\d{4})-S([1-6])$/);
-  if (match === null) {
-    return new Date();
-  }
-  const year = Number(match[1]);
-  const seasonNumber = Number(match[2]);
-  const month = (seasonNumber - 1) * 2;
-  return new Date(year, month, 1, 0, 0, 0);
 }

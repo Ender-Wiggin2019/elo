@@ -82,6 +82,13 @@ export class SQLite implements IDatabase {
       start_date timestamp default (datetime(CURRENT_TIMESTAMP,'localtime')),
       end_date timestamp)`);
 
+    // 所有赛季元数据表
+    await this.asyncRun(`CREATE TABLE IF NOT EXISTS seasons (
+      season_id varchar not null PRIMARY KEY,
+      season_name varchar,
+      start_date timestamp,
+      end_date timestamp)`);
+
     // 兼容性：为已有的 user_rank 表添加 points 和 season_id 列
     try {
       await this.asyncRun('ALTER TABLE user_rank ADD COLUMN points integer default 0');
@@ -102,18 +109,23 @@ export class SQLite implements IDatabase {
 
   getGames(): Promise<Array<IGameShortData>> {
     return new Promise((resolve, reject) => {
-      const sql: string = 'SELECT games.game_id,games.prop FROM games, (SELECT max(save_id) save_id, game_id FROM games  GROUP BY game_id) a WHERE games.game_id = a.game_id AND games.save_id = a.save_id ORDER BY createtime DESC';
-
-      this.db.all(sql, [], (err, rows) => {
-        if (err) {
-          reject(new Error('Error in getGames: ' + err.message));
-        } else {
-          const allGames: Array<IGameShortData> = [];
-          rows.forEach((row :any) => {
-            allGames.push({gameId: row.game_id, shortData: row.prop !== undefined && row.prop !=='' ? JSON.parse(row.prop) : undefined});
-          });
-          resolve(allGames);
+      this.db.all('SELECT name FROM sqlite_master WHERE type=\'table\' AND name=\'games\'', [], (err, rows) => {
+        if (err || rows.length === 0) {
+          resolve([]);
+          return;
         }
+        const sql: string = 'SELECT games.game_id,games.prop FROM games, (SELECT max(save_id) save_id, game_id FROM games  GROUP BY game_id) a WHERE games.game_id = a.game_id AND games.save_id = a.save_id ORDER BY createtime DESC';
+        this.db.all(sql, [], (err, rows) => {
+          if (err) {
+            reject(new Error('Error in getGames: ' + err.message));
+          } else {
+            const allGames: Array<IGameShortData> = [];
+            rows.forEach((row :any) => {
+              allGames.push({gameId: row.game_id, shortData: row.prop !== undefined && row.prop !=='' ? JSON.parse(row.prop) : undefined});
+            });
+            resolve(allGames);
+          }
+        });
       });
     });
   }
@@ -476,8 +488,9 @@ export class SQLite implements IDatabase {
     const buildStatsQuery = (dateFilter: string) => `
       SELECT
         COUNT(*) as total_games,
-        SUM(CASE WHEN position = 1 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN position > 1 THEN 1 ELSE 0 END) as losses,
+        SUM(CASE WHEN is_timeout = 0 THEN 1 ELSE 0 END) as non_timeout_games,
+        SUM(CASE WHEN position = 1 AND is_timeout = 0 THEN 1 ELSE 0 END) as wins,
+        SUM(CASE WHEN position > 1 AND is_timeout = 0 THEN 1 ELSE 0 END) as losses,
         SUM(CASE WHEN is_timeout = 1 THEN 1 ELSE 0 END) as flee_count,
         COALESCE(AVG(player_score), 0) as avg_score,
         COALESCE(AVG(position), 0) as avg_position,
@@ -497,13 +510,14 @@ export class SQLite implements IDatabase {
 
     const mapRow = (row: any): import('./IDatabase').IUserGameStatsBlock => {
       const totalGames = parseInt(row?.total_games) || 0;
+      const nonTimeoutGames = parseInt(row?.non_timeout_games) || 0;
       const wins = parseInt(row?.wins) || 0;
       const fleeCount = parseInt(row?.flee_count) || 0;
       return {
         totalGames,
         wins,
         losses: parseInt(row?.losses) || 0,
-        winRate: totalGames > 0 ? Math.round((wins / totalGames) * 10000) / 100 : 0,
+        winRate: nonTimeoutGames > 0 ? Math.round((wins / nonTimeoutGames) * 10000) / 100 : 0,
         fleeCount,
         fleeRate: totalGames > 0 ? Math.round((fleeCount / totalGames) * 10000) / 100 : 0,
         avgScore: Math.round(parseFloat(row?.avg_score || '0') * 100) / 100,
@@ -560,6 +574,27 @@ export class SQLite implements IDatabase {
 
   public async getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
     const rows = await this.asyncAll('SELECT season_id, season_name, start_date, end_date FROM current_season', []);
+    if (rows.length === 0) {
+      return undefined;
+    }
+    return {
+      seasonId: rows[0].season_id,
+      seasonName: rows[0].season_name,
+      startDate: rows[0].start_date,
+      endDate: rows[0].end_date,
+    };
+  }
+
+  public async saveSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void> {
+    await this.asyncRun(
+      `INSERT INTO seasons (season_id, season_name, start_date, end_date) VALUES (?, ?, ?, ?)
+       ON CONFLICT(season_id) DO UPDATE SET season_name = excluded.season_name, start_date = excluded.start_date, end_date = excluded.end_date`,
+      [seasonId, seasonName, startDate.toISOString(), endDate.toISOString()],
+    );
+  }
+
+  public async getSeason(seasonId: string): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined> {
+    const rows = await this.asyncAll('SELECT season_id, season_name, start_date, end_date FROM seasons WHERE season_id = ?', [seasonId]);
     if (rows.length === 0) {
       return undefined;
     }

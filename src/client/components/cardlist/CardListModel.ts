@@ -113,8 +113,8 @@ export function hashToModel(windowLocationHash: string): CardListModel {
       colonyTiles: true,
       milestones: true,
       awards: true,
-      ceo: true,
-      agendas: true,
+      ceo: false,
+      agendas: false,
     },
     tags: {
       building: true,

@@ -1,5 +1,5 @@
 <template>
-  <div id="game-lobby" class="lobby-page min-h-screen bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8">
+  <div id="game-lobby" class="lobby-page bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8">
     <!-- Page title with HUD accent -->
     <div class="max-w-5xl mx-auto mb-6">
       <div class="flex items-center gap-3">
@@ -141,6 +141,12 @@
                       :title="$t('View room settings')"
                       @click="openRoomSettings(room)"
                     >i</button>
+                    <button
+                      v-if="isOwner(room) && room.status === 'waiting'"
+                      class="lobby-close-btn"
+                      :title="$t('Close room')"
+                      @click="closeRoom(room.roomId)"
+                    ><i class="fas fa-times"></i></button>
                   </div>
                 </div>
 
@@ -162,11 +168,11 @@
                     :class="getPlayerColorClass(player.color)"
                   >
                     <a :href="'/user/' + encodeURIComponent(player.name)" class="font-medium truncate text-mars-text hover:text-mars-cyan transition-colors">{{ player.name }}</a>
-                    <span
+                    <i
                       v-if="player.isOwner"
-                      class="px-1.5 py-0.5 bg-mars-amber/20 text-mars-amber text-xs font-bold uppercase tracking-wide border border-mars-amber/30 rounded-sm"
-                      v-i18n
-                    >Owner</span>
+                      class="fas fa-crown text-mars-amber"
+                      :title="$t('Owner')"
+                    ></i>
                     <span v-if="player.rankValue" class="text-xs text-mars-text-dim font-mono">
                       &#9733; {{ Math.round(player.rankValue) }}
                     </span>
@@ -253,12 +259,6 @@
                       @click="startGame(room.roomId)"
                       v-i18n
                     >Launch Game</button>
-                    <button
-                      v-if="room.status === 'waiting'"
-                      class="lobby-btn-action px-4 py-1.5 text-mars-red text-sm font-medium transition-all border border-mars-red/30 hover:border-mars-red/60 hover:bg-mars-red/10"
-                      @click="closeRoom(room.roomId)"
-                      v-i18n
-                    >Close</button>
                   </template>
 
                   <!-- 游戏已开始 -->
@@ -322,7 +322,10 @@ export default Vue.extend({
       return PreferencesManager.load('userName');
     },
     isInAnyRoom(): boolean {
-      return this.rooms.some((room: ILobbyRoom) => room.players.some((p) => p.userId === this.userId));
+      return this.rooms.some((room: ILobbyRoom) =>
+        room.players.some((p) => p.userId === this.userId) &&
+        room.status !== ELobbyRoomStatus.STARTED,
+      );
     },
     isLoggedIn(): boolean {
       return this.userId !== undefined && this.userId !== '';
@@ -622,6 +625,9 @@ export default Vue.extend({
 <style scoped>
 /* === Page background with subtle grid + warm glow === */
 .lobby-page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   background-image:
     radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%),
@@ -780,6 +786,25 @@ export default Vue.extend({
 }
 .lobby-btn-join:hover {
   box-shadow: 0 0 20px rgba(45,212,191,0.32);
+}
+
+.lobby-close-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lobby-close-btn:hover {
+  border-color: rgba(239,68,68,0.72);
+  color: #f87171;
+  background: rgba(239,68,68,0.2);
+  box-shadow: 0 0 14px rgba(239,68,68,0.25);
 }
 
 /* === Empty state icon glow === */

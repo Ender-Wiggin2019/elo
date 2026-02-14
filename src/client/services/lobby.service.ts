@@ -40,7 +40,7 @@ class LobbyService {
     allReady: boolean;
     gameConfig?: any;
   }> {
-    return request.post(`/api/v2/lobby/${roomId}/ready`, {userId});
+    return request.post(`/api/v2/lobby/${roomId}/confirm`, {userId});
   }
 
   async markStarted(roomId: string, gameId: string, gameData: any): Promise<void> {

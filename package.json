@@ -104,7 +104,7 @@
     "make:json": "ts-node src/tools/make_static_json.ts",
     "make:static": "npm run make:css & npm run make:json & wait",
     "test": "npm run test:server && npm run test:client",
-    "test:server": "ts-mocha -p tests/tsconfig.json --reporter-option maxDiffSize=256 -r tests/testing/setup.ts 'tests/*.spec.ts' \"tests/!(client|integration)/**/*.spec.ts\"",
+    "test:server": "NODE_OPTIONS='--no-experimental-strip-types' ts-mocha -p tests/tsconfig.json --reporter-option maxDiffSize=256 -r tests/testing/setup.ts 'tests/*.spec.ts' \"tests/!(client|integration)/**/*.spec.ts\"",
     "test:one": "ts-mocha  --timeout 1000000 -p tests/tsconfig.json --reporter-option maxDiffSize=256  -r tests/testing/setup.ts  \"tests/cards/**/*.spec.ts\" ",
     "test:integration": "ts-mocha --no-timeouts -p tests/tsconfig.json \"tests/integration/**/*.spec.ts\"",
     "test:new": "ts-mocha -p tests/tsconfig.json -r tests/testing/setup.ts \"tests/hono/**/*.spec.ts\" \"tests/rank/**/*.spec.ts\"",

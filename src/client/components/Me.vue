@@ -99,6 +99,10 @@
                 <span class="me-account-item__label" v-i18n>Potato Expires</span>
                 <span class="me-account-item__value me-account-item__value--vip">{{ vipDate }}</span>
               </div>
+              <div class="me-account-item" v-if="createtime">
+                <span class="me-account-item__label" v-i18n>Joined</span>
+                <span class="me-account-item__value">{{ formattedJoinDate }}</span>
+              </div>
               <div class="me-account-item" v-if="userRank.userId !== ''">
                 <span class="me-account-item__label" v-i18n>Rank Tier</span>
                 <div class="me-account-item__value">
@@ -246,6 +250,7 @@ export default Vue.extend({
       userName: '' as string,
       games: [] as Array<any>,
       vipDate: '' as string,
+      createtime: '' as string,
       enable_sounds: false,
       showhandcards: false,
       userRank: new UserRank('', DEFAULT_RANK_VALUE, DEFAULT_MU, DEFAULT_SIGMA, 0),
@@ -305,6 +310,12 @@ export default Vue.extend({
       const points = this.userRank?.points || 0;
       return points.toLocaleString('en-US');
     },
+    formattedJoinDate(): string {
+      if (!this.createtime) return '';
+      const date = new Date(this.createtime);
+      const lang = navigator.language || 'en-US';
+      return date.toLocaleDateString(lang, {year: 'numeric', month: 'long', day: 'numeric'});
+    },
   },
   mounted() {
     this.userId = userStore.userId;
@@ -314,6 +325,7 @@ export default Vue.extend({
       this.getGames();
       this.getUserRank();
       this.getUserStats();
+      this.getProfile();
     }
   },
   methods: {
@@ -384,10 +396,10 @@ export default Vue.extend({
     getUserStats() {
       if (!this.userId) return;
       this.statsLoading = true;
-      userService.getUserStats(this.userId)
+      userService.getUserProfile(this.userId)
         .then((data) => {
-          if (data) {
-            this.gameStats = data;
+          if (data && data.gameStats) {
+            this.gameStats = data.gameStats;
           }
         })
         .catch((err: any) => {
@@ -408,27 +420,46 @@ export default Vue.extend({
           showError(error);
         });
     },
+    getProfile() {
+      if (!this.userId) return;
+      userService.getUserProfile(this.userId)
+        .then((data) => {
+          if (data) {
+            this.createtime = data.createtime || '';
+          }
+        })
+        .catch((err: any) => {
+          console.warn('Failed to load user profile:', err);
+        });
+    },
   },
 });
 </script>
 
 <style scoped>
 .me-page {
-  min-height: 100vh;
-  background-color: #0a0e1a;
-  background-image:
+    background-color: #0a0e1a;
+    background-image:
     radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%),
     linear-gradient(rgba(38,48,80,0.25) 1px, transparent 1px),
     linear-gradient(90deg, rgba(38,48,80,0.25) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .me-container {
-  display: flex;
-  min-height: 100vh;
-  max-width: 1200px;
-  margin: 0 auto;
+    display: flex;
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 /* ============ SIDEBAR ============ */
@@ -437,6 +468,8 @@ export default Vue.extend({
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   padding: 20px 16px;
   background: linear-gradient(180deg, rgba(17,26,46,0.6) 0%, rgba(10,14,26,0.8) 100%);
   border-right: 1px solid rgba(38,48,80,0.5);
@@ -444,12 +477,13 @@ export default Vue.extend({
 
 .me-user-card {
   position: relative;
-  padding: 20px 16px;
+  padding: 16px 12px;
   background: linear-gradient(135deg, rgba(17,26,46,0.95) 0%, rgba(26,37,64,0.85) 100%);
   border: 1px solid rgba(38,48,80,0.6);
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .me-user-card--vip {
@@ -580,6 +614,8 @@ export default Vue.extend({
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .me-nav__item {
@@ -639,9 +675,10 @@ export default Vue.extend({
 
 /* Sidebar footer */
 .me-sidebar__footer {
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid rgba(38,48,80,0.4);
-  margin-top: 16px;
+  margin-top: 12px;
+  flex-shrink: 0;
 }
 
 .me-logout-btn {
@@ -670,6 +707,8 @@ export default Vue.extend({
   flex: 1;
   padding: 24px;
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .me-section {
@@ -994,7 +1033,7 @@ export default Vue.extend({
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  min-height: 200px;
   text-align: center;
 }
 
@@ -1052,7 +1091,7 @@ export default Vue.extend({
 .me-mobile-nav {
   display: none;
   position: fixed;
-  bottom: 0;
+  bottom: 32px;
   left: 0;
   right: 0;
   background: linear-gradient(180deg, rgba(17,26,46,0.98) 0%, rgba(10,14,26,0.99) 100%);
@@ -1111,7 +1150,7 @@ export default Vue.extend({
 
   .me-content {
     padding: 16px;
-    padding-bottom: 90px;
+    padding-bottom: 120px;
   }
 
   .me-account-card__grid {
@@ -1132,7 +1171,7 @@ export default Vue.extend({
 @media (max-width: 480px) {
   .me-content {
     padding: 12px;
-    padding-bottom: 80px;
+    padding-bottom: 110px;
   }
 
   .me-section__title {

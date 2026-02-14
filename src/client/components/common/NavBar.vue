@@ -14,7 +14,7 @@
             </svg>
           </button>
           <a href="/" class="tfm-navbar__brand">
-            <span class="tfm-navbar__brand-text">TFM</span>
+            <span class="tfm-navbar__brand-text" v-i18n>TFM</span>
             <span class="tfm-navbar__brand-dot"></span>
           </a>
         </div>
@@ -62,7 +62,7 @@
         <div class="tfm-navbar__modal">
           <!-- Modal header -->
           <div class="tfm-navbar__modal-header">
-            <span class="tfm-navbar__brand-text" style="font-size:18px;">TFM</span>
+            <span class="tfm-navbar__brand-text" style="font-size:18px;" v-i18n>TFM</span>
             <button class="tfm-navbar__modal-close" @click="mobileMenuOpen = false">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>

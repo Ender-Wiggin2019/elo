@@ -202,6 +202,8 @@ export interface IDatabase {
     getSeasonSnapshots(seasonId: string): Promise<Array<{userId: string, rankValue: number, mu: number, sigma: number, trueskill: number, pointsEarned: number, finalPosition: number}>>;
     getAvailableSeasons(): Promise<Array<string>>;
     updateUserPoints(userId: string, points: number): Promise<void>;
-    setCurrentSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void>;
-    getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined>;
+  setCurrentSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void>;
+  getCurrentSeason(): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined>;
+  saveSeason(seasonId: string, seasonName: string, startDate: Date, endDate: Date): Promise<void>;
+  getSeason(seasonId: string): Promise<{seasonId: string, seasonName: string, startDate: string, endDate: string} | undefined>;
 }

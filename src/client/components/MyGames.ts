@@ -140,8 +140,8 @@ export const MyGames = Vue.component('my-games', {
     }
   },
   template: `
-    <div class="min-h-screen bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
-      style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
+    <div class="bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
+      style="flex: 1; min-height: 0; overflow-y: auto; background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
       <div class="max-w-4xl mx-auto">
         <!-- Page Title -->
         <div class="flex items-center gap-3 mb-3">

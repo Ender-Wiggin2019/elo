@@ -13,15 +13,22 @@ const RANK_LIMIT = 100;
 export const Ranks = Vue.component('ranks', {
   data: function() {
     return {
-      allUserRanks: [],
+      allUserRanks: [] as any[],
       openTab: 1,
       rankTiers: RankTiers,
-      seasonInfo: undefined as undefined | {seasonId: string; seasonName: string; startDate: string; endDate: string},
-      seasonList: undefined as undefined | {currentSeasonId: string; previousSeasonId: string},
+      seasons: [] as Array<{seasonId: string; seasonName: string; startDate: string; endDate: string}>,
+      seasonList: undefined as undefined | {currentSeasonId: string; previousSeasonId?: string},
       selectedSeasonId: '',
       isCurrentSeason: true,
       isLoadingLeaderboard: false,
+      leaderboardCache: {} as Record<string, {allUserRanks: any[]; isCurrentSeason: boolean}>,
     };
+  },
+  computed: {
+    seasonInfo: function(): {seasonId: string; seasonName: string; startDate: string; endDate: string} | undefined {
+      if (!this.selectedSeasonId || this.seasons.length === 0) return undefined;
+      return this.seasons.find((s: any) => s.seasonId === this.selectedSeasonId);
+    },
   },
   components: {
     'confirm-dialog': ConfirmDialog,
@@ -34,7 +41,7 @@ export const Ranks = Vue.component('ranks', {
     loadSeasonData: function() {
       seasonService.getSeasonInfo()
         .then((data) => {
-          this.seasonInfo = data;
+          this.seasons = data.seasons || [];
         })
         .catch(() => {
           showError('Error loading season info');
@@ -63,6 +70,14 @@ export const Ranks = Vue.component('ranks', {
         });
     },
     loadLeaderboard: function(seasonId: string) {
+      if (this.leaderboardCache[seasonId]) {
+        const cached = this.leaderboardCache[seasonId];
+        this.allUserRanks = cached.allUserRanks;
+        this.selectedSeasonId = seasonId;
+        this.isCurrentSeason = cached.isCurrentSeason;
+        return;
+      }
+
       this.isLoadingLeaderboard = true;
       const querySeasonId = seasonId || (this.seasonInfo ? this.seasonInfo.seasonId : '');
       seasonService.getLeaderboard(querySeasonId, RANK_LIMIT)
@@ -72,6 +87,10 @@ export const Ranks = Vue.component('ranks', {
             this.allUserRanks = result.allUserRanks;
             this.selectedSeasonId = result.seasonId || querySeasonId;
             this.isCurrentSeason = result.isCurrentSeason === true;
+            this.leaderboardCache[querySeasonId] = {
+              allUserRanks: result.allUserRanks,
+              isCurrentSeason: result.isCurrentSeason === true,
+            };
           } else {
             showError('Unexpected response fetching leaderboard from API');
           }
@@ -130,8 +149,8 @@ export const Ranks = Vue.component('ranks', {
   created() {
   },
   template: `
-    <div class="ranks-page min-h-screen bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
-      style="background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
+    <div class="ranks-page bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8"
+      style="flex: 1; min-height: 0; overflow-y: auto; background-image: radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%), radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%), linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px); background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;">
       <div class="max-w-5xl mx-auto">
 
         <!-- Page title -->
@@ -148,11 +167,13 @@ export const Ranks = Vue.component('ranks', {
         <div class="flex gap-2 mb-3 flex-wrap">
           <button class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all border border-mars-rust/30 bg-mars-deep text-mars-text-dim hover:bg-mars-rust/10 hover:border-mars-rust/60 hover:text-mars-text"
             style="border-radius:2px;"
+            :class="{'bg-mars-rust/20 border-mars-rust text-mars-text': isCurrentSeason}"
             v-on:click="viewCurrentSeason" v-i18n>
             Current Season
           </button>
           <button class="flex-1 sm:flex-none px-3 py-1.5 text-xs font-bold uppercase tracking-wider cursor-pointer transition-all border border-mars-rust/30 bg-mars-deep text-mars-text-dim hover:bg-mars-rust/10 hover:border-mars-rust/60 hover:text-mars-text"
             style="border-radius:2px;"
+            :class="{'bg-mars-rust/20 border-mars-rust text-mars-text': !isCurrentSeason && seasonList?.previousSeasonId}"
             v-on:click="viewPreviousSeason" v-i18n>
             Previous Season
           </button>

@@ -41,10 +41,6 @@ export interface IUserProfileResponse {
 async function buildProfileResponse(user: User): Promise<IUserProfileResponse> {
   const userRank: UserRank | undefined = GameLoader.getInstance().userRankMap.get(user.id);
 
-  // Count games from in-memory map
-  const gameIds = GameLoader.getInstance().usersToGames.get(user.id);
-  const totalGames = gameIds ? gameIds.size : 0;
-
   let rankData: IUserProfileResponse['rank'] = null;
   if (userRank) {
     const tier = userRank.getTier();
@@ -65,13 +61,14 @@ async function buildProfileResponse(user: User): Promise<IUserProfileResponse> {
     };
   }
 
-  // Fetch aggregated game stats from DB
   let gameStats: IUserGameStats | null = null;
   try {
     gameStats = await Database.getInstance().getUserGameStats(user.id);
   } catch (err) {
     console.error('[userProfile] Failed to get game stats for', user.id, err);
   }
+
+  const totalGames = gameStats?.allTime?.totalGames || 0;
 
   return {
     id: user.id,
