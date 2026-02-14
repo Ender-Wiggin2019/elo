@@ -25,15 +25,17 @@ describe('MoltenReserve', () => {
     expect(card.tags).to.deep.eq([Tag.SPACE]);
   });
 
-  it('打出时增加1热产和1热能', () => {
+  it('打出时增加1热产和1热能，同时获得1MC', () => {
     const initialHeatProd = player.production.heat;
     const initialHeat = player.heat;
+    const initialMC = player.megaCredits;
 
     player.playCard(card);
     runAllActions(game);
 
     expect(player.production.heat).to.eq(initialHeatProd + 1);
     expect(player.heat).to.eq(initialHeat + 1);
+    expect(player.megaCredits).to.eq(initialMC + 1);
   });
 
   it('通过stock.add获得热能时获得1MC', () => {

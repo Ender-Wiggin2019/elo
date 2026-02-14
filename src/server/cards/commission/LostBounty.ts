@@ -1,3 +1,10 @@
+/*
+ * @Author: Ender Wiggin
+ * @Date: 2026-02-11 00:44:07
+ * @LastEditors: Ender Wiggin
+ * @LastEditTime: 2026-02-11 21:49:17
+ * @Description:
+ */
 import {IProjectCard} from '../IProjectCard';
 import {Tag} from '../../../common/cards/Tag';
 import {CardType} from '../../../common/cards/CardType';
@@ -26,11 +33,16 @@ export class LostBounty extends Card implements IProjectCard {
           b.production((pb) => pb.megacredits(-1).titanium(1));
           b.br;
           b.effect('When any of your production is decreased (incl. this), gain 2 M€.', (eb) => {
-            eb.production((pb) => pb.megacredits(-1)).asterix().startEffect.megacredits(2);
+            eb.production((pb) => pb.wild(-1)).asterix().startEffect.megacredits(2);
           });
         }),
       },
     });
+  }
+
+  public override bespokePlay(player: IPlayer): undefined {
+    player.stock.add(Resource.MEGACREDITS, 2, {log: true});
+    return undefined;
   }
 
   public onProductionGain(player: IPlayer, _resource: Resource, amount: number): void {
