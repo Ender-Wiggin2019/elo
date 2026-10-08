@@ -57,6 +57,9 @@ export class Stock extends BaseStock {
 
       if (resource === Resource.PLANTS && delta < 0 && from.player.id !== this.player.id) {
         EnergyStation.resourceHook(this.player, resource as Resource, delta, from.player);
+        for (const card of from.player.tableau) {
+          card.onPlantRemoved?.(from.player, -delta);
+        }
       }
       // Mons Insurance hook
       if ( delta < 0 && from.player.id !== this.player.id) {

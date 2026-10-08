@@ -10,6 +10,7 @@ import {Tag} from '../../../common/cards/Tag';
 import {digit} from '../Options';
 import {Resource} from '../../../common/Resource';
 import {Size} from '../../../common/cards/render/Size';
+import {DrawCards} from '../../deferredActions/DrawCards';
 
 export class OumuamuaTypeObjectSurvey extends Card implements IProjectCard {
   constructor() {
@@ -77,6 +78,9 @@ export class OumuamuaTypeObjectSurvey extends Card implements IProjectCard {
     } else {
       this.processCard(player, cards[1]);
     }
+
+    const keptCards = cards.filter((card) => player.cardsInHand.includes(card));
+    DrawCards.notifyDrawn(player, keptCards.length);
 
     return undefined;
   }

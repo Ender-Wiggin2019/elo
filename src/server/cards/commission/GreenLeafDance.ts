@@ -21,7 +21,7 @@ export class GreenLeafDance extends CorporationCard {
     super({
       name: CardName.GREEN_LEAF_DANCE,
       tags: [Tag.PLANT],
-      startingMegaCredits: 35,
+      startingMegaCredits: 38,
 
       firstAction: {
         text: 'Place your initial ocean.',
@@ -30,10 +30,10 @@ export class GreenLeafDance extends CorporationCard {
 
       metadata: {
         cardNumber: 'XB21',
-        description: 'You start with 35 M€. As your first action, place an ocean tile.',
+        description: 'You start with 38 M€. As your first action, place an ocean tile.',
         renderData: CardRenderer.builder((b) => {
           b.br;
-          b.megacredits(35).oceans(1);
+          b.megacredits(38).oceans(1);
           b.corpBox('effect', (ce) => {
             ce.vSpace();
             ce.effect(

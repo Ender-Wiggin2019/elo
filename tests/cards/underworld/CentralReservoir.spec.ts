@@ -1,12 +1,14 @@
 import {expect} from 'chai';
 import {CentralReservoir} from '../../../src/server/cards/underworld/CentralReservoir';
 import {testGame} from '../../TestGame';
-import {runAllActions} from '../../TestingUtils';
+import {maxOutOceans, runAllActions, setRulingParty} from '../../TestingUtils';
 import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
 import {TileType} from '../../../src/common/TileType';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {assertIsClaimAction} from '../../underworld/underworldAssertions';
 import {cast} from '../../../src/common/utils/utils';
+import {RedPlanetOceans} from '../../../src/server/cards/commission/RedPlanetOceans';
+import {PartyName} from '../../../src/common/turmoil/PartyName';
 
 describe('CentralReservoir', () => {
   it('play', () => {
@@ -38,5 +40,26 @@ describe('CentralReservoir', () => {
     assertIsClaimAction(player, player.popWaitingFor());
     runAllActions(game);
     cast(player.popWaitingFor(), undefined);
+  });
+
+  it('charges the Reds fee for a Red Planet Oceans conversion at the ocean cap', () => {
+    const card = new CentralReservoir();
+    const [game, player] = testGame(2, {underworldExpansion: true, turmoilExtension: true});
+    maxOutOceans(player);
+    player.playedCards.push(new RedPlanetOceans());
+    setRulingParty(game, PartyName.REDS);
+
+    player.megaCredits = 2;
+    expect(player.canPlay(card)).is.false;
+
+    player.megaCredits = 3;
+    expect(player.canPlay(card)).is.true;
+
+    const initialTerraformRating = player.terraformRating;
+    cast(card.play(player), undefined);
+    runAllActions(game);
+
+    expect(player.megaCredits).eq(0);
+    expect(player.terraformRating).eq(initialTerraformRating + 1);
   });
 });

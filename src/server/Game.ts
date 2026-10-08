@@ -290,7 +290,7 @@ export class Game implements IGame, Logger {
     this.activePlayer = first;
   }
 
-  private setFirstPlayer(first: IPlayer,reload:boolean = false) {
+  private setFirstPlayer(first: IPlayer, reload:boolean = false) {
     if (!this.isSoloMode() && !reload) {
       this.log('First player this generation is ${0}', (b) => b.player(first));
     }
@@ -1948,7 +1948,9 @@ export class Game implements IGame, Logger {
       break;
     case SpaceBonus.OCEAN:
       // Hellas special requirements ocean tile
-      if (this.canAddOcean()) {
+      if (this.canAddOcean() ||
+          (this.phase !== Phase.SOLAR && this.phase !== Phase.INTERGENERATION &&
+           player.playedCards.has(CardName.RED_PLANET_OCEANS))) {
         this.defer(new PlaceOceanTile(player, {title: 'Select space for ocean from placement bonus'}));
         this.defer(new SelectPaymentDeferred(player, constants.HELLAS_BONUS_OCEAN_COST, {title: 'Select how to pay for placement bonus ocean'}));
       }
@@ -2067,6 +2069,29 @@ export class Game implements IGame, Logger {
     return this.board.getOceanSpaces().length < constants.MAX_OCEAN_TILES;
   }
 
+  /**
+   * Resolves an attempted ocean placement after the ocean track is full.
+   *
+   * The attempted placement still matters for Whales and Red Planet Oceans,
+   * but it must not create a tile or raise the owner's TR during Solar or
+   * Intergeneration phases.
+   */
+  public handleOceanPlacementWhenMaxed(player: IPlayer): void {
+    if (this.canAddOcean()) {
+      return;
+    }
+
+    const whales = player.tableau.get(CardName.WHALES);
+    if (whales !== undefined) {
+      player.addResourceTo(whales, {qty: 1, log: true});
+    }
+
+    if (this.phase !== Phase.SOLAR && this.phase !== Phase.INTERGENERATION &&
+        player.playedCards.has(CardName.RED_PLANET_OCEANS)) {
+      player.increaseTerraformRating();
+    }
+  }
+
   public canRemoveOcean(): boolean {
     const count = this.board.getOceanSpaces().length;
     return count > 0 && count < constants.MAX_OCEAN_TILES;
@@ -2074,6 +2099,7 @@ export class Game implements IGame, Logger {
 
   public addOcean(player: IPlayer, space: Space): void {
     if (this.canAddOcean() === false) {
+      this.handleOceanPlacementWhenMaxed(player);
       return;
     }
 
@@ -2454,7 +2480,7 @@ export class Game implements IGame, Logger {
     if (first === undefined) {
       throw new Error('No Player found when rebuilding First Player');
     }
-    this.setFirstPlayer(first,true);
+    this.setFirstPlayer(first, true);
 
     // Define who is the active player and init the take action phase
     let active = this.players.find((player) => player.id === d.activePlayer.id);

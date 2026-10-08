@@ -41,7 +41,9 @@ export class ProjectEden extends PreludeCard {
   private selectNextAction(player: IPlayer): void {
     const options: Array<SelectOption> = [];
 
-    if (!player.game.canAddOcean() && !player.playedCards.has(CardName.WHALES)) {
+    if (!player.game.canAddOcean() &&
+        !player.playedCards.has(CardName.WHALES) &&
+        !player.playedCards.has(CardName.RED_PLANET_OCEANS)) {
       this.selected.push('ocean');
     }
     if (!this.selected.includes('ocean')) {

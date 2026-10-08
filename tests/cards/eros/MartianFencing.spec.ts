@@ -6,6 +6,7 @@ import {cast} from '../../TestingUtils';
 import {EROS_CARD_MANIFEST} from '../../../src/server/cards/eros/ErosCardManifest';
 import {IGame} from '../../../src/server/IGame';
 import {SelectCard} from '../../../src/server/inputs/SelectCard';
+import {AtmosphericOrbit} from '../../../src/server/cards/commission/AtmosphericOrbit';
 
 
 describe('MartianFencing', () => {
@@ -46,6 +47,37 @@ describe('MartianFencing', () => {
     expect(player.megaCredits).to.equal(initialMegaCredits - 3);
 
     expect(game.cardDrew).is.true;
+  });
+
+  it('triggers Atmospheric Orbit after buying the drawn card', () => {
+    const atmosphericOrbit = new AtmosphericOrbit();
+    player.playCorporationCard(atmosphericOrbit);
+    runAllActions(game);
+    player.megaCredits = 100;
+
+    player.playCard(card);
+    runAllActions(game);
+    const choose = cast(player.popWaitingFor(), SelectCard);
+    choose.cb([choose.cards[0]]);
+    runAllActions(game);
+
+    expect(player.cardsInHand).to.include(choose.cards[0]);
+    expect(atmosphericOrbit.resourceCount).to.eq(1);
+  });
+
+  it('does not trigger Atmospheric Orbit when the drawn card is not bought', () => {
+    const atmosphericOrbit = new AtmosphericOrbit();
+    player.playCorporationCard(atmosphericOrbit);
+    runAllActions(game);
+    player.megaCredits = 100;
+
+    player.playCard(card);
+    runAllActions(game);
+    const choose = cast(player.popWaitingFor(), SelectCard);
+    choose.cb([]);
+    runAllActions(game);
+
+    expect(atmosphericOrbit.resourceCount).to.eq(0);
   });
 
   it('play - 牌堆中没有 Eros 卡牌时不触发 deferred action', () => {

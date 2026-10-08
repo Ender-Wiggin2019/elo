@@ -5,6 +5,7 @@ import {OrOptions} from '../../inputs/OrOptions';
 import {SelectCard} from '../../inputs/SelectCard';
 import {SelectOption} from '../../inputs/SelectOption';
 import {SimpleDeferredAction} from '../../deferredActions/DeferredAction';
+import {DrawCards} from '../../deferredActions/DrawCards';
 import {CardRenderer} from '../render/CardRenderer';
 import {CardName} from '../../../common/cards/CardName';
 import {Tag} from '../../../common/cards/Tag';
@@ -35,6 +36,7 @@ export class AccumulatedKnowledge extends PreludeCard implements IProjectCard {
         player.cardsInHand.splice(player.cardsInHand.indexOf(foundCards[0]), 1);
         game.projectDeck.discard(foundCards[0]);
         player.cardsInHand.push(game.projectDeck.drawOrThrow(game));
+        DrawCards.notifyDrawn(player, 1);
         return undefined;
       }),
       new SelectOption('Do nothing', 'Confirm' ).andThen( () => {
@@ -45,4 +47,3 @@ export class AccumulatedKnowledge extends PreludeCard implements IProjectCard {
     return undefined;
   }
 }
-

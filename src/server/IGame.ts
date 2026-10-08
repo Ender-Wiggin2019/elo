@@ -239,6 +239,7 @@ export interface IGame extends Logger {
   addGreenery(player: IPlayer, space: Space, shouldRaiseOxygen?: boolean): void;
   addCity(player: IPlayer, space: Space, cardName?: CardName | undefined): void;
   canAddOcean(): boolean;
+  handleOceanPlacementWhenMaxed(player: IPlayer): void;
   canRemoveOcean(): boolean;
   addOcean(player: IPlayer, space: Space): void;
   removeTile(spaceId: string): void;

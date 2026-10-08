@@ -52,6 +52,15 @@ export class DrawCards extends DeferredAction<ReadonlyArray<IProjectCard>> {
     return undefined;
   }
 
+  /** Also used by project-card effects which draw from the discard pile. */
+  public static notifyDrawn(player: IPlayer, count: number): void {
+    if (count > 0) {
+      for (const card of player.tableau) {
+        card.onCardsDrawn?.(player);
+      }
+    }
+  }
+
   public static keepAll(player: IPlayer, count: number = 1, options?: DrawOptions): DrawCards {
     return new DrawCards(player, count, options).andThen((cards) => {
       let verbosity: LogType = LogType.DREW;
@@ -64,10 +73,15 @@ export class DrawCards extends DeferredAction<ReadonlyArray<IProjectCard>> {
         }
       }
       keep(player, cards, [], verbosity);
+      DrawCards.notifyDrawn(player, cards.length);
     });
   }
 
   public static keepSome(player: IPlayer, count: number = 1, options: AllOptions): DrawCards {
-    return new DrawCards(player, count, options).andThen((cards) => player.game.defer(new ChooseCards(player, cards, options)));
+    return new DrawCards(player, count, options).andThen((cards) => {
+      player.game.defer(new ChooseCards(player, cards, options).andThen((kept) => {
+        DrawCards.notifyDrawn(player, kept.length);
+      }));
+    });
   }
 }

@@ -30,10 +30,10 @@ export class Yvonne extends CeoCard {
   public action(player: IPlayer): PlayerInput | undefined {
     this.isDisabled = true;
     player.game.colonies.forEach((colony) => {
-      colony.colonies.filter((owner) => owner === player).forEach((owner) => {
-        player.defer(() => colony.giveColonyBonus(owner));
-        player.defer(() => colony.giveColonyBonus(owner));
-      });
+      const count = player.colonies.getColonyBonusCount(colony.colonies.filter((owner) => owner === player).length * 2);
+      for (let i = 0; i < count; i++) {
+        player.defer(() => colony.giveColonyBonus(player));
+      }
     });
     return undefined;
   }

@@ -17,7 +17,7 @@ export class Omnivore extends Card implements IProjectCard {
       name: CardName.OMNIVORE,
       type: CardType.ACTIVE,
       tags: [Tag.ANIMAL, Tag.MICROBE],
-      cost: 8,
+      cost: 13,
 
       metadata: {
         cardNumber: 'XB61',

@@ -61,9 +61,13 @@ export class SecretLabs extends Card implements IProjectCard {
 
     if (player.canAfford({cost: 0, tr: {oceans: 1}})) {
       const oceanPlacementAvailable = player.game.board.getOceanSpaces().length < MAX_OCEAN_TILES;
-      const optionTitle = oceanPlacementAvailable ? 'Place an ocean tile. Add 2 microbes to ANY card.': 'Add 2 microbes to ANY card.';
+      const hasRedPlanetOceans = player.tableau.has(CardName.RED_PLANET_OCEANS);
+      const oceanPlacementAllowed = oceanPlacementAvailable ||
+        player.tableau.has(CardName.WHALES) ||
+        hasRedPlanetOceans;
+      const optionTitle = oceanPlacementAvailable || hasRedPlanetOceans ? 'Place an ocean tile. Add 2 microbes to ANY card.': 'Add 2 microbes to ANY card.';
       options.options.push(new SelectOption(optionTitle).andThen(() => {
-        if (oceanPlacementAvailable || player.tableau.has(CardName.WHALES)) {
+        if (oceanPlacementAllowed) {
           player.game.defer(new PlaceOceanTile(player));
         }
         player.game.defer(new AddResourcesToCard(player, CardResource.MICROBE, {count: 2}));

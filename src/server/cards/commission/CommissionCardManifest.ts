@@ -43,6 +43,21 @@ import {PolarAnimals} from './PolarAnimals';
 import {Omnivore} from './Omnivore';
 import {MoltenReserve} from './MoltenReserve';
 import {LostBounty} from './LostBounty';
+import {AtmosphericOrbit} from './AtmosphericOrbit';
+import {MeteoriteLakeside} from './MeteoriteLakeside';
+import {DustCombustion} from './DustCombustion';
+import {SalvageSwap} from './SalvageSwap';
+import {ThermophilicAnimals} from './ThermophilicAnimals';
+import {SymbioticIndustrialStation} from './SymbioticIndustrialStation';
+import {OrbitalDocking} from './OrbitalDocking';
+import {GreenhouseEffect} from './GreenhouseEffect';
+import {ShadowCabinet} from './ShadowCabinet';
+import {GridOptimization} from './GridOptimization';
+import {TerraformingRobots} from './TerraformingRobots';
+import {VeinShield} from './VeinShield';
+import {GlobalDiscount} from './GlobalDiscount';
+import {RedPlanetOceans} from './RedPlanetOceans';
+import {OrbitalMissiles} from './OrbitalMissiles';
 
 export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
   module: 'commission',
@@ -70,6 +85,8 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.RAINCAT_SCIENTIFIC_PROBE]: {Factory: RaincatScientificProbe}, // XB22
     // [CardName.EARTHCATCULT]: {Factory: EarthCatCult, compatibility: 'ares'}, // XB23
     [CardName.DUAL_ORBIT_LEAP]: {Factory: DualOrbitLeap}, // XB24
+    [CardName.ATMOSPHERIC_ORBIT]: {Factory: AtmosphericOrbit, compatibility: ['venus', 'colonies']}, // XB25
+    [CardName.METEORITE_LAKESIDE]: {Factory: MeteoriteLakeside}, // XB26
   },
   preludeCards: {
   },
@@ -87,6 +104,19 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.OMNIVORE]: {Factory: Omnivore}, // XB61
     [CardName.MOLTEN_RESERVE]: {Factory: MoltenReserve}, // XB62
     [CardName.LOST_BOUNTY]: {Factory: LostBounty}, // XB63
+    [CardName.DUST_COMBUSTION]: {Factory: DustCombustion, compatibility: 'venus'}, // XB64
+    [CardName.SALVAGE_SWAP]: {Factory: SalvageSwap, compatibility: 'turmoil'}, // XB65
+    [CardName.THERMOPHILIC_ANIMALS]: {Factory: ThermophilicAnimals, compatibility: 'turmoil'}, // XB66
+    [CardName.SYMBIOTIC_INDUSTRIAL_STATION]: {Factory: SymbioticIndustrialStation}, // XB67
+    [CardName.ORBITAL_DOCKING]: {Factory: OrbitalDocking, compatibility: ['colonies', 'turmoil']}, // XB68
+    [CardName.GREENHOUSE_EFFECT]: {Factory: GreenhouseEffect}, // XB69
+    [CardName.SHADOW_CABINET]: {Factory: ShadowCabinet}, // XB70
+    [CardName.GRID_OPTIMIZATION]: {Factory: GridOptimization}, // XB71
+    [CardName.TERRAFORMING_ROBOTS_COMMISSION]: {Factory: TerraformingRobots}, // XB72
+    [CardName.VEIN_SHIELD]: {Factory: VeinShield}, // XB73
+    [CardName.GLOBAL_DISCOUNT]: {Factory: GlobalDiscount}, // XB74
+    [CardName.RED_PLANET_OCEANS]: {Factory: RedPlanetOceans}, // XB75
+    [CardName.ORBITAL_MISSILES]: {Factory: OrbitalMissiles}, // XB76
   },
   globalEvents: {
   },

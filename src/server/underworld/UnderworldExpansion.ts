@@ -404,7 +404,8 @@ export class UnderworldExpansion {
       const canAddOcean = player.game.canAddOcean();
       const canAfford = player.canAfford({cost: 4, tr: {oceans: 1}});
       const hasWhales = player.tableau.has(CardName.WHALES);
-      if (canAddOcean || hasWhales) {
+      const hasRedPlanetOceans = player.tableau.has(CardName.RED_PLANET_OCEANS);
+      if (canAddOcean || hasWhales || hasRedPlanetOceans) {
         if (canAfford) {
           player.game.defer(new SelectPaymentDeferred(player, 4, {title: message('Select how to pay 4 M€ for ocean bonus')}))
             .andThen(() => player.game.defer(new PlaceOceanTile(player)));

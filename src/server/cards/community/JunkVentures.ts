@@ -4,6 +4,7 @@ import {CardName} from '../../../common/cards/CardName';
 import {Size} from '../../../common/cards/render/Size';
 import {CorporationCard} from '../corporation/CorporationCard';
 import {ChooseCards} from '../../deferredActions/ChooseCards';
+import {DrawCards} from '../../deferredActions/DrawCards';
 import {ICorporationCard} from '../corporation/ICorporationCard';
 
 export class JunkVentures extends CorporationCard implements ICorporationCard {
@@ -54,7 +55,9 @@ export class JunkVentures extends CorporationCard implements ICorporationCard {
     }
 
     game.cardDrew = true;
-    player.game.defer(new ChooseCards(player, cards, {keepMax: 1}));
+    player.game.defer(new ChooseCards(player, cards, {keepMax: 1}).andThen((kept) => {
+      DrawCards.notifyDrawn(player, kept.length);
+    }));
     return undefined;
   }
 }

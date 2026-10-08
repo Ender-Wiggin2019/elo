@@ -18,6 +18,12 @@ export class TagCardRequirement extends InequalityRequirement {
   }
 
   public getScore(player: IPlayer): number {
+    // Event symbols are represented by card type, not stored in the tag index.
+    // A requirement for events counts played event cards, without wild tags.
+    if (this.tag === Tag.EVENT) {
+      const players = this.all ? [player, ...player.opponents] : [player];
+      return players.reduce((count, owner) => count + owner.getPlayedEventsCount(), 0);
+    }
     const mode = this.max !== true ? 'default' : 'raw-pf';
     let tagCount = player.tags.count(this.tag, mode);
 

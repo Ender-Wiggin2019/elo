@@ -7,6 +7,7 @@ import {CardName} from '../../../common/cards/CardName';
 import {CardRenderer} from '../render/CardRenderer';
 import {Tag} from '../../../common/cards/Tag';
 import {Size} from '../../../common/cards/render/Size';
+import {DrawCards} from '../../deferredActions/DrawCards';
 
 export class ReturntoAbandonedTechnology extends Card implements IProjectCard {
   constructor() {
@@ -40,9 +41,10 @@ export class ReturntoAbandonedTechnology extends Card implements IProjectCard {
     }
     player.game.cardDrew = true;
     const cardsToKeep = Math.min(2, cards.length);
-    player.game.defer(new ChooseCards(player, cards, {keepMax: cardsToKeep}));
+    player.game.defer(new ChooseCards(player, cards, {keepMax: cardsToKeep}).andThen((kept) => {
+      DrawCards.notifyDrawn(player, kept.length);
+    }));
 
     return undefined;
   }
 }
-

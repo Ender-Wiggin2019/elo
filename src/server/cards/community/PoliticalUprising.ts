@@ -6,6 +6,7 @@ import {TURMOIL_CARD_MANIFEST} from '../turmoil/TurmoilCardManifest';
 import {CardRenderer} from '../render/CardRenderer';
 import {AltSecondaryTag} from '../../../common/cards/render/AltSecondaryTag';
 import {CardManifest} from '../ModuleManifest';
+import {DrawCards} from '../../deferredActions/DrawCards';
 
 export class PoliticalUprising extends PreludeCard implements IProjectCard {
   constructor() {
@@ -56,6 +57,7 @@ export class PoliticalUprising extends PreludeCard implements IProjectCard {
       projectDeck.drawPile.splice(cardIndex, 1);
 
       player.cardsInHand.push(drawnCard);
+      DrawCards.notifyDrawn(player, 1);
       player.game.log('${0} drew ${1}', (b) => b.player(player).card(drawnCard));
     }
 

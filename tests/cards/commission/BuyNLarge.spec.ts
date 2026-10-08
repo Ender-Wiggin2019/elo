@@ -10,11 +10,6 @@ import {Ants} from '../../../src/server/cards/base/Ants';
 import {ArcticAlgae} from '../../../src/server/cards/base/ArcticAlgae';
 import {Birds} from '../../../src/server/cards/base/Birds';
 import {OrOptions} from '../../../src/server/inputs/OrOptions';
-import {Bushes} from '../../../src/server/cards/base/Bushes';
-import {Greenhouses} from '../../../src/server/cards/base/Greenhouses';
-import {Heather} from '../../../src/server/cards/base/Heather';
-import {Lichen} from '../../../src/server/cards/base/Lichen';
-import {Moss} from '../../../src/server/cards/base/Moss';
 import {SpaceBonus} from '../../../src/common/boards/SpaceBonus';
 
 describe('BuyNLarge', () => {
@@ -90,42 +85,42 @@ describe('BuyNLarge', () => {
     expect(card.resourceCount).to.eq(initialResources + 3);
   });
 
-  it('当有8个种子资源时自动转换为8植物', () => {
+  it('当有7个种子资源时自动转换为8植物', () => {
     // 打出公司卡并完成初始行动
     player.playCorporationCard(card);
     runAllActions(game);
 
 
-    // 手动设置资源到7（差1个达到阈值8）
-    card.resourceCount = 7;
-
-    // 记录初始植物数量
-    const initialPlants = player.plants;
-
-    // 打出1张生物标签卡，获得第8个种子
-    player.playCard(new Ants());
-    runAllActions(game);
-
-    // 验证种子资源被消耗（8个种子 → 0），得到植物
-    expect(card.resourceCount).to.eq(0); // 8个种子应被转换
-    expect(player.plants).to.eq(initialPlants + 8); // 获得8植物
-  });
-
-  it('7个种子资源时不应触发转换', () => {
-    player.playCorporationCard(card);
-    runAllActions(game);
-
-    // 手动设置资源到6
+    // 手动设置资源到6（差1个达到阈值7）
     card.resourceCount = 6;
 
+    // 记录初始植物数量
     const initialPlants = player.plants;
 
     // 打出1张生物标签卡，获得第7个种子
     player.playCard(new Ants());
     runAllActions(game);
 
-    // 7个种子不足以触发转换（阈值为8）
-    expect(card.resourceCount).to.eq(7);
+    // 验证种子资源被消耗（7个种子 → 0），得到植物
+    expect(card.resourceCount).to.eq(0); // 7个种子应被转换
+    expect(player.plants).to.eq(initialPlants + 8); // 获得8植物
+  });
+
+  it('6个种子资源时不应触发转换', () => {
+    player.playCorporationCard(card);
+    runAllActions(game);
+
+    // 手动设置资源到5
+    card.resourceCount = 5;
+
+    const initialPlants = player.plants;
+
+    // 打出1张生物标签卡，获得第6个种子
+    player.playCard(new Ants());
+    runAllActions(game);
+
+    // 6个种子不足以触发转换（阈值为7）
+    expect(card.resourceCount).to.eq(6);
     expect(player.plants).to.eq(initialPlants);
   });
 

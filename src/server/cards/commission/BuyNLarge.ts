@@ -13,7 +13,7 @@ import {CardResource} from '../../../common/CardResource';
 import {CorporationCard} from '../corporation/CorporationCard';
 
 /** Number of seeds required to auto-convert to plants */
-const SEED_THRESHOLD = 8;
+const SEED_THRESHOLD = 7;
 /** Number of plants gained per conversion */
 const PLANTS_GAINED = 8;
 

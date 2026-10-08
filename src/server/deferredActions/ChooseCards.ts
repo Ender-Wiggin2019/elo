@@ -22,7 +22,7 @@ export type ChooseOptions = {
   paying?: boolean,
 }
 
-export class ChooseCards extends DeferredAction {
+export class ChooseCards extends DeferredAction<ReadonlyArray<IProjectCard>> {
   public constructor(
     player: IPlayer,
     public cards: ReadonlyArray<IProjectCard >,
@@ -70,9 +70,13 @@ export class ChooseCards extends DeferredAction {
               player,
               cost,
               {title: message('Select how to spend ${0} M€ for ${1} cards', (b) => b.number(cost).number(selected.length))})
-              .andThen(() => keep(player, selected, unselected, LogType.BOUGHT)));
+              .andThen(() => {
+                keep(player, selected, unselected, LogType.BOUGHT);
+                this.cb(selected);
+              }));
         } else {
           keep(player, selected, unselected, options.paying ? LogType.BOUGHT : LogType.DREW);
+          this.cb(selected);
         }
         return undefined;
       });

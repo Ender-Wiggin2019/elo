@@ -43,6 +43,13 @@ export class GiveColonyBonus extends DeferredAction {
       }
     }
 
+    // Add a single extra bonus per recipient, after counting all their colonies.
+    for (const playerId of this.playersWithBonuses) {
+      const recipient = this.player.game.getPlayerById(playerId);
+      const count = this.waitingFor.get(playerId);
+      this.waitingFor.add(playerId, recipient.colonies.getColonyBonusCount(count) - count);
+    }
+
     for (const playerId of this.waitingFor.keys()) {
       const bonusPlayer = this.player.game.getPlayerById(playerId);
       this.giveColonyBonus(bonusPlayer);

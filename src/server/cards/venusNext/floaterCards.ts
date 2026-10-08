@@ -33,5 +33,7 @@ export const floaterCards: ReadonlySet<CardName> = new Set([
 
   // Underworld
   CardName.SOIL_EXPORT,
-]);
 
+  // Commission
+  CardName.DUST_COMBUSTION,
+]);

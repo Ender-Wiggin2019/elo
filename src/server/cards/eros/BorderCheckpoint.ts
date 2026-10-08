@@ -10,6 +10,7 @@ import {SelectSpace} from '../../inputs/SelectSpace';
 import {Space} from '../../boards/Space';
 import {Resource} from '../../../common/Resource';
 import {ChooseCards} from '../../deferredActions/ChooseCards';
+import {DrawCards} from '../../deferredActions/DrawCards';
 
 export class BorderCheckpoint extends Card implements IProjectCard {
   constructor() {
@@ -89,7 +90,9 @@ export class BorderCheckpoint extends Card implements IProjectCard {
   public action(player: IPlayer) {
     const cardIndex = this.getRandomNum(0, Math.min(100, player.game.projectDeck.discardPile.length -1));
     const cards: Array<IProjectCard> = player.game.projectDeck.discardPile.splice(cardIndex, 1);
-    player.game.defer(new ChooseCards(player, cards, {keepMax: 1}));
+    player.game.defer(new ChooseCards(player, cards, {keepMax: 1}).andThen((kept) => {
+      DrawCards.notifyDrawn(player, kept.length);
+    }));
     player.game.cardDrew = true;
     return undefined;
   }

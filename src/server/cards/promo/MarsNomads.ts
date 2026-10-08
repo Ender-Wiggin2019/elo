@@ -65,8 +65,13 @@ export class MarsNomads extends Card implements IActionCard {
       return true;
     }
     const game = player.game;
-    if (space.bonus.includes(SpaceBonus.OCEAN) && game.canAddOcean()) {
-      if (!player.canAfford({cost: constants.HELLAS_BONUS_OCEAN_COST})) {
+    const oceanAtCapacity = !game.canAddOcean();
+    const hasRedPlanetOceans = player.tableau.has(CardName.RED_PLANET_OCEANS);
+    if (space.bonus.includes(SpaceBonus.OCEAN) && (!oceanAtCapacity || hasRedPlanetOceans)) {
+      const oceanBonusCost = oceanAtCapacity && hasRedPlanetOceans ?
+        {cost: constants.HELLAS_BONUS_OCEAN_COST, tr: {tr: 1}} :
+        {cost: constants.HELLAS_BONUS_OCEAN_COST};
+      if (!player.canAfford(oceanBonusCost)) {
         return false;
       }
     }

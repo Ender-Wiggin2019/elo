@@ -23,7 +23,7 @@ describe('Omnivore', () => {
   });
 
   it('基本属性正确', () => {
-    expect(card.cost).to.eq(8);
+    expect(card.cost).to.eq(13);
     expect(card.type).to.eq(CardType.ACTIVE);
     expect(card.tags).to.deep.eq([Tag.ANIMAL, Tag.MICROBE]);
   });

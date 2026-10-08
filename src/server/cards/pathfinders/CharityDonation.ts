@@ -9,6 +9,7 @@ import {LogHelper} from '../../LogHelper';
 import {SelectCard} from '../../inputs/SelectCard';
 import {DeferredAction} from '../../deferredActions/DeferredAction';
 import {Priority} from '../../deferredActions/Priority';
+import {DrawCards} from '../../deferredActions/DrawCards';
 
 export class CharityDonation extends Card implements IProjectCard {
   constructor() {
@@ -64,6 +65,7 @@ export class SelectCharityDonationCard extends DeferredAction {
           }
 
           this.player.cardsInHand.push(card);
+          DrawCards.notifyDrawn(this.player, 1);
           game.log('${0} drew ${1}', (b) => b.player(this.player).card(card));
 
           const nextIndex = (this.playerIdx + 1) % this.players.length;

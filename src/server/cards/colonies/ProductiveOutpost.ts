@@ -44,10 +44,11 @@ export class ProductiveOutpost extends Card implements IProjectCard {
     const sorted = [...player.game.colonies].sort((a, b) => value(b) - value(a));
 
     sorted.forEach((colony) => {
-      colony.colonies.filter((owner) => owner === player).forEach((owner) => {
+      const count = player.colonies.getColonyBonusCount(colony.colonies.filter((owner) => owner === player).length);
+      for (let i = 0; i < count; i++) {
         // Not using GiveColonyBonus deferred action because it's only for the active player
-        player.defer(() => colony.giveColonyBonus(owner));
-      });
+        player.defer(() => colony.giveColonyBonus(player));
+      }
     });
     return undefined;
   }

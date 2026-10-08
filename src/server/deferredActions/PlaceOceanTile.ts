@@ -4,7 +4,6 @@ import {DeferredAction} from './DeferredAction';
 import {Priority} from './Priority';
 import {PlacementType} from '../boards/PlacementType';
 import {Space} from '../boards/Space';
-import {CardName} from '../../common/cards/CardName';
 import {Message} from '../../common/logs/Message';
 
 type Options = {
@@ -26,12 +25,9 @@ export class PlaceOceanTile extends DeferredAction<Space | undefined> {
 
   public execute() {
     if (!this.player.game.canAddOcean()) {
-      const whales = this.creditedPlayer.tableau.get(CardName.WHALES);
-      if (whales !== undefined) {
-        this.player.addResourceTo(whales, {qty: 1, log: true});
-        const input = this.cb(undefined);
-        this.player?.defer(input);
-      }
+      this.creditedPlayer.game.handleOceanPlacementWhenMaxed(this.creditedPlayer);
+      const input = this.cb(undefined);
+      this.player.defer(input);
       return undefined;
     }
 

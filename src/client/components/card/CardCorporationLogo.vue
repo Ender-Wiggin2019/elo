@@ -703,6 +703,12 @@
       <template v-else-if="title === CardName.WG_PARTERNSHIP">
         <span class="card-wgparternship-logo">WG Parternship</span>
       </template>
+      <template v-else-if="title === CardName.ATMOSPHERIC_ORBIT">
+        <div class="card-project-workshop-logo">大气轨道</div>
+      </template>
+      <template v-else-if="title === CardName.METEORITE_LAKESIDE">
+        <div class="card-project-workshop-logo">星陨湖畔</div>
+      </template>
     </template>
     <template v-else>
       <div :class="logoClass">{{capsTitle}}</div>
@@ -837,6 +843,8 @@ const logos: Partial<Record<CardName, 'image' | 'css' | 'bespoke'>> = {
   [CardName.EGLOGUE]: 'bespoke',
   [CardName.ENERGY_SAVING_ECOLOGY]: 'bespoke',
   [CardName.GREENRING]: 'bespoke',
+  [CardName.ATMOSPHERIC_ORBIT]: 'bespoke',
+  [CardName.METEORITE_LAKESIDE]: 'bespoke',
 };
 
 export default defineComponent({

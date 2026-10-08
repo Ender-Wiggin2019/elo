@@ -13,6 +13,7 @@ import {CardRenderer} from '../render/CardRenderer';
 import {Card} from '../Card';
 import {IPlayer} from '../../IPlayer';
 import {ChooseCards} from '../../deferredActions/ChooseCards';
+import {DrawCards} from '../../deferredActions/DrawCards';
 import {Resource} from '../../../common/Resource';
 
 export class StrategicRetrieval extends Card implements IProjectCard {
@@ -51,7 +52,9 @@ export class StrategicRetrieval extends Card implements IProjectCard {
     }
     player.game.cardDrew = true;
     const cardsToKeep = Math.min(1, cards.length);
-    player.game.defer(new ChooseCards(player, cards, {keepMax: cardsToKeep}));
+    player.game.defer(new ChooseCards(player, cards, {keepMax: cardsToKeep}).andThen((kept) => {
+      DrawCards.notifyDrawn(player, kept.length);
+    }));
 
     return undefined;
   }

@@ -7,6 +7,7 @@ import {CardType} from '../../../common/cards/CardType';
 import {EROS_CARD_MANIFEST} from '../../cards/eros/ErosCardManifest';
 import {CardManifest} from '../ModuleManifest';
 import {ChooseCards} from '../../deferredActions/ChooseCards';
+import {DrawCards} from '../../deferredActions/DrawCards';
 
 export class MartianFencing extends Card implements IProjectCard {
   constructor() {
@@ -38,7 +39,9 @@ export class MartianFencing extends Card implements IProjectCard {
       const cardIndex = player.game.projectDeck.drawPile.findIndex((c) => c.name === drawnCard.name);
       player.game.projectDeck.drawPile.splice(cardIndex, 1);
 
-      player.game.defer(new ChooseCards(player, [drawnCard], {paying: true}));
+      player.game.defer(new ChooseCards(player, [drawnCard], {paying: true}).andThen((kept) => {
+        DrawCards.notifyDrawn(player, kept.length);
+      }));
       player.game.cardDrew = true;
       player.game.log('${0} drew ${1}', (b) => b.player(player).card(drawnCard));
     } else {

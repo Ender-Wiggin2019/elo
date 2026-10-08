@@ -146,6 +146,11 @@ export class Colonies {
     return this.player.colonies.victoryPoints;
   }
 
+  /** Apply bonuses once per colony tile's payout, regardless of colony count. */
+  public getColonyBonusCount(baseCount: number): number {
+    return baseCount + (baseCount > 0 && this.player.tableau.has(CardName.ORBITAL_DOCKING) ? 1 : 0);
+  }
+
   public getFleetSize(): number {
     return this.fleetSize;
   }

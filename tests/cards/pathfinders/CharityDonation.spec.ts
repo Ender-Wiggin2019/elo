@@ -10,6 +10,7 @@ import {runAllActions} from '../../TestingUtils';
 import {testGame} from '../../TestGame';
 import {SelectCard} from '../../../src/server/inputs/SelectCard';
 import {cast} from '../../../src/common/utils/utils';
+import {AtmosphericOrbit} from '../../../src/server/cards/commission/AtmosphericOrbit';
 
 describe('CharityDonation', () => {
   let card: CharityDonation;
@@ -89,5 +90,37 @@ describe('CharityDonation', () => {
     expect(player2.cardsInHand).deep.eq([beamFromAThoriumAsteroid]);
     expect(player3.cardsInHand).deep.eq([decomposers]);
     expect(game.projectDeck.discardPile).deep.eq([ceosFavoriteProject]);
+  });
+
+  it('triggers Atmospheric Orbit for the player who receives a card', () => {
+    const atmosphericOrbit = new AtmosphericOrbit();
+    player2.playCorporationCard(atmosphericOrbit);
+    runAllActions(game);
+
+    const acquiredCompany = new AcquiredCompany();
+    const beamFromAThoriumAsteroid = new BeamFromAThoriumAsteroid();
+    const ceosFavoriteProject = new CEOsFavoriteProject();
+    const decomposers = new Decomposers();
+    game.projectDeck.drawPile.push(decomposers, ceosFavoriteProject, beamFromAThoriumAsteroid, acquiredCompany);
+
+    card.play(player1);
+    runAllActions(game);
+    expect(atmosphericOrbit.resourceCount).to.eq(0);
+
+    const selectCard1 = cast(player1.getWaitingFor(), SelectCard);
+    selectCard1.cb([selectCard1.cards[0]]);
+    runAllActions(game);
+    expect(atmosphericOrbit.resourceCount).to.eq(0);
+
+    const selectCard2 = cast(player2.getWaitingFor(), SelectCard);
+    selectCard2.cb([selectCard2.cards[0]]);
+    runAllActions(game);
+
+    const selectCard3 = cast(player3.getWaitingFor(), SelectCard);
+    selectCard3.cb([selectCard3.cards[0]]);
+    runAllActions(game);
+
+    expect(atmosphericOrbit.resourceCount).to.eq(1);
+    expect(player2.cardsInHand).to.have.length(1);
   });
 });

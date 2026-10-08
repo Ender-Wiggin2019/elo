@@ -2,11 +2,12 @@ import {expect} from 'chai';
 import {TestPlayer} from '../../TestPlayer';
 import {IGame} from '../../../src/server/IGame';
 import {testGame} from '../../TestGame';
-import {churn, runAllActions, setTemperature} from '../../TestingUtils';
+import {churn, maxOutOceans, runAllActions, setRulingParty, setTemperature} from '../../TestingUtils';
 import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
 import {MarsNomads} from '../../../src/server/cards/promo/MarsNomads';
 import {Networker} from '../../../src/server/milestones/Networker';
 import {SpaceBonus} from '../../../src/common/boards/SpaceBonus';
+import {PartyName} from '../../../src/common/turmoil/PartyName';
 import {MarsBoard} from '../../../src/server/boards/MarsBoard';
 import {TileType} from '../../../src/common/TileType';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
@@ -20,6 +21,7 @@ import {CuriosityII} from '../../../src/server/cards/community/CuriosityII';
 import {ExpeditionVehicles} from '../../../src/server/cards/underworld/ExpeditionVehicles';
 import {cast, intersection} from '../../../src/common/utils/utils';
 import {Game} from '../../../src/server/Game';
+import {RedPlanetOceans} from '../../../src/server/cards/commission/RedPlanetOceans';
 
 describe('MarsNomads', () => {
   let card: MarsNomads;
@@ -164,6 +166,56 @@ describe('MarsNomads', () => {
       expect(spaces.includes(destinationSpace)).to.eq(run.expected);
     });
   }
+
+  it('keeps the no-fee full-ocean behavior without Red Planet Oceans', () => {
+    maxOutOceans(player);
+
+    const nomadSpace = board.getAvailableSpacesOnLand(player)[12];
+    game.nomadSpace = nomadSpace.id;
+    const destinationSpace = game.board.getAdjacentSpaces(nomadSpace).find((s) => s.spaceType === SpaceType.LAND)!;
+    destinationSpace.bonus = [SpaceBonus.OCEAN];
+
+    player.megaCredits = 0;
+    expect(cast(card.action(player), SelectSpace).spaces).to.include(destinationSpace);
+  });
+
+  it('requires the Hellas ocean bonus cost when Red Planet Oceans converts at the cap', () => {
+    const redPlanetOceans = new RedPlanetOceans();
+    player.playedCards.push(redPlanetOceans);
+    maxOutOceans(player);
+
+    const nomadSpace = board.getAvailableSpacesOnLand(player)[12];
+    game.nomadSpace = nomadSpace.id;
+    const destinationSpace = game.board.getAdjacentSpaces(nomadSpace).find((s) => s.spaceType === SpaceType.LAND)!;
+    destinationSpace.bonus = [SpaceBonus.OCEAN];
+
+    player.megaCredits = 5;
+    expect(cast(card.action(player), SelectSpace).spaces).to.not.include(destinationSpace);
+
+    player.megaCredits = 6;
+    expect(cast(card.action(player), SelectSpace).spaces).to.include(destinationSpace);
+  });
+
+  it('requires the Reds cost for the converted Hellas ocean bonus', () => {
+    [game, player, player2] = testGame(2, {aresExtension: true, turmoilExtension: true});
+    board = game.board;
+    card = new MarsNomads();
+    const redPlanetOceans = new RedPlanetOceans();
+    player.playedCards.push(redPlanetOceans);
+    maxOutOceans(player);
+    setRulingParty(game, PartyName.REDS);
+
+    const nomadSpace = board.getAvailableSpacesOnLand(player)[12];
+    game.nomadSpace = nomadSpace.id;
+    const destinationSpace = game.board.getAdjacentSpaces(nomadSpace).find((s) => s.spaceType === SpaceType.LAND)!;
+    destinationSpace.bonus = [SpaceBonus.OCEAN];
+
+    player.megaCredits = 8;
+    expect(cast(card.action(player), SelectSpace).spaces).to.not.include(destinationSpace);
+
+    player.megaCredits = 9;
+    expect(cast(card.action(player), SelectSpace).spaces).to.include(destinationSpace);
+  });
 
   it('Can make initial placement on an ocean bonus space even without the money (Bug #6479)', () => {
     player.megaCredits = 0;

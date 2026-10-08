@@ -10,6 +10,7 @@ import {Tag} from '../../../src/common/cards/Tag';
 import {ProjectDeck} from '../../../src/server/cards/Deck';
 import {SoilEnrichment} from '../../../src/server/cards/promo/SoilEnrichment';
 import {Tardigrades} from '../../../src/server/cards/base/Tardigrades';
+import {AtmosphericOrbit} from '../../../src/server/cards/commission/AtmosphericOrbit';
 
 describe('OumuamuaTypeObjectSurvey', () => {
   let card: OumuamuaTypeObjectSurvey;
@@ -75,6 +76,35 @@ describe('OumuamuaTypeObjectSurvey', () => {
     expect(player.cardsInHand).deep.eq([noTags, earthTag]);
     expect(player.playedCards.length).eq(0);
     expect(player.production.energy).eq(0);
+  });
+
+  it('triggers Atmospheric Orbit once when both drawn cards are kept', () => {
+    const atmosphericOrbit = new AtmosphericOrbit();
+    player.playCorporationCard(atmosphericOrbit);
+    runAllActions(game);
+    const initialData = atmosphericOrbit.resourceCount;
+    projectDeck.drawPile = [slug, earthTag, noTags];
+
+    card.play(player);
+    runAllActions(game);
+
+    expect(player.cardsInHand).to.have.length(2);
+    expect(atmosphericOrbit.resourceCount).to.eq(initialData + 3); // 2 data from Oumuamua and 1 draw trigger.
+  });
+
+  it('triggers Atmospheric Orbit once when one card is played and one is kept', () => {
+    const atmosphericOrbit = new AtmosphericOrbit();
+    player.playCorporationCard(atmosphericOrbit);
+    runAllActions(game);
+    const initialData = atmosphericOrbit.resourceCount;
+    projectDeck.drawPile = [slug, noTags, scienceTag];
+
+    card.play(player);
+    runAllActions(game);
+
+    expect(player.cardsInHand).to.have.length(1);
+    expect(player.playedCards.asArray()).to.include(scienceTag);
+    expect(atmosphericOrbit.resourceCount).to.eq(initialData + 3); // 2 data from Oumuamua and 1 draw trigger.
   });
 
   it('Card has a space tag', () => {

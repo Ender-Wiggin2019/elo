@@ -54,7 +54,9 @@ export class VenusOrbitalSurvey extends Card implements IActionCard {
       if (rest.length > 0) {
         player.game.defer(new ChooseCards(player, rest, {
           paying: true,
-        }));
+        }).andThen((bought) => DrawCards.notifyDrawn(player, venus.length + bought.length)));
+      } else {
+        DrawCards.notifyDrawn(player, venus.length);
       }
     }));
 

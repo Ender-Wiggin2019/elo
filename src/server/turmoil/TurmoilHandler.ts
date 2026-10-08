@@ -15,6 +15,8 @@ import {REDS_POLICY_2} from './parties/Reds';
 import {MoonExpansion} from '../moon/MoonExpansion';
 import {TRSource} from '../../common/cards/TRSource';
 import {IPolicy, policyDescription} from './Policy';
+import {CardName} from '../../common/cards/CardName';
+import {Phase} from '../../common/Phase';
 
 export class TurmoilHandler {
   private constructor() {}
@@ -122,6 +124,13 @@ export class TurmoilHandler {
       const availableSteps = constants.MAX_OCEAN_TILES - player.game.board.getOceanSpaces().length;
       const steps = Math.min(availableSteps, tr.oceans);
       total = total + steps;
+      // Red Planet Oceans turns each attempted placement after the ocean
+      // track is full into a TR. Neutral placements do not raise the owner's
+      // TR, so they must not incur the Reds policy cost either.
+      if (player.game.phase !== Phase.SOLAR && player.game.phase !== Phase.INTERGENERATION &&
+          player.playedCards.has(CardName.RED_PLANET_OCEANS)) {
+        total = total + Math.max(0, tr.oceans - steps);
+      }
     }
 
     if (tr.venus !== undefined) {
