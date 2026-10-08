@@ -1,10 +1,10 @@
 <template>
-  <div id="games-overview" class="games-overview-container">
-    <h1 v-i18n>{{ constants.APP_NAME }} — Games Overview</h1>
+  <div id="games-overview" class="games-overview-container portal-page">
+    <h1 class="portal-heading" v-i18n>{{ constants.APP_NAME }} — Games Overview</h1>
     <p v-i18n>The following games are available on this server:</p>
-    <table>
+    <div class="games-overview-table portal-panel"><table>
       <game-overview v-for="game in games" :key="game.id" :id="game.id" :game="game"></game-overview>
-    </table>
+    </table></div>
   </div>
 </template>
 
@@ -66,3 +66,26 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.games-overview-container {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+}
+
+.games-overview-container > p {
+  margin-bottom: 28px;
+  color: var(--portal-muted);
+  font-size: 15px;
+}
+
+.games-overview-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+</style>

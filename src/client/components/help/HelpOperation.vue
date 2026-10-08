@@ -38,3 +38,17 @@ export default defineComponent({
   name: 'HelpOperation',
 });
 </script>
+
+<style scoped>
+.help-operation {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--portal-muted);
+}
+
+.help-img img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+</style>

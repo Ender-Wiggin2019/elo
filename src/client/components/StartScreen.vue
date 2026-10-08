@@ -1,47 +1,28 @@
 <template>
-  <div class="start-screen">
-    <div v-i18n class="start-screen-links">
-      <!-- Mars-themed header -->
-      <div class="start-screen-hero">
-        <div class="start-screen-hero__accent"></div>
-        <div class="start-screen-hero__content" v-if="userName">
-          <div class="start-screen-hero__label">Welcome, Commander</div>
-          <div class="start-screen-hero__name">{{userName}}</div>
-        </div>
-        <div class="start-screen-hero__content" v-else>
-          <div class="start-screen-hero__label">Terraforming</div>
-          <div class="start-screen-hero__name">Mars</div>
-        </div>
-        <div class="start-screen-hero__line"></div>
-      </div>
+  <div class="start-screen portal-enter">
+    <header class="start-screen-header">
+      <p class="start-screen-header__label" v-if="userName" v-i18n>Welcome, Commander</p>
+      <p class="start-screen-header__label" v-else>Terraforming</p>
+      <h1 class="start-screen-header__name">{{ userName || 'Mars' }}</h1>
+    </header>
 
-      <!-- Primary action buttons (with background images) -->
-      <a class="start-screen-link start-screen-link--new-game" href="new-game" v-i18n>New game</a>
-      <a class="start-screen-link start-screen-link--lobby" href="lobby" v-i18n>Game Lobby</a>
-      <a class="start-screen-link start-screen-link--me" href="/me" v-if="userName" v-i18n>My Space</a>
-      <a class="start-screen-link start-screen-link--me" href="/login" v-else v-i18n>Sign In</a>
+    <nav class="start-screen-links" :aria-label="$t('Home')">
+      <a v-for="destination in destinations" :key="destination.key"
+         class="start-screen-link" :class="'start-screen-link--' + destination.key"
+         :href="destination.href" :target="destination.target" :rel="destination.target ? 'noopener' : undefined">
+        <span v-i18n>{{ destination.label }}</span>
+        <span class="start-screen-link__arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
 
-      <!-- More navigation buttons -->
-      <a class="start-screen-link start-screen-link--donate" href="/donate" v-i18n>Donate</a>
-      <a class="start-screen-link start-screen-link--cards" href="cards" target="_blank" v-i18n>Cards list</a>
-      <a class="start-screen-link start-screen-link--ranking" href="/ranks" target="_blank" v-i18n>Tier Ranking</a>
-
-      <!-- Help (simple style) -->
-      <div class="start-screen-secondary">
-        <a class="start-screen-nav" href="/help" target="_blank" v-i18n>Help</a>
-      </div>
-
-      <!-- Footer: language switcher + version -->
-      <div class="start-screen-footer">
-        <language-switcher />
-        <div class="start-screen-version-cont">
-          <div class="nowrap start-screen-date"><span v-i18n>deployed</span>: {{raw_settings.builtAt}}</div>
-          <div class="nowrap start-screen-version"><span v-i18n>version</span>: {{raw_settings.head}}</div>
-        </div>
-      </div>
-    </div>
-    <div class="free-floating-preferences-icon">
-    </div>
+    <footer class="start-screen-footer">
+      <TfmButton variant="ghost" size="sm" href="/help" target="_blank" rel="noopener"><span v-i18n>Help</span></TfmButton>
+      <language-switcher />
+      <details class="start-screen-build">
+        <summary v-i18n>version</summary>
+        <div><span v-i18n>deployed</span>: {{ raw_settings.builtAt }}<br>{{ raw_settings.head }}</div>
+      </details>
+    </footer>
   </div>
 </template>
 
@@ -49,6 +30,7 @@
 
 import {defineComponent} from 'vue';
 import LanguageSwitcher from '@/client/components/LanguageSwitcher.vue';
+import TfmButton from '@/client/components/common/TfmButton.vue';
 
 import raw_settings from '@/genfiles/settings.json';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
@@ -62,8 +44,19 @@ export default defineComponent({
   },
   components: {
     LanguageSwitcher,
+    TfmButton,
   },
   computed: {
+    destinations(): Array<{key: string; label: string; href: string; target?: string}> {
+      return [
+        {key: 'new-game', label: 'New game', href: '/new-game'},
+        {key: 'lobby', label: 'Game Lobby', href: '/lobby'},
+        {key: 'me', label: this.userName ? 'My Space' : 'Sign In', href: this.userName ? '/me' : '/login'},
+        {key: 'donate', label: 'Donate', href: '/donate'},
+        {key: 'cards', label: 'Cards list', href: '/cards', target: '_blank'},
+        {key: 'ranking', label: 'Tier Ranking', href: '/ranks', target: '_blank'},
+      ];
+    },
     raw_settings(): typeof raw_settings {
       return raw_settings;
     },

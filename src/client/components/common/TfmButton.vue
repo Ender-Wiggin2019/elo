@@ -1,11 +1,15 @@
 <template>
   <component
     :is="href ? 'a' : 'button'"
-    :href="href"
-    :disabled="disabled"
+    :href="isDisabled ? undefined : href"
+    :type="href ? undefined : type"
+    :aria-disabled="isDisabled || undefined"
+    :aria-busy="loading || undefined"
+    :tabindex="isDisabled ? -1 : undefined"
+    :disabled="isDisabled"
     :class="buttonClass"
     class="tfm-button"
-    @click="$emit('click', $event)"
+    @click="onClick"
   >
     <slot></slot>
   </component>
@@ -16,16 +20,17 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'TfmButton',
+  emits: ['click'],
   props: {
     variant: {
       type: String,
       default: 'outline',
-      validator: (v: string) => ['primary', 'outline', 'ghost', 'danger', 'teal', 'cyan'].includes(v),
+      validator: (v: string) => ['primary', 'outline', 'ghost', 'danger', 'success', 'teal', 'cyan'].includes(v),
     },
     size: {
       type: String,
       default: 'md',
-      validator: (v: string) => ['sm', 'md', 'lg'].includes(v),
+      validator: (v: string) => ['sm', 'md', 'lg', 'icon'].includes(v),
     },
     block: {
       type: Boolean,
@@ -35,18 +40,33 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    loading: {type: Boolean, default: false},
+    type: {type: String, default: 'button'},
     href: {
       type: String,
       default: '',
     },
   },
+  methods: {
+    onClick(event: MouseEvent) {
+      if (this.isDisabled) {
+        event.preventDefault();
+        return;
+      }
+      this.$emit('click', event);
+    },
+  },
   computed: {
+    isDisabled(): boolean {
+      return this.disabled || this.loading;
+    },
     buttonClass(): Record<string, boolean> {
       return {
         [`tfm-button--${this.variant}`]: true,
         [`tfm-button--${this.size}`]: true,
         'tfm-button--block': this.block,
-        'tfm-button--disabled': this.disabled,
+        'tfm-button--disabled': this.isDisabled,
+        'tfm-button--loading': this.loading,
       };
     },
   },
@@ -55,122 +75,145 @@ export default defineComponent({
 
 <style scoped>
 .tfm-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  gap: 8px;
+  border: 1px solid var(--portal-border, #263050);
+  border-radius: 9px;
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.5;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  outline: none;
-  white-space: nowrap;
-  font-family: inherit;
+  transition: background .2s, border-color .2s, color .2s, transform .2s;
 }
 
-/* ===== Sizes ===== */
+.tfm-button--icon {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  flex: 0 0 auto;
+}
+
 .tfm-button--sm {
-  padding: 4px 10px;
-  font-size: 11px;
-  border-radius: 2px;
+  padding: 7px 12px;
+  font-size: 12px;
 }
 
 .tfm-button--md {
-  padding: 7px 16px;
-  font-size: 12px;
-  border-radius: 2px;
+  padding: 10px 18px;
+  font-size: 14px;
 }
 
 .tfm-button--lg {
-  padding: 10px 24px;
-  font-size: 13px;
-  border-radius: 3px;
+  padding: 13px 22px;
+  font-size: 15px;
 }
 
-/* ===== Block ===== */
 .tfm-button--block {
   display: flex;
   width: 100%;
 }
 
-/* ===== Disabled ===== */
-.tfm-button--disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* ===== Variant: Primary ===== */
 .tfm-button--primary {
-  background: linear-gradient(135deg, #e2520e, #f97316);
-  color: #fff;
-  box-shadow: 0 0 14px rgba(226, 82, 14, 0.25);
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
-}
-.tfm-button--primary:hover {
-  box-shadow: 0 0 22px rgba(226, 82, 14, 0.4);
-  background: linear-gradient(135deg, #f97316, #f59e0b);
+  background: #ed7840;
+  border-color: #ed7840;
+  color: #18100c;
 }
 
-/* ===== Variant: Outline ===== */
+.tfm-button--primary:hover:not(.tfm-button--disabled) {
+  background: #ff985d;
+  border-color: #ff985d;
+}
+
 .tfm-button--outline {
-  background: rgba(17, 26, 46, 0.8);
-  border: 1px solid rgba(38, 48, 80, 0.8);
+  background: var(--portal-surface, #121b2b);
   color: #cbd5e1;
 }
-.tfm-button--outline:hover {
-  background: rgba(226, 82, 14, 0.1);
-  border-color: rgba(226, 82, 14, 0.4);
+
+.tfm-button--outline:hover:not(.tfm-button--disabled) {
+  background: var(--portal-elevated, #1a2639);
+  border-color: #64748b;
   color: #f1f5f9;
 }
 
-/* ===== Variant: Ghost ===== */
 .tfm-button--ghost {
   background: transparent;
-  border: 1px solid transparent;
-  color: #94a3b8;
+  border-color: transparent;
+  color: #a6b3c7;
 }
-.tfm-button--ghost:hover {
-  background: rgba(26, 37, 64, 0.6);
+
+.tfm-button--ghost:hover:not(.tfm-button--disabled) {
+  background: rgba(255,255,255,.06);
   color: #f1f5f9;
 }
 
-/* ===== Variant: Danger ===== */
 .tfm-button--danger {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-.tfm-button--danger:hover {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(239, 68, 68, 0.5);
-  color: #f87171;
+  background: rgba(239,68,68,.07);
+  border-color: rgba(239,68,68,.3);
+  color: #fda4a4;
 }
 
-/* ===== Variant: Teal ===== */
+.tfm-button--danger:hover:not(.tfm-button--disabled) {
+  background: rgba(239,68,68,.15);
+  border-color: #ef4444;
+}
+
+.tfm-button--success,
 .tfm-button--teal {
-  background: rgba(45, 212, 191, 0.08);
-  border: 1px solid rgba(45, 212, 191, 0.4);
-  color: #2dd4bf;
-}
-.tfm-button--teal:hover {
-  background: rgba(45, 212, 191, 0.18);
-  border-color: rgba(45, 212, 191, 0.6);
-  box-shadow: 0 0 14px rgba(45, 212, 191, 0.15);
+  background: rgba(45,212,191,.07);
+  border-color: rgba(45,212,191,.3);
+  color: #77e3d4;
 }
 
-/* ===== Variant: Cyan ===== */
-.tfm-button--cyan {
-  background: transparent;
-  border: 1px solid rgba(34, 211, 238, 0.3);
-  color: #22d3ee;
+.tfm-button--success:hover:not(.tfm-button--disabled),
+.tfm-button--teal:hover:not(.tfm-button--disabled) {
+  background: rgba(45,212,191,.15);
 }
-.tfm-button--cyan:hover {
-  background: rgba(34, 211, 238, 0.1);
-  border-color: rgba(34, 211, 238, 0.5);
-  box-shadow: 0 0 12px rgba(34, 211, 238, 0.15);
+
+.tfm-button--cyan {
+  background: rgba(34,211,238,.07);
+  border-color: rgba(34,211,238,.3);
+  color: #80dceb;
+}
+
+.tfm-button--cyan:hover:not(.tfm-button--disabled) {
+  background: rgba(34,211,238,.15);
+}
+
+.tfm-button:active:not(.tfm-button--disabled) {
+  transform: translateY(1px);
+}
+
+.tfm-button:focus-visible {
+  outline: 2px solid #f48146;
+  outline-offset: 3px;
+}
+
+.tfm-button--disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.tfm-button--loading::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  animation: button-pending .9s ease-in-out infinite alternate;
+}
+@keyframes button-pending { to { opacity: .25; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tfm-button {
+    transition: none;
+  }
+  .tfm-button--loading::after { animation: none; }
 }
 </style>

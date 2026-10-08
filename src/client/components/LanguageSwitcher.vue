@@ -6,7 +6,6 @@
         :title="title(lang)"
         @click="switchLanguageTo(lang)"
       />
-    &nbsp;
     </template>
   </div>
 </template>

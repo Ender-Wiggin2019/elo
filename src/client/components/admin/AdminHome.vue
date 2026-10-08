@@ -1,20 +1,21 @@
 <template>
-  <div class="admin-home">
-    <ul>
+  <div class="admin-home portal-page">
+    <h1 class="portal-heading">Administration</h1>
+    <ul class="admin-links">
       <li v-for="path of paths" v-bind:key="path">
-        <a :href="path + '?serverId=' + serverId" target="_blank">{{path}}</a>
+        <a :href="path + '?serverId=' + serverId" target="_blank">{{path}} <span aria-hidden="true">↗</span></a>
       </li>
     </ul>
-    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #334155;">
+    <section class="admin-season portal-panel">
       <h3>Season Admin</h3>
-      <div style="display: flex; gap: 8px; margin-top: 8px;">
-        <button @click="triggerSeasonReset(true)">Dry Run Season Reset</button>
-        <button @click="triggerSeasonReset(false)">Execute Season Reset</button>
+      <div class="admin-actions">
+        <TfmButton @click="triggerSeasonReset(true)">Dry Run Season Reset</TfmButton>
+        <TfmButton variant="danger" @click="triggerSeasonReset(false)">Execute Season Reset</TfmButton>
       </div>
-      <div v-if="seasonResetResult" style="margin-top: 8px; white-space: pre-wrap; font-family: monospace;">
+      <pre v-if="seasonResetResult" class="admin-result">
         {{ seasonResetResult }}
-      </div>
-    </div>
+      </pre>
+    </section>
 
     <!-- Season Reset Confirm Dialog -->
     <confirm-dialog
@@ -39,11 +40,13 @@ import {defineComponent} from 'vue';
 import {paths} from '@/common/app/paths';
 import {request, RequestError} from '@/client/utils/request';
 import ConfirmDialog from '../common/ConfirmDialog.vue';
+import TfmButton from '../common/TfmButton.vue';
 
 export default defineComponent({
   name: 'admin-home',
   components: {
     'confirm-dialog': ConfirmDialog,
+    TfmButton,
   },
   data() {
     return {
@@ -144,3 +147,79 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+.admin-home {
+  width: min(1024px, 100%);
+  margin: 0 auto;
+}
+
+.admin-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0 0 28px;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-links li {
+  margin: 0;
+}
+
+.admin-links a {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px;
+  border-radius: 12px;
+  border: 1px solid var(--portal-border);
+  background: var(--portal-surface);
+  color: var(--portal-text);
+  text-decoration: none;
+  font-size: 14px;
+  transition: background .2s, border-color .2s;
+}
+
+.admin-links a:hover {
+  background: var(--portal-elevated);
+  border-color: var(--portal-accent);
+}
+
+.admin-links a:active {
+  transform: translateY(1px);
+}
+
+.admin-links a:focus-visible {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: 3px;
+}
+
+.admin-links span {
+  color: var(--portal-accent);
+}
+
+.admin-season {
+  padding: clamp(24px, 4vw, 36px);
+}
+
+.admin-season h3 {
+  margin: 0 0 24px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-result {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 24px 0 0;
+  color: var(--portal-muted);
+  font-size: 13px;
+}
+</style>

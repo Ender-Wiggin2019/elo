@@ -1,5 +1,6 @@
 <template>
   <div class="help-container">
+    <h1 class="portal-heading" v-i18n>Help</h1>
 
     <div class="help-tabs">
       <input type="radio" name="help-tab" id="radio-help-operation" value="help-operation" v-model="currentPage">

@@ -1,18 +1,20 @@
-.load-game-form {
-    margin-bottom: 25px;
-    max-width: 1002px;
+.load-game-content { max-width: 640px; margin: 0 auto; }
+.load-game-form { padding: clamp(24px, 4vw, 40px); }
+.load-game-field {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 24px;
+    label { color: var(--portal-muted); font-size: 14px; line-height: 1.6; }
 }
-
-.load-game--block {
-    background: #202020; 
-    padding: 25px;
-}
-
-.load-game-form {
-    padding-top: 5px;
-}
-
 .load-game-id {
-    color: #020202;
-    max-width: 230px
+    width: 100%;
+    padding: 13px 16px;
+    border: 1px solid var(--portal-border);
+    border-radius: 9px;
+    background: var(--portal-bg);
+    color: var(--portal-text);
+    font: inherit;
+    font-size: 15px;
+    transition: border-color .2s, box-shadow .2s;
+    &:focus { outline: none; border-color: var(--portal-accent); box-shadow: 0 0 0 3px rgba(244,129,70,.1); }
 }

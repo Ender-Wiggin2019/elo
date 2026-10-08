@@ -38,3 +38,33 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+td {
+  padding: 18px;
+  border-bottom: 1px solid var(--portal-border);
+  font-size: 14px;
+  color: var(--portal-muted);
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tr {
+  transition: background .2s;
+}
+
+tr:hover {
+  background: rgba(255,255,255,.025);
+}
+
+.game-id {
+  color: var(--portal-text);
+  font-family: monospace;
+}
+
+.game-id:hover {
+  color: var(--portal-accent);
+}
+</style>

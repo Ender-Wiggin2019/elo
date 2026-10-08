@@ -1,0 +1,63 @@
+/* Portal-only design primitives. Never target gameplay or card descendants. */
+.portal-shell {
+  --portal-bg: #0a0e1a;
+  --portal-surface: #121b2b;
+  --portal-elevated: #1a2639;
+  --portal-border: rgba(164, 185, 213, .16);
+  --portal-text: #f1f5f9;
+  --portal-muted: #a6b3c7;
+  --portal-accent: #f48146;
+  --portal-radius: 18px;
+  --portal-shadow: 0 16px 48px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .035);
+  --portal-ease: cubic-bezier(.22, 1, .36, 1);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0;
+  color: var(--portal-text);
+  font-family: Ubuntu, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: radial-gradient(ellipse at 5% 0%, rgba(173, 78, 40, .12), transparent 45%),
+    radial-gradient(ellipse at 100% 65%, rgba(39, 83, 115, .09), transparent 45%), var(--portal-bg);
+}
+.portal-shell > .main-container {
+  margin: 0;
+  min-width: 0;
+  min-height: 0;
+}
+.portal-shell .portal-page {
+  flex: 1;
+  min-width: 0;
+  padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 48px);
+  background: transparent;
+}
+.portal-shell .portal-heading {
+  margin: 0 0 28px;
+  padding: 0;
+  color: var(--portal-text);
+  font-size: clamp(26px, 3vw, 40px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.035em;
+  text-transform: none;
+  text-shadow: none;
+  filter: none;
+}
+.portal-shell .portal-panel {
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius);
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow);
+}
+.portal-shell .portal-enter {
+  animation: portal-enter .6s var(--portal-ease) both;
+}
+@keyframes portal-enter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-shell .portal-enter { animation: none; }
+}

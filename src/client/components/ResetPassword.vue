@@ -1,50 +1,41 @@
 <template>
-  <div class="bg-mars-void flex justify-center p-4"
-    :class="isMobileDevice ? 'items-start pt-8' : 'items-center'"
-    style="flex: 1; min-height: 0; overflow-y: auto; background-image: radial-gradient(ellipse at 50% 30%, rgba(194,65,12,0.08) 0%, transparent 60%), linear-gradient(rgba(30,42,66,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(30,42,66,0.3) 1px, transparent 1px); background-size: 100% 100%, 40px 40px, 40px 40px;"
-  >
-    <div class="w-full max-w-sm">
-      <div class="text-center mb-8">
-        <a href="/" class="text-mars-rust hover:text-mars-ember transition-colors text-sm font-semibold uppercase tracking-widest" v-i18n>Terraforming Mars</a>
-        <div class="mt-1" style="height:1px;background:linear-gradient(to right,transparent,rgba(194,65,12,0.4),transparent);"></div>
-      </div>
-      <div class="bg-mars-deep border border-mars-border p-6 shadow-xl shadow-black/40"
-        style="clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));"
-      >
-        <h2 class="text-mars-text text-lg font-bold uppercase tracking-wider mb-6 text-center" v-i18n>Reset Password</h2>
-        <div v-if="isTokenError" class="mb-4 p-3 text-sm text-red-300 bg-red-900/30 border border-red-700/50 rounded-sm">
+  <div class="auth-page portal-page">
+    <div class="auth-page__inner portal-enter">
+      <a href="/" class="auth-brand">
+        <span class="auth-brand__mark" aria-hidden="true">TM</span>
+        <span v-i18n>Terraforming Mars</span>
+      </a>
+      <section class="auth-card portal-panel" aria-labelledby="reset-password-title">
+        <div class="auth-card__header">
+          <h1 id="reset-password-title" class="auth-card__title" v-i18n>Reset Password</h1>
+        </div>
+        <div v-if="isTokenError" class="auth-feedback auth-feedback--error" aria-live="polite">
           {{ $t(tokenErrorMessage) }}
         </div>
-        <div class="space-y-4">
-          <div>
-            <label for="reset-username" class="block text-xs text-mars-text-faint uppercase tracking-wider font-mono mb-1" v-i18n>Username</label>
-            <input id="reset-username" name="username" autocomplete="username" readonly class="w-full bg-mars-surface border border-mars-border text-mars-text px-3 py-2.5 text-sm rounded-sm focus:outline-none" v-model="userName" />
+        <div class="auth-form">
+          <div class="auth-field">
+            <label for="reset-username" class="auth-label" v-i18n>Username</label>
+            <input id="reset-username" name="username" autocomplete="username" readonly class="auth-input" v-model="userName" />
           </div>
-          <div>
-            <label for="reset-password" class="block text-xs text-mars-text-faint uppercase tracking-wider font-mono mb-1" v-i18n>Password</label>
-            <input id="reset-password" name="password" autocomplete="new-password" type="password" class="w-full bg-mars-surface border border-mars-border text-mars-text px-3 py-2.5 text-sm rounded-sm focus:outline-none focus:border-mars-rust transition-colors" :placeholder="$t('New Password')" v-model="password" />
+          <div class="auth-field">
+            <label for="reset-password" class="auth-label" v-i18n>Password</label>
+            <input id="reset-password" name="password" autocomplete="new-password" type="password" class="auth-input" :placeholder="$t('New Password')" v-model="password" />
           </div>
-          <div>
-            <label for="reset-confirm-password" class="block text-xs text-mars-text-faint uppercase tracking-wider font-mono mb-1" v-i18n>Confirm Password</label>
-            <input id="reset-confirm-password" autocomplete="new-password" type="password" class="w-full bg-mars-surface border border-mars-border text-mars-text px-3 py-2.5 text-sm rounded-sm focus:outline-none focus:border-mars-rust transition-colors" :placeholder="$t('Confirm Password')" v-model="confirmPassword" />
+          <div class="auth-field">
+            <label for="reset-confirm-password" class="auth-label" v-i18n>Confirm Password</label>
+            <input id="reset-confirm-password" name="confirm-password" autocomplete="new-password" type="password" class="auth-input" :placeholder="$t('Confirm Password')" v-model="confirmPassword" />
           </div>
         </div>
-        <div class="mt-6 flex items-center justify-between gap-3">
-          <button class="flex-1 px-4 py-2.5 bg-mars-rust hover:bg-mars-ember text-white font-medium text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-            style="clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));"
-            :disabled="isSubmitting || isTokenError"
-            @click="resetPassword"
-          >{{ $t(isSubmitting ? 'Submitting' : 'Reset Password') }}</button>
-          <a
-            class="inline-flex items-center justify-center px-3 py-2 text-sm uppercase tracking-wider font-mono text-mars-cyan border border-mars-cyan/30 bg-mars-cyan/10 hover:bg-mars-cyan/15 rounded-sm transition-colors"
-            href="/login"
-            v-i18n
-          >Login</a>
+        <div class="auth-actions">
+          <button class="auth-primary" :disabled="isSubmitting || isTokenError" @click="resetPassword">{{ $t(isSubmitting ? 'Submitting' : 'Reset Password') }}</button>
+          <a class="auth-secondary" href="/login" v-i18n>Login</a>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
+
+<style src="./auth-pages.css"></style>
 
 <script lang="ts">
 import {defineComponent} from 'vue';
@@ -80,8 +71,6 @@ export default defineComponent({
       isSubmitting: false,
       isTokenError: false,
       tokenErrorMessage: '',
-      isMobileDevice: false,
-      _updateResetLayout: undefined as undefined | (() => void),
     };
   },
   mounted() {
@@ -92,23 +81,10 @@ export default defineComponent({
     if (this.userName.length > 0 && this.token.length > 0) {
       authService.checkResetToken(this.userName, this.token).catch((err) => {
         this.isTokenError = true;
-        this.tokenErrorMessage = isTokenExpiredError(err)
-          ? 'Reset link has expired. Please request a new one.'
-          : 'Reset link is invalid. Please request a new one.';
+        this.tokenErrorMessage = isTokenExpiredError(err) ?
+          'Reset link has expired. Please request a new one.' :
+          'Reset link is invalid. Please request a new one.';
       });
-    }
-
-    const updateLayout = () => {
-      const shortEdge = Math.min(window.screen.width || 0, window.screen.height || 0);
-      this.isMobileDevice = shortEdge > 0 && shortEdge <= 820;
-    };
-    updateLayout();
-    window.addEventListener('resize', updateLayout);
-    this._updateResetLayout = updateLayout;
-  },
-  beforeUnmount() {
-    if (this._updateResetLayout) {
-      window.removeEventListener('resize', this._updateResetLayout);
     }
   },
   methods: {

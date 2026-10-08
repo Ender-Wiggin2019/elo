@@ -22,7 +22,7 @@
     }
 
     .main-container {
-        margin: 0 40px 0 40px;
+        margin: 0;
     }
 }
 
@@ -53,43 +53,77 @@
     border: 1px solid rgba(38, 48, 80, 0.5);
 }
 
+.create-game {
+    width: 100%;
+    min-width: 0;
+    color: var(--portal-text, #f1f5f9);
+}
+
+.create-game-heading {
+    margin: 0 0 28px;
+    padding: 0;
+    color: var(--portal-text, #f1f5f9);
+    font: inherit;
+    font-size: clamp(26px, 3vw, 40px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -.035em;
+    text-align: left;
+    text-transform: none;
+    text-shadow: none;
+}
+
+.create-game-heading span {
+    font: inherit;
+}
+
+.create-game-main-panel {
+    margin: 0;
+    padding: clamp(18px, 3vw, 30px);
+    border-color: var(--portal-border, rgba(164, 185, 213, .16));
+    border-radius: var(--portal-radius, 18px);
+    background: var(--portal-surface, #121b2b);
+    box-shadow: var(--portal-shadow, 0 16px 48px rgba(0, 0, 0, .2));
+}
+
 .create-game-form {
-    padding-top: 5px;
+    padding-top: 0;
 }
 
 .create-game-action {
-    margin: 40px 5px;
-    padding-left: 15px;
+    margin: 24px 0 0;
+    padding: 20px 0 0;
     text-align: left;
-    width: 100%;
+    width: auto;
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
+    border-top: 1px solid var(--portal-border, rgba(164, 185, 213, .16));
 }
 
 /* Primary action button - Create Room / Create game */
 .btn-create-game {
-    background: linear-gradient(135deg, #e2520e 0%, #f97316 100%);
-    border: none;
-    border-radius: 6px;
+    background: var(--portal-accent, #e2520e);
+    border: 1px solid rgba(244, 129, 70, .7);
+    border-radius: 10px;
     color: #ffffff;
     font-family: Ubuntu, sans-serif;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 600;
-    padding: 12px 28px;
+    padding: 11px 20px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    box-shadow: 0 4px 16px rgba(226, 82, 14, 0.3);
+    letter-spacing: .045em;
+    box-shadow: 0 8px 20px rgba(226, 82, 14, .16);
     position: relative;
     overflow: hidden;
 }
 
 .btn-create-game:hover {
-    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
-    box-shadow: 0 6px 24px rgba(226, 82, 14, 0.45);
+    background: #f97316;
+    box-shadow: 0 10px 24px rgba(226, 82, 14, .22);
     transform: translateY(-1px);
 }
 
@@ -100,23 +134,23 @@
 
 /* Secondary/Cancel button */
 .btn-cancel-game {
-    background: rgba(26, 37, 64, 0.8);
-    border: 1px solid rgba(38, 48, 80, 0.6);
-    border-radius: 6px;
+    background: var(--portal-elevated, #1a2639);
+    border: 1px solid var(--portal-border, rgba(164, 185, 213, .16));
+    border-radius: 10px;
     color: #cbd5e1;
     font-family: Ubuntu, sans-serif;
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 500;
-    padding: 12px 28px;
+    padding: 11px 20px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: .045em;
 }
 
 .btn-cancel-game:hover {
-    background: rgba(38, 48, 80, 0.9);
-    border-color: rgba(226, 82, 14, 0.4);
+    background: rgba(38, 54, 78, .92);
+    border-color: rgba(164, 185, 213, .34);
     color: #f1f5f9;
 }
 
@@ -128,15 +162,15 @@
 .create-game-settings-buttons {
     display: flex;
     gap: 8px;
-    margin-left: 20px;
+    margin-left: auto;
 }
 
 /* Upload/Download settings buttons */
 .btn-settings-upload,
 .btn-settings-download {
-    background: rgba(26, 37, 64, 0.8);
-    border: 1px solid rgba(38, 48, 80, 0.6);
-    border-radius: 6px;
+    background: var(--portal-elevated, #1a2639);
+    border: 1px solid var(--portal-border, rgba(164, 185, 213, .16));
+    border-radius: 10px;
     color: #cbd5e1;
     width: 44px;
     height: 44px;
@@ -144,14 +178,14 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 18px;
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+    font-size: 16px;
 }
 
 .btn-settings-upload:hover,
 .btn-settings-download:hover {
-    background: rgba(38, 48, 80, 0.9);
-    border-color: rgba(34, 211, 238, 0.4);
+    background: rgba(38, 54, 78, .92);
+    border-color: rgba(164, 185, 213, .34);
     color: #22d3ee;
 }
 
@@ -223,22 +257,73 @@
 }
 
 .create-game-page-container {
-  display: flex;
-  flex-flow: row wrap;
-  background: rgba(17, 26, 46, 0.6);
-  border: 1px solid rgba(38, 48, 80, 0.4);
-  border-radius: 6px;
+  display: grid;
+  grid-template-columns: minmax(220px, .9fr) minmax(320px, 1.45fr) minmax(240px, 1.1fr);
+  align-items: start;
+  gap: 16px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
 
 .create-game-page-column {
   display: flex;
-  flex-flow: column wrap;
-  padding: 20px 10px;
+  min-width: 0;
+  flex-direction: column;
+  padding: 16px 14px;
+  border: 1px solid var(--portal-border, rgba(164, 185, 213, .16));
+  border-radius: 14px;
+  background: rgba(10, 14, 26, .22);
+}
+
+.create-game-player-column {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: ~"1 / -1";
+}
+
+.create-game-player-column > h4 {
+  flex: 0 0 100%;
+}
+
+.create-game-player-column > div {
+  flex: 1 1 90px;
+  min-width: 0;
+}
+
+.create-game-player-column > div > label {
+  width: 100%;
+  margin: 0;
+}
+
+.create-game-expansion-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  column-gap: 8px;
+  row-gap: 2px;
+}
+
+.create-game-expansion-column > h4,
+.create-game-expansion-column > .create-game-subsection-label,
+.create-game-expansion-column > .create-game-page-column-row {
+  grid-column: ~"1 / -1";
+}
+
+.create-game-expansion-column > label {
+  min-width: 0;
+  margin: 0;
+}
+
+.create-game-expansion-all {
+  grid-column: ~"1 / -1";
 }
 
 .create-game-page-column-row {
     display: flex;
-    flex-flow: row nowrap;
+    flex-flow: row wrap;
+    gap: 8px;
 }
 
 
@@ -258,22 +343,24 @@
 }
 
 .create-game-page-column label {
-  color: #94a3b8;
+  color: var(--portal-muted, #a6b3c7);
   display: inline-block;
-  background: rgba(17, 26, 46, 0.85);
-  border: 1px solid rgba(38, 48, 80, 0.6);
-  padding: 10px 20px;
+  background: rgba(17, 27, 43, .76);
+  border: 1px solid rgba(164, 185, 213, .14);
+  padding: 9px 12px;
   font-family: Ubuntu, Sans;
-  font-size: 23px;
-  border-radius: 4px;
+  font-size: 14px;
+  border-radius: 10px;
   text-align: center;
-  margin: 4px;
-  min-width: 125px;
-  height: 60px;
-  line-height: 40px;
+  margin: 3px 0;
+  min-width: 0;
+  min-height: 44px;
+  height: auto;
+  line-height: 1.3;
   display: flex;
+  align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
 }
 
 .create-game-page-column .expansion-button {
@@ -282,27 +369,27 @@
   }
 
 .create-game-page-column label:hover {
-  background: rgba(26, 37, 64, 0.9);
-  border-color: rgba(226, 82, 14, 0.35);
+  background: rgba(38, 54, 78, .88);
+  border-color: rgba(244, 129, 70, .38);
   color: #cbd5e1;
   cursor: pointer;
 }
 
 .create-game-page-column input[type="radio"]:checked + label {
-  background: rgba(226, 82, 14, 0.15);
-  border-color: rgba(226, 82, 14, 0.6);
-  color: #f1f5f9;
-  box-shadow: 0 0 10px rgba(226, 82, 14, 0.1);
+  background: rgba(226, 82, 14, .13);
+  border-color: rgba(244, 129, 70, .6);
+  color: var(--portal-text, #f1f5f9);
+  box-shadow: none;
 }
 .create-game-page-column input[type="radio"]:checked + label a {
     color: #f59e0b;
 }
 
 .create-game-page-column input[type="checkbox"]:checked + label {
-  background: rgba(226, 82, 14, 0.15);
-  border-color: rgba(226, 82, 14, 0.6);
-  color: #f1f5f9;
-  box-shadow: 0 0 10px rgba(226, 82, 14, 0.1);
+  background: rgba(226, 82, 14, .13);
+  border-color: rgba(244, 129, 70, .6);
+  color: var(--portal-text, #f1f5f9);
+  box-shadow: none;
 }
 .create-game-page-column input[type="checkbox"]:checked + label a {
     color: #f59e0b;
@@ -389,7 +476,7 @@
     height: 40px;
     border: 1px solid rgba(38, 48, 80, 0.5);
     color: #f1f5f9;
-    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+    text-shadow: none;
     font-size: 20px;
     letter-spacing: 1px;
     font-weight: bold;
@@ -400,7 +487,7 @@
 
 .create-game-player-name:focus {
     border-color: rgba(34, 211, 238, 0.5);
-    box-shadow: 0 0 8px rgba(34, 211, 238, 0.12);
+    box-shadow: none;
     outline: none;
 }
 
@@ -529,19 +616,39 @@
   }
 }
 
+.create-game .create-game-heading {
+    margin: 0 0 28px;
+    padding: 0;
+    color: var(--portal-text, #f1f5f9);
+    font-size: clamp(26px, 3vw, 40px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -.035em;
+    text-align: left;
+    text-transform: none;
+    text-shadow: none;
+}
+
+.create-game-form h4 {
+    margin: 0 0 12px;
+    padding: 0 0 10px;
+    color: var(--portal-text, #f1f5f9);
+    border-bottom-color: var(--portal-border, rgba(164, 185, 213, .16));
+}
+
 /* Number inputs inside labels (corp count, handicap, timers) */
 .create-game-corporations-count,
 .player-handicap {
-    background: rgba(10, 14, 26, 0.8);
-    border: 1px solid rgba(38, 48, 80, 0.6);
+    background: rgba(10, 14, 26, .72);
+    border: 1px solid rgba(164, 185, 213, .2);
     color: #f1f5f9;
-    border-radius: 3px;
+    border-radius: 8px;
     font-family: monospace;
     transition: border-color 0.2s ease;
 
     &:focus {
-        border-color: rgba(34, 211, 238, 0.5);
-        box-shadow: 0 0 6px rgba(34, 211, 238, 0.1);
+        border-color: rgba(34, 211, 238, .5);
+        box-shadow: none;
         outline: none;
     }
 }
@@ -550,16 +657,16 @@
 .create-game-page-column input[type="text"] {
     padding: 8px 12px;
     font-size: 14px;
-    background: rgba(10, 14, 26, 0.9);
-    border: 1px solid rgba(38, 48, 80, 0.7);
-    border-radius: 3px;
+    background: rgba(10, 14, 26, .72);
+    border: 1px solid rgba(164, 185, 213, .2);
+    border-radius: 8px;
     color: #f1f5f9;
     font-family: monospace;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
     &:focus {
-        border-color: rgba(34, 211, 238, 0.5);
-        box-shadow: 0 0 8px rgba(34, 211, 238, 0.12);
+        border-color: rgba(34, 211, 238, .5);
+        box-shadow: none;
         outline: none;
     }
 }
@@ -592,7 +699,7 @@
     height: 16px;
     padding: 0 5px;
     margin-left: 0;
-    border-radius: 3px;
+    border-radius: 999px;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -602,7 +709,6 @@
     border: 1px solid rgba(245, 158, 11, 0.55);
     background: linear-gradient(135deg, rgba(251, 191, 36, 0.92), rgba(245, 158, 11, 0.88));
     box-shadow: 0 2px 6px rgba(245, 158, 11, 0.18);
-    clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 0 100%);
 }
 
 /* Discord invite banner styling */
@@ -610,4 +716,90 @@
     color: #94a3b8;
     padding: 4px 18px;
     font-size: 14px;
+}
+
+.create-game-main-panel .create-game-action {
+    // Keep the action row spanning the explicit grid tracks. Less treats an
+    // unquoted slash as division and would otherwise emit only `-1` here.
+    grid-column: ~"1 / -1";
+}
+
+.create-game--lobby {
+    padding: 0;
+}
+
+.create-game--lobby .create-game-heading {
+    margin-bottom: 22px;
+    font-size: clamp(24px, 3vw, 34px);
+}
+
+@media (max-width: 1120px) {
+    .create-game-page-container {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .create-game-page-container {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .create-game-main-panel {
+        padding: 16px;
+    }
+
+    .create-game-page-column {
+        padding: 14px 12px;
+        border-radius: 12px;
+    }
+
+    .create-game-page-column-row {
+        flex-direction: column;
+    }
+
+    .create-game-page-column-row > div {
+        width: 100%;
+    }
+
+    .create-game-action {
+        align-items: stretch;
+    }
+
+    .btn-create-game,
+    .btn-cancel-game {
+        flex: 1 1 160px;
+        text-align: center;
+    }
+
+    .create-game-settings-buttons {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    .create-game-heading,
+    .create-game .create-game-heading {
+        margin-bottom: 22px;
+        font-size: 25px;
+    }
+
+    .create-game-main-panel {
+        padding: 12px;
+    }
+
+    .create-game-page-column label {
+        font-size: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-create-game,
+    .btn-cancel-game,
+    .create-game-page-column label,
+    .btn-settings-upload,
+    .btn-settings-download {
+        transition: none;
+    }
 }

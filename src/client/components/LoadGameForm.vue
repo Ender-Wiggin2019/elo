@@ -1,17 +1,18 @@
 <template>
-  <div id="load-game">
-    <h1><span v-i18n>{{ APP_NAME }}</span> — <span v-i18n>Load Game</span></h1>
-
-    <div class="load-game-form load-game--block">
-      <div class="container load-game-options">
-        <div >
-          <label for="gameId">Game or player ID to reload:</label><br/>
-          <input class="form-input form-inline load-game-id" :placeholder="'Game Id'" v-model="gameId" /><br/>
-          <label for="rollbackCount">Number of saves to delete before loading:</label><br/>
-          <input class="form-input form-inline load-game-id" value="0" v-model="rollbackCount" /><br/>
-          <AppButton title="Load Game" size="big" type="success" @click="loadGame" />
+  <div id="load-game" class="portal-page">
+    <div class="load-game-content portal-enter">
+      <h1 class="portal-heading" v-i18n>Load Game</h1>
+      <form class="load-game-form portal-panel" @submit.prevent="loadGame">
+        <div class="load-game-field">
+          <label for="gameId">Game or player ID to reload:</label>
+          <input id="gameId" class="load-game-id" placeholder="Game Id" v-model="gameId" />
         </div>
-      </div>
+        <div class="load-game-field">
+          <label for="rollbackCount">Number of saves to delete before loading:</label>
+          <input id="rollbackCount" class="load-game-id" type="number" min="0" v-model.number="rollbackCount" />
+        </div>
+        <TfmButton variant="primary" size="lg" type="submit"><span v-i18n>Load Game</span></TfmButton>
+      </form>
     </div>
   </div>
 </template>
@@ -19,7 +20,7 @@
 <script lang="ts">
 import {defineComponent} from 'vue';
 import * as constants from '@/common/constants';
-import AppButton from '@/client/components/common/AppButton.vue';
+import TfmButton from '@/client/components/common/TfmButton.vue';
 import {LoadGameFormModel} from '@/common/models/LoadGameFormModel';
 import {SimpleGameModel} from '@/common/models/SimpleGameModel';
 import {vueRoot} from '@/client/components/vueRoot';
@@ -35,7 +36,7 @@ type LoadGameFormDataModel = {
 export default defineComponent({
   name: 'LoadGameForm',
   components: {
-    AppButton,
+    TfmButton,
   },
   data(): LoadGameFormDataModel {
     return {

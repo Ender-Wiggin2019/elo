@@ -6,7 +6,15 @@
           <span class="font-semibold">{{ room?.ownerName }}</span>
           <span class="text-mars-text-faint" v-i18n>'s Room Settings</span>
         </div>
-        <button class="lobby-settings-close" @click="close">x</button>
+        <tfm-button
+          variant="ghost"
+          size="icon"
+          :aria-label="$t('Close')"
+          :title="$t('Close')"
+          @click="close"
+        >
+          <tfm-icon name="close" :size="16" aria-hidden="true" />
+        </tfm-button>
       </div>
       <div class="lobby-settings-body">
         <game-setup-detail
@@ -26,12 +34,16 @@ import {showModal, windowHasHTMLDialogElement} from '@/client/components/HTMLDia
 import dialogPolyfill from 'dialog-polyfill';
 import {ILobbyRoomView} from '@/common/lobby/LobbyTypes';
 import GameSetupDetail from '@/client/components/GameSetupDetail.vue';
-import {newGameConfigToGameOptionsModel} from '@/common/game/NewGameConfig';
+import {newGameConfigToGameOptionsModel as mapNewGameConfigToOptions, NewGameConfig} from '@/common/game/NewGameConfig';
+import TfmButton from '@/client/components/common/TfmButton.vue';
+import TfmIcon from '@/client/components/common/TfmIcon.vue';
 
 export default defineComponent({
   name: 'LobbyRoomSettingsModal',
   components: {
     GameSetupDetail,
+    TfmButton,
+    TfmIcon,
   },
   props: {
     room: {
@@ -40,6 +52,13 @@ export default defineComponent({
     },
   },
   methods: {
+    // Expose the imported mapper to the template while keeping the conversion
+    // implementation centralized in NewGameConfig.
+    newGameConfigToGameOptionsModel(config: ILobbyRoomView['gameConfig']) {
+      // Lobby responses intentionally omit the userId before reaching the
+      // client; the mapper only reads the public game settings fields.
+      return mapNewGameConfigToOptions(config as Omit<NewGameConfig, 'players'>);
+    },
     getDialog(): HTMLDialogElement | undefined {
       return this.$refs.dialog as HTMLDialogElement | undefined;
     },
@@ -67,63 +86,53 @@ export default defineComponent({
 <style scoped>
 .lobby-settings-modal {
   width: min(920px, 94vw);
-  max-height: 88vh;
-  border: 1px solid #263049;
-  border-radius: 12px;
-  background: #111827;
-  color: #e2e8f0;
+  max-width: calc(100vw - 24px);
+  max-height: min(88dvh, 760px);
+  border: 1px solid var(--portal-border, rgba(164, 185, 213, .16));
+  border-radius: var(--portal-radius, 18px);
+  background: var(--portal-surface, #121b2b);
+  color: var(--portal-text, #f1f5f9);
   padding: 0;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--portal-shadow, 0 18px 60px rgba(0, 0, 0, .55));
 }
 
 .lobby-settings-modal::backdrop {
-  background: rgba(3, 8, 18, 0.72);
+  background: rgba(3, 8, 18, .72);
 }
 
 .lobby-settings-shell {
   display: flex;
   flex-direction: column;
-  max-height: 88vh;
+  min-width: 0;
+  max-height: min(88dvh, 760px);
 }
 
 .lobby-settings-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid rgba(38, 48, 73, 0.9);
-  background: rgba(26, 34, 52, 0.7);
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--portal-border, rgba(164, 185, 213, .16));
+  background: var(--portal-elevated, #1a2639);
 }
 
 .lobby-settings-title {
   display: flex;
+  min-width: 0;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
   font-size: 12px;
-}
-
-.lobby-settings-close {
-  width: 28px;
-  height: 28px;
-  border-radius: 9999px;
-  border: 1px solid rgba(100, 116, 139, 0.55);
-  color: #94a3b8;
-  background: rgba(26, 34, 52, 0.8);
-  line-height: 1;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.lobby-settings-close:hover {
-  border-color: rgba(226, 232, 240, 0.7);
-  color: #e2e8f0;
+  overflow-wrap: anywhere;
 }
 
 .lobby-settings-body {
+  min-width: 0;
+  min-height: 0;
   overflow: auto;
   padding: 14px 16px 16px;
+  overflow-wrap: anywhere;
 }
 
 /* ============ Desktop: ensure center alignment ============ */
@@ -135,8 +144,8 @@ export default defineComponent({
 @media (max-width: 640px) {
   .lobby-settings-modal {
     width: calc(100vw - 24px);
-    max-height: calc(100vh - 32px);
-    border-radius: 8px;
+    max-height: calc(100dvh - 32px);
+    border-radius: 14px;
   }
 
   .lobby-settings-modal[open] {
@@ -144,18 +153,13 @@ export default defineComponent({
   }
 
   .lobby-settings-header {
+    align-items: flex-start;
     padding: 10px 12px;
   }
 
   .lobby-settings-title {
     font-size: 11px;
     gap: 4px;
-  }
-
-  .lobby-settings-close {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
   }
 
   .lobby-settings-body {

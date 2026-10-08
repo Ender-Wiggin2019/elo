@@ -1,5 +1,5 @@
 <template>
-  <div :class="'topmost-' + screen">
+  <div :class="['topmost-' + screen, {'portal-shell': isPortalScreen}]">
     <section>
       <dialog id="alert-dialog" class="alert-dialog">
         <form method="dialog" class="alert-dialog__content">
@@ -56,6 +56,7 @@ import {showError} from '@/client/utils/showAlert';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
 import {setDocumentTitle} from '../utils/documentTitle';
 import type {MainAppData, MainAppMethods} from './App';
+import '@/styles/portal.css';
 
 import dialogPolyfill from 'dialog-polyfill';
 
@@ -141,6 +142,10 @@ export default defineComponent({
     'user-profile': UserProfile,
   },
   computed: {
+    isPortalScreen(): boolean {
+      // The game and card catalogue keep their original layout and viewport.
+      return (this.showNavBar && this.screen !== 'cards') || this.screen === 'admin';
+    },
     showNavBar(): boolean {
       return [
         'start-screen',
@@ -158,6 +163,17 @@ export default defineComponent({
         'user-profile',
         'games-overview',
       ].includes(this.screen);
+    },
+  },
+  watch: {
+    isPortalScreen: {
+      immediate: true,
+      handler(isPortal: boolean) {
+        document.querySelector('meta[name="viewport"]')?.setAttribute(
+          'content',
+          isPortal ? 'width=device-width, initial-scale=1' : 'width=1260, user-scalable=1',
+        );
+      },
     },
   },
   methods: {

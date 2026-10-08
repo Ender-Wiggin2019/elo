@@ -1,257 +1,97 @@
 #app {
     position: relative;
 }
-.topmost-start-screen {
-    margin: 0px;
-    padding-bottom: 40px;
-    background: url(./assets/stars.jpg);
-    min-height: 100%;
-}
 
 .start-screen {
-    width: 400px;
+    width: min(410px, 100%);
     margin: 0 auto;
+    padding: 28px 20px 24px;
+}
+
+.start-screen-header {
+    margin-bottom: 22px;
+}
+.start-screen-header__label {
+    margin: 0 0 6px;
+    color: var(--portal-muted);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+.start-screen-header__name {
+    margin: 0;
+    padding: 0;
+    color: var(--portal-text);
+    font-size: 34px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -.02em;
+    overflow-wrap: anywhere;
+    text-shadow: none;
+    filter: none;
 }
 
 .start-screen-links {
-    margin: 0 auto;
-    width: 370px;
-    padding-top: 40px;
+    display: grid;
+    gap: 9px;
 }
-
-/* ============ Mars-themed Hero Header ============ */
-.start-screen-hero {
-    position: relative;
-    margin-bottom: 16px;
-    padding: 24px 0 16px;
-}
-
-.start-screen-hero__accent {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(to bottom, #e2520e, rgba(226, 82, 14, 0.2), transparent);
-    border-radius: 2px;
-}
-
-.start-screen-hero__content {
-    padding-left: 16px;
-}
-
-.start-screen-hero__label {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: #94a3b8;
-    margin-bottom: 4px;
-}
-
-.start-screen-hero__name {
-    font-size: 36px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #f1f5f9;
-    text-shadow: 0 0 20px rgba(226, 82, 14, 0.25);
-    line-height: 1.1;
-}
-
-.start-screen-hero__line {
-    margin-top: 14px;
-    height: 1px;
-    background: linear-gradient(
-        to right,
-        rgba(226, 82, 14, 0.7),
-        rgba(226, 82, 14, 0.3) 30%,
-        rgba(38, 48, 80, 0.5) 60%,
-        transparent 100%
-    );
-}
-
-/* ============ Primary Link Buttons (with planet backgrounds) ============ */
 .start-screen-link {
-    text-decoration: none;
-    cursor: pointer;
-    box-shadow: inset 0 0 0px 1px rgba(38, 48, 80, 0.7);
-    height: 90px;
-    line-height: 28px;
-    border-radius: 6px;
-    color: #f1f5f9;
-    text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 2px 2px rgba(0,0,0,0.6);
-    padding-left: 17px;
-    width: 369px;
-    display: flex;
-    margin-bottom: 6px;
-    font-size: 26px;
-    text-transform: uppercase;
-    font-weight: bold;
-    letter-spacing: 2px;
-    padding-bottom: 15px;
-    flex-direction: column-reverse;
-    background-image: url("assets/buttons-homepage/planets.jpg");
-    transition: all 0.25s ease;
-    position: relative;
-    overflow: hidden;
-
-    &::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, #e2520e, transparent 60%);
-        opacity: 0;
-        transition: opacity 0.25s ease;
-    }
-
-    &:hover, &:visited, &:active, &:focus {
-        color: #f1f5f9;
-        text-decoration: none;
-    }
-
-    &:hover {
-        filter: brightness(120%);
-        box-shadow: inset 0 0 0px 1px rgba(226, 82, 14, 0.5), 0 4px 16px rgba(0,0,0,0.4);
-
-        &::after {
-            opacity: 1;
-        }
-    }
-}
-
-.start-screen-link--new-game {
-    background-position: 0px -90px;
-}
-
-.start-screen-link--lobby {
-    background-position: 0px -180px;
-}
-
-.start-screen-link--me {
-    background-position: 0px -270px;
-}
-
-.start-screen-link--donate {
-    background-position: 0px -360px;
-}
-
-.start-screen-link--cards {
-    background-position: 0px -450px;
-}
-
-.start-screen-link--ranking {
-    background-position: 0px -540px;
-}
-
-/* ============ Secondary Navigation Buttons ============ */
-.start-screen-secondary {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 8px;
-    margin-bottom: 16px;
-}
-
-.start-screen-nav {
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 48px;
-    background: rgba(17, 26, 46, 0.85);
-    border: 1px solid rgba(38, 48, 80, 0.7);
-    border-radius: 4px;
-    color: #cbd5e1;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    justify-content: space-between;
+    gap: 18px;
+    min-height: 76px;
+    padding: 15px 20px;
+    border: 1px solid var(--portal-border);
+    border-radius: 11px;
+    color: #f1f5f9;
+    background-image: linear-gradient(90deg, rgba(8,14,25,.58), rgba(8,14,25,.18)), url("assets/buttons-homepage/planets.jpg");
+    background-repeat: no-repeat;
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-shadow: 0 1px 5px rgba(0,0,0,.7);
     text-decoration: none;
-    transition: all 0.2s ease;
-    cursor: pointer;
+    transition: transform .2s var(--portal-ease), border-color .2s, filter .2s;
 
-    &:hover, &:visited, &:active, &:focus {
-        text-decoration: none;
-    }
-
-    &:hover {
-        background: rgba(226, 82, 14, 0.1);
-        border-color: rgba(226, 82, 14, 0.45);
-        color: #f1f5f9;
-        box-shadow: 0 0 12px rgba(226, 82, 14, 0.08);
-    }
+    &:link, &:visited, &:active { color: #f1f5f9; text-decoration: none; }
+    &:hover { color: #fff; border-color: rgba(244,129,70,.6); filter: brightness(1.12); transform: translateY(-2px); text-decoration: none; }
+    &:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 3px; }
+    &:active { transform: translateY(0); }
 }
+.start-screen-link__arrow {
+    color: #cad3e1;
+    font-size: 19px;
+    font-weight: 400;
+}
+.start-screen-link--new-game { background-position: 0 0, 0 -90px; }
+.start-screen-link--lobby { background-position: 0 0, 0 -180px; }
+.start-screen-link--me { background-position: 0 0, 0 -270px; }
+.start-screen-link--donate { background-position: 0 0, 0 -360px; }
+.start-screen-link--cards { background-position: 0 0, 0 -450px; }
+.start-screen-link--ranking { background-position: 0 0, 0 -540px; }
 
-/* ============ Footer: Language + Version ============ */
 .start-screen-footer {
-    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding-top: 14px;
+}
+.start-screen-build {
+    max-width: 100%;
+    color: var(--portal-muted);
+    font-size: 10px;
     text-align: center;
+    overflow-wrap: anywhere;
+    summary { cursor: pointer; }
+    div { padding-top: 10px; line-height: 1.6; }
 }
-
-.start-screen-version-cont {
-    margin-top: 10px;
-    text-align: center;
-    font-size: 11px;
-    color: #64748b;
-    font-family: monospace;
-    letter-spacing: 0.04em;
+@media (max-width: 480px) {
+    .start-screen { padding: 22px 16px; }
+    .start-screen-link { min-height: 70px; font-size: 19px; }
 }
-
-.start-screen-version {
-    margin-top: -3px;
-}
-
-.start-screen-date {
-    color: #64748b;
-}
-
-/* ============ Legacy classes (kept for compatibility) ============ */
-.start-screen-game-title {
-    color: #daab63;
-    padding: 40px 0 10px 0;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.start-screen-lang-switch {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.notice {
-    font-size: @font_size_small;
-    position: fixed;
-    bottom: 0px;
-    right: 0px;
-    padding: 16px 24px;
-    color: #64748b;
-}
-
-.source-code {
-    text-align: center;
-    margin-top: 1rem;
-}
-
-.source-code-img {
-    vertical-align: middle;
-}
-
-.source-code-text {
-    color: #94a3b8;
-    font-size: smaller;
-    letter-spacing: 0.25rem;
-    text-decoration: none;
-}
-
-.source-code-text:focus,
-.source-code-text:hover {
-    text-decoration: none;
-    color: #cbd5e1;
-}
-
-.source-code-text:visited {
-    color: #94a3b8;
+@media (prefers-reduced-motion: reduce) {
+    .start-screen-link { transition: none; }
 }

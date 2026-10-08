@@ -1,6 +1,6 @@
 <template>
-  <div id="create-game" class="create-game">
-    <h1>
+  <div id="create-game" :class="['create-game', {'portal-page': !lobbyMode, 'create-game--lobby': lobbyMode}]">
+    <h1 class="portal-heading create-game-heading">
       <span v-i18n>{{ constants.APP_NAME }}</span> — <span v-i18n>Create New Game</span>
     </h1>
     <div class="create-game-discord-invite" v-if="!isvip">
@@ -12,10 +12,10 @@
       <QrCode/>
     </div>
 
-    <div class="create-game-form create-game-panel create-game--block">
+    <div class="create-game-form create-game-panel create-game--block create-game-main-panel portal-panel">
       <div class="create-game-options">
         <div class="create-game-page-container">
-          <div class="create-game-page-column">
+          <div class="create-game-page-column create-game-player-column">
             <h4 v-i18n>№ of Players</h4>
             <div v-for="pCount in (lobbyMode ? [2,3,4,5,6] : [1,2,3,4,5,6])" v-bind:key="pCount">
               <input type="radio" :value="pCount" name="playersCount" v-model="playersCount" :id="pCount+'-radio'">
@@ -25,12 +25,12 @@
             </div>
           </div>
 
-          <div class="create-game-page-column">
+          <div class="create-game-page-column create-game-expansion-column">
             <h4 v-i18n>Expansions</h4>
 
             <input type="checkbox" name="allOfficialExpansions" id="allOfficialExpansions-checkbox"
                    v-model="allOfficialExpansions">
-            <label for="allOfficialExpansions-checkbox">
+            <label for="allOfficialExpansions-checkbox" class="create-game-expansion-all">
               <span v-i18n>All</span>
             </label>
 
@@ -219,7 +219,7 @@
             </label>
           </div>
 
-          <div class="create-game-page-column">
+          <div class="create-game-page-column create-game-board-column">
             <h4 v-i18n>Board</h4>
 
             <div v-for="boardName in boards" v-bind:key="boardName">
@@ -235,7 +235,7 @@
             </div>
           </div>
 
-          <div class="create-game-page-column">
+          <div class="create-game-page-column create-game-options-column">
             <h4 v-i18n>Options</h4>
 
             <label for="startingCorpNum-checkbox">

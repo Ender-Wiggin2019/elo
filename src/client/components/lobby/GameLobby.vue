@@ -1,16 +1,37 @@
 <template>
-  <div id="game-lobby" class="lobby-page bg-mars-void text-mars-text p-4 sm:p-6 lg:p-8">
-    <!-- Page title with HUD accent -->
-    <div class="max-w-5xl mx-auto mb-6">
-      <div class="flex items-center gap-3">
-        <span class="lobby-hud-dot lobby-hud-dot--active"></span>
-        <h1 class="text-lg font-bold text-mars-text uppercase tracking-widest" v-i18n>Game Lobby</h1>
-      </div>
-      <div class="lobby-hud-line mt-3"></div>
+  <div id="game-lobby" class="portal-page lobby-page text-mars-text">
+    <div class="lobby-content max-w-5xl mx-auto">
+      <portal-page-header title="Game Lobby">
+        <template #actions>
+          <tfm-button
+            variant="primary"
+            :disabled="!isLoggedIn || isInAnyRoom"
+            :title="!isLoggedIn ? $t('Please login first') : (isInAnyRoom ? $t('Leave your current room first') : '')"
+            @click="showCreateForm = true"
+          >
+            <tfm-icon name="plus" :size="16" aria-hidden="true" />
+            <span v-i18n>Create Room</span>
+          </tfm-button>
+          <tfm-button
+            variant="outline"
+            :loading="loading || refreshing"
+            @click="fetchRooms()"
+          >
+            <tfm-icon name="refresh" :size="15" aria-hidden="true" />
+            <span v-i18n>Refresh</span>
+          </tfm-button>
+          <span v-if="hasAnyRooms" class="lobby-room-count">
+            <span class="lobby-hud-dot" aria-hidden="true"></span>
+            <span class="text-xs text-mars-text-faint font-mono uppercase tracking-wider">
+              {{ roomCount }} <span v-i18n>room(s)</span>
+            </span>
+          </span>
+        </template>
+      </portal-page-header>
     </div>
 
     <!-- 创建房间模式 -->
-    <div v-if="showCreateForm" class="max-w-5xl mx-auto">
+    <div v-if="showCreateForm" class="lobby-create-shell max-w-5xl mx-auto">
       <create-game-form
         :lobby-mode="true"
         @lobby-room-created="onRoomCreated"
@@ -19,50 +40,49 @@
     </div>
 
     <!-- 大厅主界面 -->
-    <div v-else class="max-w-5xl mx-auto">
-      <!-- 顶部操作栏 -->
-      <div class="flex items-center gap-3 mb-6 flex-wrap">
-        <button
-          class="lobby-btn-create inline-flex items-center gap-2 px-5 py-2.5 bg-mars-rust hover:bg-mars-ember disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-mars-rust text-white font-medium transition-all"
-          @click="showCreateForm = true"
-          :disabled="!isLoggedIn || isInAnyRoom"
-          :title="!isLoggedIn ? $t('Please login first') : (isInAnyRoom ? $t('Leave your current room first') : '')"
-        >
-          <span class="text-lg leading-none font-bold">+</span>
-          <span v-i18n>Create Room</span>
-        </button>
-        <button
-          class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-mars-surface hover:bg-mars-border text-mars-text-dim hover:text-mars-text font-medium transition-colors border border-mars-border rounded"
-          @click="fetchRooms({silent: true})"
-        >
-          <span v-i18n>Refresh</span>
-        </button>
-        <div class="ml-auto flex items-center gap-2" v-if="hasAnyRooms">
-          <span class="lobby-hud-dot"></span>
-          <span class="text-xs text-mars-text-faint font-mono uppercase tracking-wider">
-            {{ visibleRoomsCount }} <span v-i18n>room(s)</span>
-          </span>
-        </div>
+    <div v-else class="lobby-content max-w-5xl mx-auto">
+      <div v-if="!isLoggedIn" class="lobby-login-wrap">
+        <tfm-button variant="cyan" block @click="goToLogin">
+          <span class="font-semibold" v-i18n>Login required.</span>
+          <span class="ml-2 text-mars-text-dim" v-i18n>Click here to sign in before creating or joining a room.</span>
+        </tfm-button>
       </div>
 
-      <button
-        v-if="!isLoggedIn"
-        class="w-full text-left px-4 py-3 mb-5 bg-mars-cyan/10 hover:bg-mars-cyan/20 border border-mars-cyan/35 rounded text-mars-cyan transition-colors"
-        @click="goToLogin"
-      >
-        <span class="font-semibold" v-i18n>Login required.</span>
-        <span class="ml-2 text-mars-text-dim" v-i18n>Click here to sign in before creating or joining a room.</span>
-      </button>
+      <!-- 房间加载失败且没有可保留的房间时，给出可重试的正文状态。 -->
+      <portal-panel v-if="roomsError && !loading && !hasAnyRooms" padding="none" role="alert">
+        <portal-empty-state
+          title="Unable to load rooms"
+          description="Try again to reconnect."
+        >
+          <tfm-button variant="outline" :loading="loading" @click="fetchRooms()">
+            <span v-i18n>Retry</span>
+          </tfm-button>
+        </portal-empty-state>
+      </portal-panel>
+
+      <!-- 房间刷新失败时保留已有列表，同时提示用户可以重试。 -->
+      <portal-panel v-else-if="roomsError && !refreshing && hasAnyRooms" padding="compact" class="lobby-refresh-error" role="alert">
+        <div class="lobby-refresh-error__content">
+          <div>
+            <p class="lobby-refresh-error__title" v-i18n>Rooms could not be refreshed.</p>
+            <p class="lobby-refresh-error__description" v-i18n>Showing the last available room list.</p>
+          </div>
+          <tfm-button variant="outline" size="sm" :loading="refreshing" @click="fetchRooms()">
+            <span v-i18n>Retry</span>
+          </tfm-button>
+        </div>
+      </portal-panel>
 
       <!-- 空状态 -->
-      <div v-if="hasLoadedOnce && !hasAnyRooms" class="text-center py-24">
-        <div class="lobby-empty-icon text-5xl mb-6">&#9790;</div>
-        <p class="text-mars-text-dim text-base mb-1 uppercase tracking-wide" v-i18n>No active rooms</p>
-        <p class="text-mars-text-faint text-sm" v-i18n>Create one to get started!</p>
-      </div>
+      <portal-panel v-else-if="hasLoadedOnce && !hasAnyRooms" padding="none">
+        <portal-empty-state
+          title="No active rooms"
+          description="Create one to get started!"
+        />
+      </portal-panel>
 
       <!-- 加载中 -->
-      <div v-if="loading && !hasLoadedOnce" class="text-center py-20">
+      <div v-if="loading && !hasLoadedOnce" class="lobby-loading-state text-center">
         <p class="text-mars-text-dim animate-pulse font-mono uppercase tracking-wider text-sm" v-i18n>Scanning rooms...</p>
       </div>
 
@@ -70,206 +90,47 @@
         <div
           v-for="section in lobbySections"
           :key="section.key"
-          class="space-y-3"
+          class="lobby-section"
         >
-          <button
+          <tfm-button
             v-if="section.type === 'toggle'"
-            class="inline-flex items-center gap-2 px-4 py-2.5 bg-mars-surface hover:bg-mars-border text-mars-text font-medium transition-colors border border-mars-border rounded"
+            variant="outline"
+            size="sm"
             @click="showStartedRooms = !showStartedRooms"
           >
-            <span class="text-mars-cyan font-mono">{{ showStartedRooms ? '-' : '+' }}</span>
+            <span class="text-mars-cyan font-mono" aria-hidden="true">{{ showStartedRooms ? '−' : '+' }}</span>
             <span>{{ showStartedRooms ? $t('Hide running rooms') : $t('Show running rooms') }}</span>
             <span class="text-mars-text-faint font-mono">({{ startedRooms.length }})</span>
-          </button>
+          </tfm-button>
 
-          <div v-else class="space-y-3">
-            <div class="flex items-center gap-2">
+          <div v-else class="lobby-section-body">
+            <div class="lobby-section-heading flex items-center gap-2">
               <span class="lobby-hud-dot" :class="{'lobby-hud-dot--active': section.key === 'section-my'}"></span>
               <span class="text-xs text-mars-text-dim uppercase tracking-wider font-mono">{{ section.title }}</span>
             </div>
 
             <!-- 房间列表 -->
-            <div class="grid gap-5 sm:grid-cols-1 lg:grid-cols-2" :class="{'lg:grid-cols-1': section.singleRow}">
-              <div
+            <div class="lobby-room-grid grid gap-5 sm:grid-cols-1 lg:grid-cols-2" :class="{'lg:grid-cols-1': section.singleRow}">
+              <lobby-room-card
                 v-for="room in section.rooms"
                 :key="room.roomId"
-                class="lobby-room-card relative overflow-hidden transition-all"
-                :class="{
-                  'lobby-room-card--active': isInRoom(room) && room.status !== 'confirming',
-                  'lobby-room-card--confirming': room.status === 'confirming',
-                  'lobby-room-card--joinable': isJoinableRoom(room),
-                  'lobby-room-card--ranked': isRankedRoom(room),
-                  'lobby-room-card--owner': isOwner(room),
-                }"
-              >
-                <!-- HUD corner accents -->
-                <div class="lobby-corner lobby-corner--tl"></div>
-                <div class="lobby-corner lobby-corner--tr"></div>
-                <div class="lobby-corner lobby-corner--bl"></div>
-                <div class="lobby-corner lobby-corner--br"></div>
-
-                <!-- 房间头部 -->
-                <div class="flex items-center justify-between px-5 py-3 border-b border-mars-border/60">
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="lobby-hud-dot" :class="{'lobby-hud-dot--active': room.status === 'waiting'}"></span>
-                    <span class="font-semibold text-mars-text truncate">{{ room.ownerName }}</span>
-                    <span class="text-mars-text-faint text-sm flex-shrink-0" v-i18n>'s Room</span>
-                    <span
-                      class="lobby-status-badge inline-block px-2 py-0.5 text-xs font-bold uppercase tracking-wider flex-shrink-0"
-                      :class="statusBadgeClass(room.status)"
-                    >
-                      {{ getStatusText(room.status) }}
-                    </span>
-                    <span
-                      v-if="isJoinableRoom(room)"
-                      class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-mars-teal bg-mars-teal/20 border border-mars-teal/40 rounded-sm"
-                      v-i18n
-                    >Joinable</span>
-                    <span
-                      v-if="isRankedRoom(room)"
-                      class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200 bg-amber-500/20 border border-amber-400/60 rounded-sm"
-                    >
-                      <img src="/assets/rank/rank-logo.png" alt="Ranked" class="w-3 h-3">
-                      <span v-i18n>Ranked</span>
-                    </span>
-                  </div>
-                  <div class="flex-shrink-0 ml-3 text-sm font-mono flex items-center gap-2">
-                    <span class="text-mars-rust font-bold text-base">{{ room.players.length }}</span>
-                    <span class="text-mars-text-faint"> / {{ room.maxPlayers }}</span>
-                    <button
-                      class="lobby-info-btn"
-                      :title="$t('View room settings')"
-                      @click="openRoomSettings(room)"
-                    >i</button>
-                    <button
-                      v-if="isOwner(room) && room.status === 'waiting'"
-                      class="lobby-close-btn"
-                      :title="$t('Close room')"
-                      @click="closeRoom(room.roomId)"
-                    ><i class="fas fa-times"></i></button>
-                  </div>
-                </div>
-
-                <!-- 游戏设置摘要 -->
-                <div class="px-5 py-2.5 flex flex-wrap gap-1.5" v-if="getSettingsTags(room).length > 0">
-                  <span
-                    class="lobby-tag inline-block px-2.5 py-0.5 text-xs font-medium"
-                    v-for="tag in getSettingsTags(room)"
-                    :key="tag"
-                  >{{ tag }}</span>
-                </div>
-
-                <!-- 玩家列表 -->
-                <div class="px-5 py-2 space-y-1.5">
-                  <div
-                    v-for="player in room.players"
-                    :key="player.name + '-' + player.color"
-                    class="lobby-player-slot flex items-center gap-2 px-3 py-2 text-sm"
-                    :class="getPlayerColorClass(player.color)"
-                  >
-                    <a :href="'/user/' + encodeURIComponent(player.name)" class="font-medium truncate text-mars-text hover:text-mars-cyan transition-colors">{{ player.name }}</a>
-                    <i
-                      v-if="player.isOwner"
-                      class="fas fa-crown text-mars-amber"
-                      :title="$t('Owner')"
-                    ></i>
-                    <span v-if="player.rankValue" class="text-xs text-mars-text-dim font-mono">
-                      &#9733; {{ Math.round(player.rankValue) }}
-                    </span>
-                    <span
-                      v-if="room.status === 'confirming'"
-                      class="ml-auto text-xs font-bold uppercase tracking-wider font-mono"
-                      :class="player.isReady ? 'text-mars-teal' : 'text-mars-yellow animate-pulse'"
-                    >
-                      {{ player.isReady ? $t('READY') : $t('STANDBY') }}
-                    </span>
-                    <button
-                      v-if="isOwner(room) && !player.isOwner && room.status === 'waiting'"
-                      class="ml-auto px-2.5 py-0.5 text-xs font-medium bg-mars-red/15 hover:bg-mars-red/30 text-mars-red rounded-sm transition-colors border border-mars-red/20"
-                      @click="kickPlayer(room.roomId, player.name)"
-                      v-i18n
-                    >Kick</button>
-                  </div>
-                  <!-- 空位 slot -->
-                  <div
-                    v-for="i in (room.maxPlayers - room.players.length)"
-                    :key="'empty-' + i"
-                    class="lobby-empty-slot flex items-center px-3 py-2 text-sm text-mars-text-faint"
-                  >
-                    <span class="font-mono text-xs uppercase tracking-wider" v-i18n>[ Empty Slot ]</span>
-                  </div>
-                </div>
-
-                <!-- 操作按钮 -->
-                <div class="px-5 py-3 border-t border-mars-border/60 flex items-center gap-2 flex-wrap">
-                  <!-- 未加入 -->
-                  <template v-if="canJoinRoom(room)">
-                    <div class="flex items-center gap-3 flex-wrap w-full">
-                      <div class="flex items-center gap-2">
-                        <span class="text-xs text-mars-text-faint uppercase tracking-wider font-mono" v-i18n>Color:</span>
-                        <label
-                          v-for="color in getAvailableColors(room)"
-                          :key="color"
-                          :for="'color-' + room.roomId + '-' + color"
-                          class="cursor-pointer"
-                        >
-                          <input
-                            type="radio"
-                            :id="'color-' + room.roomId + '-' + color"
-                            :name="'joinColor-' + room.roomId"
-                            :value="color"
-                            v-model="selectedColors[room.roomId]"
-                            class="sr-only peer"
-                          >
-                          <div
-                            class="w-7 h-7 rounded-full border-2 border-mars-border peer-checked:border-mars-text peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-offset-mars-deep peer-checked:ring-mars-cyan transition-all"
-                            :class="'create-game-colorbox ' + getPlayerCubeColorClass(color)"
-                          ></div>
-                        </label>
-                      </div>
-                      <button
-                        class="lobby-btn-join ml-auto px-4 py-1.5 disabled:opacity-30 disabled:cursor-not-allowed text-mars-teal text-sm font-medium transition-all border border-mars-teal/50 hover:border-mars-teal hover:bg-mars-teal/20"
-                        @click="joinRoom(room.roomId)"
-                        v-i18n
-                      >Join</button>
-                    </div>
-                  </template>
-
-                  <!-- 已加入且非房主 -->
-                  <template v-if="isInRoom(room) && !isOwner(room)">
-                    <button
-                      class="lobby-btn-action px-4 py-1.5 text-mars-text-dim hover:text-mars-text text-sm font-medium transition-all border border-mars-border hover:border-mars-text-dim"
-                      @click="leaveRoom(room.roomId)"
-                      v-i18n
-                    >Leave</button>
-                    <button
-                      v-if="room.status === 'confirming' && !isReady(room)"
-                      class="lobby-btn-action px-4 py-1.5 text-mars-teal text-sm font-medium transition-all border border-mars-teal/40 hover:border-mars-teal/70 hover:bg-mars-teal/10"
-                      @click="confirmReady(room.roomId)"
-                      v-i18n
-                    >Confirm</button>
-                  </template>
-
-                  <!-- 房主操作 -->
-                  <template v-if="isOwner(room)">
-                    <button
-                      v-if="room.status === 'waiting' && room.players.length >= 2"
-                      class="lobby-btn-create px-4 py-1.5 bg-mars-rust hover:bg-mars-ember text-white text-sm font-medium transition-all"
-                      @click="startGame(room.roomId)"
-                      v-i18n
-                    >Start Game</button>
-                  </template>
-
-                  <!-- 游戏已开始 -->
-                  <template v-if="room.status === 'started' && room.gameId">
-                    <a
-                      :href="'game?id=' + room.gameId"
-                      class="lobby-btn-action inline-block px-4 py-1.5 text-mars-cyan text-sm font-medium transition-all border border-mars-cyan/40 hover:border-mars-cyan/70 hover:bg-mars-cyan/10"
-                      v-i18n
-                    >Enter Game</a>
-                  </template>
-                </div>
-              </div>
+                :room="room"
+                :status-label="getStatusText(room.status)"
+                :settings-tags="getSettingsTags(room)"
+                :available-colors="getAvailableColors(room)"
+                :selected-color="selectedColors[room.roomId]"
+                :can-join="canJoinRoom(room)"
+                :pending-action="pendingRoomActions[room.roomId]"
+                :is-ranked="isRankedRoom(room)"
+                @join="joinRoom"
+                @leave="leaveRoom"
+                @confirm="confirmReady"
+                @start="startGame"
+                @kick="kickPlayer"
+                @close="closeRoom"
+                @settings="openRoomSettings"
+                @update:selectedColor="updateSelectedColor(room.roomId, $event)"
+              />
             </div>
           </div>
         </div>
@@ -285,11 +146,16 @@ import { defineComponent } from 'vue';
 import {Color, PLAYER_COLORS} from '@/common/Color';
 import {ILobbyRoomView as ILobbyRoom, ELobbyRoomStatus} from '@/common/lobby/LobbyTypes';
 import {PreferencesManager} from '@/client/utils/PreferencesManager';
-import {playerColorClass} from '@/common/utils/utils';
 import {paths} from '@/common/app/paths';
 import {translateText} from '@/client/directives/i18n';
 import CreateGameForm from '@/client/components/create/CreateGameForm.vue';
+import LobbyRoomCard, {LobbyRoomPendingAction} from '@/client/components/lobby/LobbyRoomCard.vue';
 import LobbyRoomSettingsModal from '@/client/components/lobby/LobbyRoomSettingsModal.vue';
+import PortalEmptyState from '@/client/components/common/PortalEmptyState.vue';
+import PortalPageHeader from '@/client/components/common/PortalPageHeader.vue';
+import PortalPanel from '@/client/components/common/PortalPanel.vue';
+import TfmButton from '@/client/components/common/TfmButton.vue';
+import TfmIcon from '@/client/components/common/TfmIcon.vue';
 import {showError} from '@/client/utils/showAlert';
 import {lobbyService} from '@/client/services';
 
@@ -299,13 +165,24 @@ export default defineComponent({
   name: 'GameLobby',
   components: {
     CreateGameForm,
+    LobbyRoomCard,
     LobbyRoomSettingsModal,
+    PortalEmptyState,
+    PortalPageHeader,
+    PortalPanel,
+    TfmButton,
+    TfmIcon,
   },
   data() {
     return {
       rooms: [] as Array<ILobbyRoom>,
       previousRoomsById: {} as Record<string, ILobbyRoom>,
       loading: false,
+      refreshing: false,
+      roomsError: false,
+      roomsRequestId: 0,
+      roomsRequestsInFlight: 0,
+      pendingRoomActions: {} as Record<string, LobbyRoomPendingAction | undefined>,
       hasLoadedOnce: false,
       showCreateForm: false,
       selectedColors: {} as Record<string, Color>,
@@ -347,8 +224,8 @@ export default defineComponent({
     hasAnyRooms(): boolean {
       return this.visibleLobbyRooms.length > 0;
     },
-    visibleRoomsCount(): number {
-      return this.myRooms.length + this.waitingRooms.length + (this.showStartedRooms ? this.startedRooms.length : 0);
+    roomCount(): number {
+      return this.visibleLobbyRooms.length;
     },
     lobbySections(): Array<{key: string; type: 'rooms' | 'toggle'; title?: string; rooms?: Array<ILobbyRoom>; singleRow?: boolean}> {
       const sections: Array<{key: string; type: 'rooms' | 'toggle'; title?: string; rooms?: Array<ILobbyRoom>; singleRow?: boolean}> = [];
@@ -361,13 +238,15 @@ export default defineComponent({
           singleRow: true,
         });
       }
-      sections.push({
-        key: 'section-waiting',
-        type: 'rooms',
-        title: translateText('Waiting to start'),
-        rooms: this.waitingRooms,
-        singleRow: false,
-      });
+      if (this.waitingRooms.length > 0) {
+        sections.push({
+          key: 'section-waiting',
+          type: 'rooms',
+          title: translateText('Waiting to start'),
+          rooms: this.waitingRooms,
+          singleRow: false,
+        });
+      }
       if (this.startedRooms.length > 0) {
         sections.push({
           key: 'section-toggle',
@@ -390,14 +269,15 @@ export default defineComponent({
     this.fetchRooms();
     this.startPolling();
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.stopPolling();
+    this.roomsRequestId++;
   },
   methods: {
     startPolling() {
       this.stopPolling();
       this.pollTimer = setInterval(() => {
-        if (!this.showCreateForm) {
+        if (!this.showCreateForm && this.roomsRequestsInFlight === 0) {
           this.fetchRooms({silent: true});
         }
       }, POLL_INTERVAL);
@@ -426,12 +306,25 @@ export default defineComponent({
     },
     async fetchRooms(options: {silent?: boolean} = {}) {
       const silent = options.silent === true;
-      if (!silent && !this.hasLoadedOnce) {
-        this.loading = true;
+      if (!silent) {
+        if (this.loading || this.refreshing) {
+          return;
+        }
+        if (this.hasLoadedOnce) {
+          this.refreshing = true;
+        } else {
+          this.loading = true;
+        }
       }
+      const requestId = ++this.roomsRequestId;
+      this.roomsRequestsInFlight++;
       try {
         const previousRoomsById = this.previousRoomsById;
         const data = await lobbyService.getRooms(this.userId);
+        if (requestId !== this.roomsRequestId) {
+          return;
+        }
+        this.roomsError = false;
         const nextRooms = this.mergeRoomsPreservingIdentity(data.rooms || []);
         const roomsChanged = nextRooms.length !== this.rooms.length ||
           nextRooms.some((room, index) => room !== this.rooms[index]);
@@ -445,53 +338,62 @@ export default defineComponent({
         );
         this.hasLoadedOnce = true;
       } catch (err: any) {
+        if (requestId !== this.roomsRequestId) {
+          return;
+        }
+        this.roomsError = true;
         console.error('Failed to fetch rooms:', err);
       } finally {
+        this.roomsRequestsInFlight--;
         if (!silent) {
           this.loading = false;
+          this.refreshing = false;
         }
       }
     },
-    async joinRoom(roomId: string) {
+    async runRoomAction(roomId: string, pendingAction: LobbyRoomPendingAction, request: () => Promise<unknown>) {
+      if (this.pendingRoomActions[roomId] !== undefined) {
+        return;
+      }
+      this.pendingRoomActions = {
+        ...this.pendingRoomActions,
+        [roomId]: pendingAction,
+      };
+      try {
+        await request();
+        // Always read after a mutation, even when a manual refresh is in flight.
+        await this.fetchRooms({silent: true});
+      } catch (err: any) {
+        showError(err.body || err.message);
+      } finally {
+        const activeAction = this.pendingRoomActions[roomId];
+        if (activeAction?.type === pendingAction.type && activeAction.playerName === pendingAction.playerName) {
+          const nextPendingRoomActions = {...this.pendingRoomActions};
+          delete nextPendingRoomActions[roomId];
+          this.pendingRoomActions = nextPendingRoomActions;
+        }
+      }
+    },
+    joinRoom(roomId: string) {
       const color = this.selectedColors[roomId];
       if (!this.userId) {
         showError(translateText('Please login first'));
         return;
       }
-      try {
-        await lobbyService.joinRoom(roomId, {
-          userId: this.userId,
-          userName: this.userName,
-          color,
-        });
-        await this.fetchRooms();
-      } catch (err: any) {
-        showError(err.body || err.message);
-      }
+      return this.runRoomAction(roomId, {type: 'join'}, () => lobbyService.joinRoom(roomId, {
+        userId: this.userId,
+        userName: this.userName,
+        color,
+      }));
     },
-    async leaveRoom(roomId: string) {
-      try {
-        await lobbyService.leaveRoom(roomId, this.userId);
-        await this.fetchRooms();
-      } catch (err: any) {
-        showError(err.body || err.message);
-      }
+    leaveRoom(roomId: string) {
+      return this.runRoomAction(roomId, {type: 'leave'}, () => lobbyService.leaveRoom(roomId, this.userId));
     },
-    async kickPlayer(roomId: string, targetUserName: string) {
-      try {
-        await lobbyService.kickPlayer(roomId, this.userId, targetUserName);
-        await this.fetchRooms();
-      } catch (err: any) {
-        showError(err.body || err.message);
-      }
+    kickPlayer(roomId: string, targetUserName: string) {
+      return this.runRoomAction(roomId, {type: 'kick', playerName: targetUserName}, () => lobbyService.kickPlayer(roomId, this.userId, targetUserName));
     },
-    async startGame(roomId: string) {
-      try {
-        await lobbyService.startGame(roomId, this.userId);
-        await this.fetchRooms();
-      } catch (err: any) {
-        showError(err.body || err.message);
-      }
+    startGame(roomId: string) {
+      return this.runRoomAction(roomId, {type: 'start'}, () => lobbyService.startGame(roomId, this.userId));
     },
     async onRoomCreated(_room: ILobbyRoom) {
       this.showCreateForm = false;
@@ -515,9 +417,6 @@ export default defineComponent({
     canJoinRoom(room: ILobbyRoom): boolean {
       return this.isLoggedIn && !this.isInAnyRoom && !this.isInRoom(room) && room.status === ELobbyRoomStatus.WAITING && room.players.length < room.maxPlayers;
     },
-    isJoinableRoom(room: ILobbyRoom): boolean {
-      return this.canJoinRoom(room);
-    },
     isRankedRoom(room: ILobbyRoom): boolean {
       return Boolean((room.gameConfig as any)?.rankOption);
     },
@@ -528,11 +427,11 @@ export default defineComponent({
     goToLogin() {
       window.location.href = '/' + paths.LOGIN;
     },
-    isOwner(room: ILobbyRoom): boolean {
-      return room.isOwner;
-    },
-    isReady(room: ILobbyRoom): boolean {
-      return room.currentUserReady;
+    updateSelectedColor(roomId: string, color: Color) {
+      this.selectedColors = {
+        ...this.selectedColors,
+        [roomId]: color,
+      };
     },
     ensureDefaultJoinColors() {
       const nextSelectedColors: Record<string, Color> = {};
@@ -553,12 +452,6 @@ export default defineComponent({
       const usedColors = new Set(room.players.map((p) => p.color));
       return PLAYER_COLORS.filter((c) => !usedColors.has(c));
     },
-    getPlayerColorClass(color: Color): string {
-      return playerColorClass(color, 'bg_transparent');
-    },
-    getPlayerCubeColorClass(color: Color): string {
-      return playerColorClass(color, 'bg');
-    },
     getStatusText(status: string): string {
       switch (status) {
       case ELobbyRoomStatus.WAITING: return translateText('Waiting');
@@ -566,15 +459,6 @@ export default defineComponent({
       case ELobbyRoomStatus.STARTED: return translateText('Started');
       case ELobbyRoomStatus.CLOSED: return translateText('Closed');
       default: return status;
-      }
-    },
-    statusBadgeClass(status: string): string {
-      switch (status) {
-      case ELobbyRoomStatus.WAITING: return 'bg-mars-teal/15 text-mars-teal';
-      case ELobbyRoomStatus.CONFIRMING: return 'bg-mars-yellow/15 text-mars-yellow';
-      case ELobbyRoomStatus.STARTED: return 'bg-mars-cyan/15 text-mars-cyan';
-      case ELobbyRoomStatus.CLOSED: return 'bg-mars-surface text-mars-text-faint';
-      default: return 'bg-mars-surface text-mars-text-faint';
       }
     },
     getSettingsTags(room: ILobbyRoom): Array<string> {
@@ -635,27 +519,14 @@ export default defineComponent({
       if (config.draftVariant) {
         tags.push('Draft');
       }
-      if ((config as any).rankOption) {
-        tags.push('Ranked');
-      }
 
       return tags;
     },
-    async closeRoom(roomId: string) {
-      try {
-        await lobbyService.leaveRoom(roomId, this.userId);
-        await this.fetchRooms();
-      } catch (err: any) {
-        showError(err.body || err.message);
-      }
+    closeRoom(roomId: string) {
+      return this.runRoomAction(roomId, {type: 'close'}, () => lobbyService.leaveRoom(roomId, this.userId));
     },
-    async confirmReady(roomId: string) {
-      try {
-        await lobbyService.confirmReady(roomId, this.userId);
-        await this.fetchRooms();
-      } catch (err: any) {
-        showError(err.body || err.message);
-      }
+    confirmReady(roomId: string) {
+      return this.runRoomAction(roomId, {type: 'confirm'}, () => lobbyService.confirmReady(roomId, this.userId));
     },
     maybeNavigateToStartedGame(previousRoomsById: Record<string, ILobbyRoom>) {
       const myStartedRoom = this.rooms.find((room: ILobbyRoom) =>
@@ -682,411 +553,116 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* === Page background with subtle grid + warm glow === */
+/* Lobby surfaces stay quiet so the shared portal shell can carry the atmosphere. */
 .lobby-page {
   flex: 1;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
   overflow-y: auto;
-  background-image:
-    radial-gradient(ellipse at 50% -10%, rgba(226,82,14,0.12) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 90%, rgba(34,211,238,0.05) 0%, transparent 40%),
-    linear-gradient(rgba(38,48,80,0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(38,48,80,0.3) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
-}
-
-/* === HUD pulsing dot === */
-.lobby-hud-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #94a3b8;
-  box-shadow: 0 0 4px rgba(148,163,184,0.5);
-}
-.lobby-hud-dot--active {
-  background: #2dd4bf;
-  box-shadow: 0 0 8px rgba(45,212,191,0.7);
-  animation: hudPulse 2s ease-in-out infinite;
-}
-
-@keyframes hudPulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(45,212,191,0.7); }
-  50% { opacity: 0.4; box-shadow: 0 0 3px rgba(45,212,191,0.3); }
-}
-
-/* === HUD divider line === */
-.lobby-hud-line {
-  height: 1px;
-  background: linear-gradient(
-    to right,
-    rgba(226,82,14,0.7),
-    rgba(226,82,14,0.3) 20%,
-    rgba(38,48,80,0.5) 50%,
-    transparent 100%
-  );
-}
-
-/* === Room card with angular clip + glow border === */
-.lobby-room-card {
-  background: linear-gradient(180deg, rgba(17,26,46,0.98) 0%, rgba(17,26,46,0.95) 100%);
-  border: 1px solid #263050;
-  border-radius: 4px;
-  clip-path: polygon(
-    0 0, calc(100% - 12px) 0, 100% 12px,
-    100% 100%, 12px 100%, 0 calc(100% - 12px)
-  );
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.03);
-}
-.lobby-room-card--active {
-  border-color: rgba(226,82,14,0.5);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 24px rgba(226,82,14,0.1);
-}
-.lobby-room-card--confirming {
-  border-color: rgba(250,204,21,0.5);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 24px rgba(250,204,21,0.1);
-}
-.lobby-room-card--joinable {
-  border-color: rgba(45,212,191,0.55);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 28px rgba(45,212,191,0.12);
-}
-.lobby-room-card--ranked {
-  border-color: rgba(245,158,11,0.7);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5), 0 0 32px rgba(245,158,11,0.16);
-}
-.lobby-room-card--owner {
-  background: linear-gradient(180deg, rgba(26, 37, 64, 0.98) 0%, rgba(17, 26, 46, 0.96) 100%);
-}
-
-/* === HUD corner accents === */
-.lobby-corner {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
-}
-.lobby-corner--tl { top: 0; left: 0; border-top: 2px solid rgba(226,82,14,0.5); border-left: 2px solid rgba(226,82,14,0.5); }
-.lobby-corner--tr { top: 0; right: 0; border-top: 2px solid rgba(226,82,14,0.3); border-right: 2px solid rgba(226,82,14,0.3); }
-.lobby-corner--bl { bottom: 0; left: 0; border-bottom: 2px solid rgba(226,82,14,0.3); border-left: 2px solid rgba(226,82,14,0.3); }
-.lobby-corner--br { bottom: 0; right: 0; border-bottom: 2px solid rgba(226,82,14,0.5); border-right: 2px solid rgba(226,82,14,0.5); }
-
-.lobby-room-card--active .lobby-corner--tl,
-.lobby-room-card--active .lobby-corner--br {
-  border-color: rgba(226,82,14,0.7);
-}
-.lobby-room-card--confirming .lobby-corner--tl,
-.lobby-room-card--confirming .lobby-corner--br {
-  border-color: rgba(250,204,21,0.7);
-}
-
-/* === Status badge with border === */
-.lobby-status-badge {
-  border-radius: 2px;
-  border: 1px solid currentColor;
-  opacity: 0.85;
-}
-
-/* === Setting tags === */
-.lobby-tag {
-  background: rgba(26,37,64,0.8);
-  color: #c48b5c;
-  border: 1px solid rgba(38,48,80,0.7);
-  border-radius: 2px;
-}
-
-/* === Player slot === */
-.lobby-player-slot {
-  border-radius: 4px;
-  border-left: 3px solid transparent;
-}
-
-/* === Empty slot with dashed sci-fi border === */
-.lobby-empty-slot {
-  border: 1px dashed rgba(38,48,80,0.9);
-  border-radius: 4px;
-}
-
-/* === Buttons with angular clip === */
-.lobby-btn-create {
-  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-  border-radius: 0;
-  box-shadow: 0 0 14px rgba(226,82,14,0.25);
-  background: linear-gradient(135deg, #e2520e, #f97316) !important;
-}
-.lobby-btn-create:hover {
-  box-shadow: 0 0 22px rgba(226,82,14,0.4);
-  background: linear-gradient(135deg, #f97316, #f59e0b) !important;
-}
-.lobby-btn-action {
-  border-radius: 2px;
   background: transparent;
 }
-.lobby-info-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 9999px;
-  border: 1px solid rgba(148,163,184,0.4);
-  color: #cbd5e1;
-  background: rgba(17,26,46,0.8);
-  font-weight: 700;
-  font-family: monospace;
-  line-height: 1;
-  transition: all 0.2s ease;
-}
-.lobby-info-btn:hover {
-  border-color: rgba(34,211,238,0.72);
-  color: #22d3ee;
-  box-shadow: 0 0 14px rgba(34,211,238,0.25);
-}
-.lobby-btn-join {
-  border-radius: 2px;
-  background: rgba(45,212,191,0.08);
-  box-shadow: 0 0 14px rgba(45,212,191,0.2);
-}
-.lobby-btn-join:hover {
-  box-shadow: 0 0 20px rgba(45,212,191,0.32);
+
+.lobby-content,
+.lobby-create-shell {
+  width: 100%;
+  min-width: 0;
 }
 
-.lobby-close-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 9999px;
-  border: 1px solid rgba(239,68,68,0.4);
-  color: #ef4444;
-  background: rgba(239,68,68,0.1);
-  transition: all 0.2s ease;
+.lobby-hud-dot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--portal-muted, #a6b3c7);
+}
+
+.lobby-hud-dot--active {
+  background: #2dd4bf;
+}
+
+.lobby-room-count {
+  color: var(--portal-muted, #a6b3c7);
+  white-space: nowrap;
+}
+
+.lobby-room-count .lobby-hud-dot {
+  width: 5px;
+  height: 5px;
+}
+
+.lobby-login-wrap { margin-bottom: 20px; }
+
+.lobby-loading-state {
+  padding: clamp(48px, 8vw, 80px) 24px;
+}
+
+.lobby-refresh-error__content {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-.lobby-close-btn:hover {
-  border-color: rgba(239,68,68,0.72);
-  color: #f87171;
-  background: rgba(239,68,68,0.2);
-  box-shadow: 0 0 14px rgba(239,68,68,0.25);
+  justify-content: space-between;
+  gap: 18px;
 }
 
-/* === Empty state icon glow === */
-.lobby-empty-icon {
-  color: #94a3b8;
-  text-shadow: 0 0 24px rgba(226,82,14,0.25);
-  opacity: 0.5;
+.lobby-refresh-error__title,
+.lobby-refresh-error__description {
+  margin: 0;
 }
 
-/* ============ Mobile Responsive ============ */
+.lobby-refresh-error__title {
+  color: var(--portal-text, #e2e8f0);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lobby-refresh-error__description {
+  margin-top: 4px;
+  color: var(--portal-muted, #a6b3c7);
+  font-size: 12px;
+}
+
+.lobby-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lobby-section + .lobby-section {
+  margin-top: 30px;
+}
+
+.lobby-section-heading {
+  min-height: 20px;
+}
+
+.lobby-section-heading .lobby-hud-dot {
+  width: 5px;
+  height: 5px;
+}
+
+.lobby-room-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .lobby-room-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
-  .lobby-page {
-    padding: 12px !important;
+  .lobby-room-count {
+    margin-left: auto;
+    align-self: center;
   }
 
-  /* Page title */
-  .lobby-page h1 {
-    font-size: 15px !important;
-    letter-spacing: 0.08em;
-  }
-
-  /* Top action bar: stack create button full width */
-  .lobby-page .flex.items-center.gap-3.mb-6.flex-wrap {
-    gap: 8px;
-  }
-
-  .lobby-btn-create {
-    width: 100%;
-    justify-content: center;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
-    font-size: 14px;
-  }
-
-  /* Refresh button: compact on mobile */
-  .lobby-page .flex.items-center.gap-3.mb-6 > button:not(.lobby-btn-create) {
-    padding: 6px 12px !important;
-    font-size: 12px;
-  }
-
-  /* Room card: remove clip-path on mobile for full visibility */
-  .lobby-room-card {
-    clip-path: none !important;
-    border-radius: 6px;
-  }
-
-  /* Room card header: allow wrapping, reduce padding */
-  .lobby-room-card .flex.items-center.justify-between {
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 10px 12px !important;
-  }
-
-  /* Room owner name + badges: wrap into multiple lines */
-  .lobby-room-card .flex.items-center.gap-2.min-w-0 {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  /* Owner name */
-  .lobby-room-card .font-semibold.text-mars-text.truncate {
-    font-size: 14px;
-    max-width: 120px;
-  }
-
-  /* "'s Room" text smaller */
-  .lobby-room-card .text-mars-text-faint.text-sm.flex-shrink-0 {
-    font-size: 12px;
-  }
-
-  /* Status badge smaller */
-  .lobby-status-badge {
-    font-size: 9px !important;
-    padding: 1px 6px !important;
-    letter-spacing: 0.04em !important;
-  }
-
-  /* Room card player slot */
-  .lobby-player-slot {
-    font-size: 13px;
-    padding: 6px 8px !important;
-  }
-
-  /* Room card action area */
-  .lobby-room-card .px-5.py-3.border-t {
-    padding: 10px 12px !important;
-  }
-
-  /* Color picker label: column layout on mobile */
-  .lobby-room-card .flex.items-center.gap-3.flex-wrap.w-full {
+  .lobby-refresh-error__content {
+    align-items: flex-start;
     flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .lobby-room-card .flex.items-center.gap-3.flex-wrap.w-full .flex.items-center.gap-2 {
-    justify-content: center;
-  }
-
-  .lobby-btn-join {
-    width: 100% !important;
-    margin-left: 0 !important;
-    text-align: center;
-    justify-content: center;
-    padding: 10px 16px !important;
-  }
-
-  /* Color picker: smaller on mobile */
-  .lobby-room-card .w-7.h-7 {
-    width: 24px !important;
-    height: 24px !important;
-  }
-
-  /* Settings tags: smaller */
-  .lobby-tag {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-
-  /* Settings tags container: reduce padding */
-  .lobby-room-card .px-5.py-2\.5 {
-    padding: 6px 12px !important;
-  }
-
-  /* Reduce card inner padding */
-  .lobby-room-card .px-5 {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  /* Info button smaller */
-  .lobby-info-btn {
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
-  }
-
-  /* Player count area: tighter */
-  .lobby-room-card .flex-shrink-0.ml-3 {
-    margin-left: auto !important;
-    font-size: 12px;
-  }
-
-  .lobby-room-card .flex-shrink-0.ml-3 .text-mars-rust {
-    font-size: 14px !important;
-  }
-
-  /* Section headers */
-  .lobby-page .text-xs.text-mars-text-dim.uppercase {
-    font-size: 10px !important;
-  }
-
-  /* Room count badge at top */
-  .lobby-page .text-xs.text-mars-text-faint.font-mono {
-    font-size: 10px !important;
-  }
-
-  /* Empty state: smaller */
-  .lobby-empty-icon {
-    font-size: 36px !important;
-    margin-bottom: 16px !important;
-  }
-
-  /* Room grid: always single column on mobile */
-  .grid.gap-5 {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-
-  /* HUD corner accents: smaller on mobile */
-  .lobby-corner {
-    width: 12px;
-    height: 12px;
-  }
-
-  /* Login prompt: smaller text */
-  .lobby-page .text-mars-cyan.transition-colors .font-semibold {
-    font-size: 13px;
-  }
-  .lobby-page .text-mars-cyan.transition-colors .text-mars-text-dim {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .lobby-page {
-    padding: 8px !important;
-  }
-
-  /* Further reduce room card padding */
-  .lobby-room-card .px-5 {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-  }
-
-  /* Room owner name even shorter on very small screens */
-  .lobby-room-card .font-semibold.text-mars-text.truncate {
-    max-width: 90px;
-    font-size: 13px;
-  }
-
-  /* Player slot tighter */
-  .lobby-player-slot {
-    font-size: 12px;
-    padding: 5px 6px !important;
-    gap: 4px !important;
-  }
-
-  /* Kick button smaller */
-  .lobby-player-slot .px-2\.5.py-0\.5 {
-    font-size: 10px;
-    padding: 2px 6px !important;
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-  .lobby-page {
-    padding: 16px !important;
-  }
-
-  /* Page title */
-  .lobby-page h1 {
-    font-size: 16px !important;
   }
 }
 </style>

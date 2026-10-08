@@ -2,10 +2,7 @@
   <div class="ugs-root">
     <!-- Period toggle -->
     <div class="ugs-period-toggle">
-      <button :class="['ugs-tab', period === 'allTime' && 'ugs-tab--active']"
-              @click="period = 'allTime'">All Time</button>
-      <button :class="['ugs-tab', period === 'recent3Months' && 'ugs-tab--active']"
-              @click="period = 'recent3Months'">Last 3 Months</button>
+      <PortalTabs v-model="period" :items="[{id: 'allTime', label: 'All Time'}, {id: 'recent3Months', label: 'Last 3 Months'}]" />
     </div>
 
     <!-- Hero metrics row: Win Rate + Flee Rate -->
@@ -34,7 +31,7 @@
     </div>
 
     <!-- Detailed grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-px bg-mars-border/30">
+    <div class="ugs-grid">
       <div class="ugs-cell">
         <div class="ugs-cell__label" v-i18n>Games Played</div>
         <div class="ugs-cell__value">{{ activeStats.totalGames }}</div>
@@ -68,7 +65,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import {defineComponent, PropType} from 'vue';
+import {GameStatsBlock} from '@/client/services/types';
+import PortalTabs from './PortalTabs.vue';
 
 /**
  * Shared game stats display component.
@@ -78,15 +77,16 @@ import { defineComponent } from 'vue';
  */
 export default defineComponent({
   name: 'UserGameStats',
+  components: {PortalTabs},
   props: {
     /** allTime stats block */
     allTime: {
-      type: Object,
+      type: Object as PropType<GameStatsBlock>,
       required: true,
     },
     /** recent3Months stats block */
     recent3Months: {
-      type: Object,
+      type: Object as PropType<GameStatsBlock>,
       required: true,
     },
   },
@@ -96,7 +96,7 @@ export default defineComponent({
     };
   },
   computed: {
-    activeStats(): any {
+    activeStats(): GameStatsBlock {
       return this.period === 'recent3Months' ? this.recent3Months : this.allTime;
     },
     fleeRateClass(): string {
@@ -116,53 +116,16 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style scoped>.ugs-grid {display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--portal-border);}
 /* === Period toggle === */
-.ugs-period-toggle {
-  display: flex;
-  border-bottom: 1px solid rgba(38,48,80,0.5);
-}
-
-.ugs-tab {
-  flex: 1;
-  padding: 10px 16px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-family: monospace;
-  color: #64748b;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.ugs-tab:hover {
-  color: #94a3b8;
-  background: rgba(226,82,14,0.04);
-}
-
-.ugs-tab--active {
-  color: #e2520e;
-}
-
-.ugs-tab--active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(to right, #e2520e, #f97316);
+.ugs-period-toggle {padding: 14px 16px;border-bottom: 1px solid var(--portal-border);
 }
 
 /* === Hero metrics === */
 .ugs-hero {
   display: flex;
   align-items: stretch;
-  border-bottom: 1px solid rgba(38,48,80,0.5);
+  border-bottom: 1px solid var(--portal-border);
 }
 
 .ugs-hero__cell {
@@ -179,16 +142,16 @@ export default defineComponent({
 
 .ugs-hero__divider {
   width: 1px;
-  background: rgba(38,48,80,0.5);
+  background: var(--portal-border);
 }
 
 .ugs-hero__label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: #64748b;
-  font-family: monospace;
+  text-transform: none;
+  letter-spacing: .02em;
+  color: var(--portal-muted);
+  font-family: inherit;
   margin-bottom: 8px;
 }
 
@@ -208,12 +171,10 @@ export default defineComponent({
 
 .ugs-hero__value--good {
   color: #2dd4bf;
-  text-shadow: 0 0 16px rgba(45,212,191,0.3);
 }
 
 .ugs-hero__value--warn {
   color: #f59e0b;
-  text-shadow: 0 0 12px rgba(245,158,11,0.25);
 }
 
 .ugs-hero__value--safe {
@@ -222,30 +183,16 @@ export default defineComponent({
 
 .ugs-hero__value--danger {
   color: #f87171;
-  text-shadow: 0 0 14px rgba(248,113,113,0.3);
-  animation: ugsFleeGlow 2.5s ease-in-out infinite;
 }
 
 .ugs-hero__value--critical {
   color: #ef4444;
-  text-shadow: 0 0 20px rgba(239,68,68,0.5);
-  animation: ugsFleePulse 1.5s ease-in-out infinite;
-}
-
-@keyframes ugsFleeGlow {
-  0%, 100% { text-shadow: 0 0 14px rgba(248,113,113,0.3); }
-  50% { text-shadow: 0 0 24px rgba(248,113,113,0.5); }
-}
-
-@keyframes ugsFleePulse {
-  0%, 100% { text-shadow: 0 0 20px rgba(239,68,68,0.5); transform: scale(1); }
-  50% { text-shadow: 0 0 30px rgba(239,68,68,0.7); transform: scale(1.03); }
 }
 
 .ugs-hero__sub {
   font-size: 11px;
   font-family: monospace;
-  color: #64748b;
+  color: var(--portal-muted);
   letter-spacing: 0.05em;
 }
 
@@ -264,12 +211,6 @@ export default defineComponent({
   letter-spacing: 0.1em;
   color: #ef4444;
   font-family: monospace;
-  animation: ugsWarnBlink 3s ease-in-out infinite;
-}
-
-@keyframes ugsWarnBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
 }
 
 .ugs-flee-badge__icon {
@@ -278,18 +219,18 @@ export default defineComponent({
 
 /* === Grid cells === */
 .ugs-cell {
-  background: rgba(17,26,46,0.95);
+  background: var(--portal-surface);
   padding: 14px 12px;
   text-align: center;
 }
 
 .ugs-cell__label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #64748b;
-  font-family: monospace;
+  text-transform: none;
+  letter-spacing: .02em;
+  color: var(--portal-muted);
+  font-family: inherit;
   margin-bottom: 6px;
 }
 
@@ -323,7 +264,8 @@ export default defineComponent({
   }
 
   .ugs-cell__label {
-    font-size: 9px;
+    font-size: 11px;
   }
 }
+@media (max-width: 640px) {.ugs-grid {grid-template-columns: repeat(2, minmax(0, 1fr));}}
 </style>
