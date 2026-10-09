@@ -14,6 +14,11 @@ import {Color} from '../../common/Color';
 import {Session, SessionId} from '../auth/Session';
 import {toID} from '../../common/utils/utils';
 import {normalizeUserId} from '../../common/utils/normalizeUserId';
+import {StatsRepository} from '../stats/StatsRepository';
+import {statsSqliteAdapter} from '../stats/statsSqliteAdapter';
+import {StatsBackfillReader} from '../stats/StatsBackfillReader';
+import {StatsBackfillCursor, StatsLegacyResult} from '../stats/StatsTypes';
+import {StatsSqliteReader} from '../stats/statsSqliteReader';
 // import {Rating} from 'ts-trueskill';
 
 export const IN_MEMORY_SQLITE_PATH = ':memory:';
@@ -50,6 +55,27 @@ function deserializeUser(row: any): User {
 
 export class SQLite implements IDatabase {
   private _db: BetterSqlite3.Database | undefined;
+  private statsRepository: StatsRepository | undefined;
+  private statsBackfillReader: StatsBackfillReader | undefined;
+
+  public getStatsRepository(): StatsRepository {
+    if (!this.statsRepository) {
+      const sql = statsSqliteAdapter(this.db);
+      if (this.filename !== IN_MEMORY_SQLITE_PATH) {
+        const reader = new StatsSqliteReader(String(this.filename));
+        sql.readTransaction = (work) => reader.readTransaction(work);
+      }
+      this.statsRepository = new StatsRepository(sql);
+    }
+    return this.statsRepository;
+  }
+
+  public getStatsBackfillBatch(since: string, cursor?: StatsBackfillCursor, limit?: number): Promise<StatsLegacyResult[]> {
+    if (!this.statsBackfillReader) {
+      this.statsBackfillReader = new StatsBackfillReader(statsSqliteAdapter(this.db), false);
+    }
+    return this.statsBackfillReader.read(since, cursor, limit);
+  }
 
   protected get db(): any {
     if (this._db === undefined) {
@@ -74,6 +100,10 @@ export class SQLite implements IDatabase {
       }
     }
     this._db = new Database(String(this.filename));
+    if (this.filename !== IN_MEMORY_SQLITE_PATH) {
+      // Read snapshots in the analytics worker must not hold up game writes.
+      this._db.pragma('journal_mode = WAL');
+    }
     console.log('initialize');
     await this.asyncRun('CREATE TABLE IF NOT EXISTS games(game_id varchar, save_id integer, game text, status text default \'running\',createtime timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')), prop text, PRIMARY KEY (game_id, save_id))');
     await this.asyncRun('CREATE TABLE IF NOT EXISTS game(game_id varchar NOT NULL, log text NOT NULL default \'\', options text NOT NULL default \'\', participants text, userids text, prop text, status text default \'running\' NOT NULL, created_time timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')) NOT NULL, updated_time timestamp default (datetime(CURRENT_TIMESTAMP,\'localtime\')) NOT NULL, PRIMARY KEY (game_id))');
@@ -133,6 +163,7 @@ export class SQLite implements IDatabase {
     try {
       await this.asyncRun('ALTER TABLE user_rank ADD COLUMN season_id varchar');
     } catch (_) {/* 列已存在则忽略 */}
+    await this.getStatsRepository().initialize();
   }
 
   public async getPlayerCount(gameId: GameId): Promise<number> {
@@ -198,12 +229,8 @@ export class SQLite implements IDatabase {
   }
 
   saveGameResults(gameId: string, players: number, generations: number, gameOptions: GameOptions, scores: Array<Score>): void {
-    this.db.run('INSERT INTO game_results (game_id, seed_game_id, players, generations, game_options, scores) VALUES($1, $2, $3, $4, $5, $6)', [gameId, gameOptions.clonedGamedId, players, generations, JSON.stringify(gameOptions), JSON.stringify(scores)], (err: any) => {
-      if (err) {
-        console.error('SQlite:saveGameResults', err.message);
-        throw err;
-      }
-    });
+    void this.asyncRun('INSERT INTO game_results (game_id, seed_game_id, players, generations, game_options, scores) VALUES(?, ?, ?, ?, ?, ?)', [gameId, gameOptions.clonedGamedId ?? null, players, generations, JSON.stringify(gameOptions), JSON.stringify(scores)])
+      .catch((err) => console.error('SQLite:saveGameResults', err));
   }
 
   public async getGame(gameId: GameId): Promise<SerializedGame> {
@@ -562,12 +589,7 @@ export class SQLite implements IDatabase {
       [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, user_rank.rankValue, user_rank.mu, user_rank.sigma, user_rank.trueskill, is_rank?1:0, phase, is_timeout?1:0] :
       [user_id, game_id, players, generations, create_time, score.corporation, position, score.playerScore, is_rank?1:0, phase, is_timeout?1:0];
 
-    this.db.run(sql, params, (err: any) => {
-      if (err) {
-        console.error('SQlite:saveUserGameResult', err.message);
-        throw err;
-      }
-    });
+    void this.asyncRun(sql, params).catch((err) => console.error('SQLite:saveUserGameResult', err));
   }
 
   async getUserGameStats(userId: string): Promise<import('./IDatabase').IUserGameStats> {

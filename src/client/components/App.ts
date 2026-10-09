@@ -4,6 +4,7 @@ import {SimpleGameModel} from '@/common/models/SimpleGameModel';
 import {SpectatorModel} from '@/common/models/SpectatorModel';
 
 export type Screen =
+  'stats' |
   'admin' |
   'cards' |
   'create-game-form' |

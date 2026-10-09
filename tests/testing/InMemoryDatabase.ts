@@ -9,8 +9,18 @@ import {User} from '../../src/server/User';
 import {Session, SessionId} from '../../src/server/auth/Session';
 import {Clock} from '../../src/common/Timer';
 import {normalizeUserId} from '../../src/common/utils/normalizeUserId';
+import {StatsRepository} from '../../src/server/stats/StatsRepository';
 
 export class InMemoryDatabase implements IDatabase {
+  // Analytics integration is exercised with the real SQLite adapter in tests/stats.
+  public getStatsRepository(): StatsRepository {
+    const query = async () => [];
+    return new StatsRepository({query, transaction: (work) => work({query})});
+  }
+
+  public async getStatsBackfillBatch() {
+    return [];
+  }
   public games: Map<GameId, Array<SerializedGame | undefined>> = new Map();
   protected completedGames: Map<GameId, Date> = new Map();
   protected sessions: Map<SessionId, Session> = new Map();

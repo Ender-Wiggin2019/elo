@@ -88,6 +88,7 @@ const handlers: Map<string, IHandler> = new Map(
     ['me', ServeApp.INSTANCE],
     ['donate', ServeApp.INSTANCE],
     ['ranks', ServeApp.INSTANCE], // 天梯排行榜
+    [paths.STATS, ServeApp.INSTANCE],
     [paths.LOBBY, ServeApp.INSTANCE], // 游戏大厅
   ],
 );

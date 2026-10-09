@@ -134,6 +134,7 @@ export default defineComponent({
         {path: '/lobby', label: 'Lobby', icon: 'lobby'},
         {path: '/me', label: 'My Space', icon: 'user'},
         {path: '/ranks', label: 'Ranks', icon: 'trophy'},
+        {path: '/stats', label: 'Statistics', icon: 'stats'},
         {path: '/cards', label: 'Cards', icon: 'cards'},
       ];
     },

@@ -7,8 +7,11 @@ import {State} from '../../src/server/database/IGameLoader';
 import {LoadState} from '../../src/server/Game';
 import {IGame} from '../../src/server/IGame';
 import {Player} from '../../src/server/Player';
+import {InMemoryDatabase} from './InMemoryDatabase';
 
 const FAKE_DATABASE: IDatabase = {
+  getStatsRepository: () => new InMemoryDatabase().getStatsRepository(),
+  getStatsBackfillBatch: () => Promise.resolve([]),
   markFinished: () => Promise.resolve(),
   deleteGameNbrSaves: () => Promise.resolve(),
   getPlayerCount: () => Promise.resolve(0),

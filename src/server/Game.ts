@@ -8,6 +8,7 @@ import {ColonyDealer} from './colonies/ColonyDealer';
 import {Color} from '../common/Color';
 import {ICorporationCard, isICorporationCard} from './cards/corporation/ICorporationCard';
 import {Database} from './database/Database';
+import {collectStats} from './stats/collectStats';
 import {GameLoader} from './database/GameLoader';
 import {FundedAward, serializeFundedAwards, deserializeFundedAwards} from './awards/FundedAward';
 import {IAward} from './awards/IAward';
@@ -1416,6 +1417,16 @@ export class Game implements IGame, Logger {
     // this.phase = Phase.END;
     if (this.phase === Phase.END) {
       await this.save();
+      // Capture once from the final state. Statistics never load game saves on
+      // read requests, and a statistics failure must not prevent settlement.
+      try {
+        const stats = collectStats(this);
+        if (stats) {
+          await Database.getInstance().getStatsRepository().save(stats);
+        }
+      } catch (err) {
+        console.error('[stats] Failed to capture completed game', this.id, err);
+      }
     } // 只有正常结束的才会保留，超时放弃的这种的直接清除了
 
     // Log id or cloned game id

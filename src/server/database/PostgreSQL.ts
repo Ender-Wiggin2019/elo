@@ -11,6 +11,9 @@ import {UserRank} from '../../common/rank/RankManager';
 import {Color} from '../../common/Color';
 import {toID} from '../../common/utils/utils';
 import {normalizeUserId} from '../../common/utils/normalizeUserId';
+import {StatsRepository} from '../stats/StatsRepository';
+import {StatsBackfillReader} from '../stats/StatsBackfillReader';
+import {StatsBackfillCursor, StatsLegacyResult} from '../stats/StatsTypes';
 type StoredSerializedGame = Omit<SerializedGame, 'gameOptions' | 'gameLog'>;
 // import {Rating} from 'ts-trueskill';
 
@@ -49,6 +52,35 @@ function deserializeUser(row: any): User {
 }
 
 export class PostgreSQL implements IDatabase {
+  private statsRepository: StatsRepository | undefined;
+  private statsBackfillReader: StatsBackfillReader | undefined;
+
+  public getStatsBackfillBatch(since: string, cursor?: StatsBackfillCursor, limit?: number): Promise<StatsLegacyResult[]> {
+    if (!this.statsBackfillReader) {
+      this.statsBackfillReader = new StatsBackfillReader({query: async (sql, params) => (await this.client.query(sql, params)).rows}, true);
+    }
+    return this.statsBackfillReader.read(since, cursor, limit);
+  }
+
+  public getStatsRepository(): StatsRepository {
+    if (!this.statsRepository) {
+      this.statsRepository = new StatsRepository({
+        query: async (sql, params) => (await this.client.query(sql, params)).rows,
+        transaction: (work) => this.transaction(async (client) => {
+          await client.query("SET LOCAL lock_timeout = '2s'");
+          await client.query("SET LOCAL statement_timeout = '15s'");
+          return work({query: async (sql, params) => (await client.query(sql, params)).rows});
+        }),
+        readTransaction: (work) => this.transaction(async (client) => {
+          await client.query('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
+          await client.query("SET LOCAL lock_timeout = '2s'");
+          await client.query("SET LOCAL statement_timeout = '15s'");
+          return work({query: async (sql, params) => (await client.query(sql, params)).rows});
+        }),
+      });
+    }
+    return this.statsRepository;
+  }
   private databaseName: string | undefined = undefined; // Use this only for stats.
   protected trimCount = POSTGRES_TRIM_COUNT;
 
@@ -200,6 +232,7 @@ export class PostgreSQL implements IDatabase {
     } catch (err) {
       console.warn('ALTER TABLE user_rank (may already exist):', err);
     }
+    await this.getStatsRepository().initialize();
   }
 
   public async getPlayerCount(gameId: GameId): Promise<number> {

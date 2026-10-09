@@ -6,6 +6,8 @@ import {GameId} from '../../common/Types';
 import {Phase} from '../../common/Phase';
 import {User} from '../User';
 import {UserRank} from '../../common/rank/RankManager';
+import {StatsRepository} from '../stats/StatsRepository';
+import {StatsBackfillCursor, StatsLegacyResult} from '../stats/StatsTypes';
 
 export class GameNotFoundError extends Error {
   constructor(gameId: string) {
@@ -85,6 +87,8 @@ export interface IUserRankSeasonSnapshot {
  * in the game. Why, I have no idea, says kberg.
 */
 export interface IDatabase {
+    getStatsRepository(): StatsRepository;
+    getStatsBackfillBatch(since: string, cursor?: StatsBackfillCursor, limit?: number): Promise<StatsLegacyResult[]>;
     /**
      * Creates any tables needed
      */

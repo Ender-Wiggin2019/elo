@@ -261,3 +261,10 @@ export function modelToHash(model: CardListModel) {
   const text = model.filterText + tostring('m') + tostring('t') + tostring('g') + tostring('d');
   return '#' + encodeURIComponent(text);
 }
+
+/** Link to a named card without excluding its expansion or card type. */
+export function cardNameToHash(name: string): string {
+  const modules = Object.values(MODULE_ABBREVIATIONS).join('');
+  const types = Object.values(TYPE_ABBREVIATIONS).join('');
+  return '#' + encodeURIComponent(`${name}~m${modules}~t${types}`);
+}

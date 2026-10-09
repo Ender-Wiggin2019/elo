@@ -29,6 +29,7 @@
                 <span v-i18n>Joined</span> {{ formattedJoinDate }}
               </template>
             </UserIdentity>
+            <TfmButton :href="'/stats?scope=personal&userName=' + encodeURIComponent(profile.name)" variant="outline"><span v-i18n>Detailed statistics</span></TfmButton>
           </div>
         </PortalPanel>
 

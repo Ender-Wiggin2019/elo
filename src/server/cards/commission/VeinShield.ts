@@ -7,7 +7,7 @@ import {CardRenderer} from '../render/CardRenderer';
 import {Card} from '../Card';
 import {IPlayer} from '../../IPlayer';
 import {Resource} from '../../../common/Resource';
-import {all, digit} from '../Options';
+import {digit} from '../Options';
 import {Size} from '../../../common/cards/render/Size';
 
 export class VeinShield extends Card implements IProjectCard, IActionCard {
@@ -21,8 +21,8 @@ export class VeinShield extends Card implements IProjectCard, IActionCard {
       metadata: {
         cardNumber: 'XB73',
         renderData: CardRenderer.builder((b) => {
-          b.effect('When you remove plants from another player, gain 2 M€ per plant removed.', (eb) => {
-            eb.minus().plants(1, {all, digit, size: Size.SMALL}).asterix(Size.SMALL).startEffect.megacredits(2, {size: Size.SMALL});
+          b.effect('When another player removes your plants, gain 2 M€ per plant removed.', (eb) => {
+            eb.minus().plants(1, {digit, size: Size.SMALL}).asterix(Size.SMALL).startEffect.megacredits(2, {size: Size.SMALL});
           }).br;
           b.action('Spend 3 plants to gain 3 titanium.', (eb) => {
             eb.plants(3, {digit, size: Size.SMALL}).startAction.titanium(3, {digit, size: Size.SMALL});

@@ -35,6 +35,7 @@
       <me-page v-else-if="screen === 'me-page'"></me-page>
       <donate-page v-else-if="screen === 'donate'"></donate-page>
       <ranks-page v-else-if="screen === 'ranks'"></ranks-page>
+      <stats-page v-else-if="screen === 'stats'"></stats-page>
       <user-profile v-else-if="screen === 'user-profile'" :identifier="userProfileId"></user-profile>
     </div>
   </div>
@@ -79,6 +80,7 @@ const RegisterPage = defineAsyncComponent(() => import(/* webpackChunkName: "reg
 const ResetPasswordPage = defineAsyncComponent(() => import(/* webpackChunkName: "reset-password" */ '@/client/components/ResetPassword.vue'));
 const StartScreen = defineAsyncComponent(() => import(/* webpackChunkName: "start-screen" */ '@/client/components/StartScreen.vue'));
 const UserProfile = defineAsyncComponent(() => import(/* webpackChunkName: "user-profile" */ '@/client/components/UserProfile.vue'));
+const StatsPage = defineAsyncComponent(() => import('@/client/components/stats/StatsPage.vue'));
 
 function getDay() {
   return new Date(new Date().getTime() + 8 * 60 * 60 * 1000).toISOString().slice(0, 10).replace('T', ' ');
@@ -140,6 +142,7 @@ export default defineComponent({
     'reset-password-page': ResetPasswordPage,
     'start-screen': StartScreen,
     'user-profile': UserProfile,
+    'stats-page': StatsPage,
   },
   computed: {
     isPortalScreen(): boolean {
@@ -159,6 +162,7 @@ export default defineComponent({
         'me-page',
         'donate',
         'ranks',
+        'stats',
         'reset-password',
         'user-profile',
         'games-overview',
@@ -207,6 +211,8 @@ export default defineComponent({
         app.screen = 'donate';
       } else if (currentPathname === 'ranks') {
         app.screen = 'ranks';
+      } else if (currentPathname === paths.STATS) {
+        app.screen = 'stats';
       } else if (getFullPath().startsWith('user/')) {
         const identifier = getFullPath().substring('user/'.length);
         if (identifier) {

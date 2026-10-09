@@ -28,6 +28,7 @@ export const paths = {
   PLAYER: 'player',
   PLAYER_INPUT: 'player/input',
   SPECTATOR: 'spectator',
+  STATS: 'stats',
   THE_END: 'the-end',
   USER_PROFILE: 'user',
 } as const;

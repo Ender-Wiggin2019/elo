@@ -99,7 +99,7 @@ export interface ICard {
   onGlobalParameterIncrease?(player: IPlayer, parameter: GlobalParameter, steps: number): void;
   /** Called once per card-draw operation, excluding research purchases. */
   onCardsDrawn?(player: IPlayer): void;
-  /** Called for the attacker after plants are actually removed from another player. */
+  /** Called for the victim after another player actually removes their plants. Amount is the actual loss. */
   onPlantRemoved?(player: IPlayer, amount: number): void;
 
   /**
