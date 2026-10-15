@@ -58,6 +58,8 @@ import {VeinShield} from './VeinShield';
 import {GlobalDiscount} from './GlobalDiscount';
 import {RedPlanetOceans} from './RedPlanetOceans';
 import {OrbitalMissiles} from './OrbitalMissiles';
+import {GeothermalSmelter} from './GeothermalSmelter';
+import {MycelialSpread} from './MycelialSpread';
 
 export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
   module: 'commission',
@@ -117,6 +119,8 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.GLOBAL_DISCOUNT]: {Factory: GlobalDiscount}, // XB74
     [CardName.RED_PLANET_OCEANS]: {Factory: RedPlanetOceans}, // XB75
     [CardName.ORBITAL_MISSILES]: {Factory: OrbitalMissiles}, // XB76
+    [CardName.GEOTHERMAL_SMELTER]: {Factory: GeothermalSmelter, compatibility: 'turmoil'}, // XB77
+    [CardName.MYCELIAL_SPREAD]: {Factory: MycelialSpread}, // XB78
   },
   globalEvents: {
   },

@@ -170,6 +170,16 @@ See `references/card-patterns.md` for detailed examples of common card patterns 
 - Cards with requirements
 - Corporation cards with `initialAction` and `corpBox`
 
+### Game Logs
+
+Card effects must leave player-visible game logs for actual resource, production, card-resource, and TR changes. The card/action announcement alone does not report those changes.
+
+- For imperative changes, use the existing APIs with `{log: true}`: `player.stock.add/deduct`, `player.production.add/adjust`, `player.addResourceTo/removeResourceFrom`, and `player.increaseTerraformRating(steps, {log: true, from: {card: this.name}})`. Include the source card when it helps explain a triggered effect.
+- Raise global parameters and place oceans through the engine APIs (`game.increaseTemperature`, `game.increaseOxygenLevel`, `game.increaseVenusScaleLevel`, `PlaceOceanTile`). These paths log the resulting TR themselves; do not add a second TR log in the calling card. Check special paths such as ocean attempts at the cap separately.
+- For declarative `behavior`/`action`, verify the executor logs the outcome. In the current executor a literal `tr: 1` does not log automatically; use `tr: {start: 1}` when a separate TR gain log is needed. Global-parameter behavior uses the engine logging above.
+- Log gains only when the engine applies them, after payment/deferred actions resolve. Avoid reporting the requested amount before global caps, Reds policy payment, or Preservation Program can change the actual gain.
+- In card tests, assert both the state change and the corresponding entries in `game.gameLog`. Use `formatMessage` from `tests/TestingUtils.ts` for readable assertions; cover alternate payment paths and relevant caps/blocked effects, and check that one gain is not logged twice.
+
 ## Step 3: Register in Manifest
 
 Edit `src/server/cards/commission/CommissionCardManifest.ts`:

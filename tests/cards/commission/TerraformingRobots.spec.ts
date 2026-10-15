@@ -5,7 +5,7 @@ import {Tag} from '../../../src/common/cards/Tag';
 import {PartyName} from '../../../src/common/turmoil/PartyName';
 import {TerraformingRobots} from '../../../src/server/cards/commission/TerraformingRobots';
 import {OrOptions} from '../../../src/server/inputs/OrOptions';
-import {cast, runAllActions, setOxygenLevel, setRulingParty, setTemperature, testGame} from '../../TestingUtils';
+import {cast, formatMessage, runAllActions, setOxygenLevel, setRulingParty, setTemperature, testGame} from '../../TestingUtils';
 import {TestPlayer} from '../../TestPlayer';
 import {IGame} from '../../../src/server/IGame';
 
@@ -17,15 +17,15 @@ describe('TerraformingRobots', () => {
   beforeEach(() => {
     card = new TerraformingRobots();
     [game, player] = testGame(1, {skipInitialShuffling: true});
-    player.tagsForTest = {power: 1};
+    player.tagsForTest = {power: 2};
     player.megaCredits = card.cost;
   });
 
   it('has the commissioned card properties', () => {
     expect(card.type).to.eq(CardType.ACTIVE);
-    expect(card.cost).to.eq(7);
+    expect(card.cost).to.eq(12);
     expect(card.tags).to.deep.eq([Tag.POWER, Tag.BUILDING]);
-    expect(card.requirements).to.deep.eq([{tag: Tag.POWER, count: 1}]);
+    expect(card.requirements).to.deep.eq([{tag: Tag.POWER, count: 2}]);
   });
 
   it('offers all four payment and parameter combinations when affordable', () => {
@@ -49,11 +49,13 @@ describe('TerraformingRobots', () => {
     const options = cast(card.action(player), OrOptions);
     const option = options.options.find((candidate) => candidate.title === 'Spend 3 energy to raise temperature 1 step');
     expect(option).to.exist;
+    game.gameLog.length = 0;
     option!.cb(undefined);
     runAllActions(game);
 
     expect(player.energy).to.eq(0);
     expect(game.getTemperature()).to.eq(oldTemperature + 2);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 3 energy because of 🌸改造机械人🌸')).to.have.length(1);
   });
 
   it('spends M€ and raises oxygen', () => {

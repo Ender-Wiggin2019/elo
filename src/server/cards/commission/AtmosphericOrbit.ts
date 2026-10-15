@@ -11,6 +11,8 @@ import {SelectOption} from '../../inputs/SelectOption';
 import {CorporationCard} from '../corporation/CorporationCard';
 import {CardRenderer} from '../render/CardRenderer';
 
+const DATA_COST_FOR_VENUS = 4;
+
 export class AtmosphericOrbit extends CorporationCard {
   constructor() {
     super({
@@ -27,7 +29,7 @@ export class AtmosphericOrbit extends CorporationCard {
           b.megacredits(47).heat(5).cards(1);
           b.corpBox('effect', (ce) => {
             ce.vSpace();
-            ce.effect('每次摸牌（研究购牌除外）或升1格温度，三选一：加1数据；花3数据升1格金星；花5数据建1殖民地。', (eb) => {
+            ce.effect(`每次摸牌（研究购牌除外）或升1格温度，三选一：加1数据；花${DATA_COST_FOR_VENUS}数据升1格金星；花5数据建1殖民地。`, (eb) => {
               eb.cards(1, {size: Size.SMALL}).slash().temperature(1, {size: Size.SMALL}).startEffect.resource(CardResource.DATA).asterix();
             });
             ce.vSpace(Size.LARGE);
@@ -55,10 +57,10 @@ export class AtmosphericOrbit extends CorporationCard {
       player.addResourceTo(this, {log: true});
       return undefined;
     }));
-    if (this.resourceCount >= 3 && player.game.getVenusScaleLevel() < MAX_VENUS_SCALE &&
+    if (this.resourceCount >= DATA_COST_FOR_VENUS && player.game.getVenusScaleLevel() < MAX_VENUS_SCALE &&
         player.canAfford({cost: 0, tr: {venus: 1}})) {
-      options.options.push(new SelectOption('移除3个数据，提升1格金星').andThen(() => {
-        player.removeResourceFrom(this, 3, {log: true});
+      options.options.push(new SelectOption(`移除${DATA_COST_FOR_VENUS}个数据，提升1格金星`).andThen(() => {
+        player.removeResourceFrom(this, DATA_COST_FOR_VENUS, {log: true});
         player.game.increaseVenusScaleLevel(player, 1);
         return undefined;
       }));

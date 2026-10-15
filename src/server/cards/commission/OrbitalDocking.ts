@@ -11,15 +11,16 @@ export class OrbitalDocking extends Card implements IProjectCard {
     super({
       name: CardName.ORBITAL_DOCKING,
       type: CardType.ACTIVE,
-      cost: 12,
+      cost: 16,
       tags: [Tag.SCIENCE],
       requirements: {party: PartyName.SCIENTISTS},
       victoryPoints: 1,
       metadata: {
         cardNumber: 'XB68',
+        description: 'Requires that Scientists are ruling or that you have 2 delegates there.',
         renderData: CardRenderer.builder((b) => {
-          b.effect('你获得殖民地奖励时，额外获得1次该奖励；同一殖民地板块有多个殖民地时，也只额外获得1次。', (eb) => {
-            eb.colonies(1).startEffect.text('+1').asterix();
+          b.effect('你获得殖民地贸易奖励时，额外获得1次该奖励；同一殖民地板块有多个殖民地时，也只额外获得1次。', (eb) => {
+            eb.trade().startEffect.text('+1').asterix();
           });
         }),
       },

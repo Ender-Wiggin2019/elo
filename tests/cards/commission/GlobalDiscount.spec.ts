@@ -1,5 +1,6 @@
 import {expect} from 'chai';
 import {Resource} from '../../../src/common/Resource';
+import {Tag} from '../../../src/common/cards/Tag';
 import {GlobalDiscount} from '../../../src/server/cards/commission/GlobalDiscount';
 import {MediaGroup} from '../../../src/server/cards/base/MediaGroup';
 import {EarthCatapult} from '../../../src/server/cards/base/EarthCatapult';
@@ -8,6 +9,10 @@ import {cast, churn} from '../../TestingUtils';
 import {testGame} from '../../TestGame';
 
 describe('GlobalDiscount', () => {
+  it('has two Earth tags', () => {
+    expect(new GlobalDiscount().tags).to.deep.eq([Tag.EARTH, Tag.EARTH]);
+  });
+
   it('scores 1 VP per 3 Earth tags including itself', () => {
     const card = new GlobalDiscount();
     const [/* game */, player] = testGame(1);

@@ -8,6 +8,7 @@ import {Units} from '@/common/Units';
 import {CardResource} from '@/common/CardResource';
 import {getCard} from '@/client/cards/ClientCardManifest';
 import {DEFAULT_PAYMENT_VALUES, Payment} from '@/common/inputs/Payment';
+import {findRedsPaymentReserve} from '@/common/inputs/RedsPayment';
 import {SPENDABLE_RESOURCES, SpendableResource} from '@/common/inputs/Spendable';
 
 export type SelectPaymentDataModel = {
@@ -59,6 +60,14 @@ export const PaymentWidgetMixin = {
         return this.asModel().playerView.thisPlayer.steelValue;
       case 'titanium':
         return this.getTitaniumResourceRate();
+      case 'heat': {
+        const model = this.asModel();
+        if (model.playerinput.paymentOptions.geothermalSmelterHeat === true &&
+            model.tags?.includes(Tag.BUILDING) === true) {
+          return 2;
+        }
+        return DEFAULT_PAYMENT_VALUES[unit];
+      }
       default:
         return DEFAULT_PAYMENT_VALUES[unit];
       }
@@ -155,6 +164,38 @@ export const PaymentWidgetMixin = {
     hasUnits(unit: SpendableResource): boolean {
       return this.getAvailableUnits(unit) > 0;
     },
+    getRedsReserveForCard(): Partial<Payment> {
+      const model = this.asModel();
+      const redsCost = model.card?.additionalProjectCosts?.redsCost ?? 0;
+      if (redsCost <= 0 || model.playerinput.paymentOptions.geothermalSmelterHeat !== true ||
+          model.tags?.includes(Tag.BUILDING) !== true) {
+        return {};
+      }
+
+      const thisPlayer = model.playerView.thisPlayer;
+      const cardReserve = model.reserveUnits ?? Units.EMPTY;
+      const titaniumValue = thisPlayer.titaniumValue ?? DEFAULT_PAYMENT_VALUES.titanium;
+      const canUseTitaniumForCard = model.playerinput.paymentOptions.titanium === true || model.playerinput.paymentOptions.lunaTradeFederationTitanium === true;
+      const reserve = findRedsPaymentReserve({
+        redsCost,
+        available: {
+          megacredits: Math.max((thisPlayer.megacredits ?? 0) - cardReserve.megacredits, 0),
+          heat: Math.max(this.availableHeat() - cardReserve.heat, 0),
+          titanium: Math.max((thisPlayer.titanium ?? 0) - cardReserve.titanium, 0),
+        },
+        redsRates: {
+          megacredits: 1,
+          heat: model.playerinput.paymentOptions.heat === true ? 1 : 0,
+          titanium: model.playerinput.paymentOptions.lunaTradeFederationTitanium === true ? Math.max(titaniumValue - 1, 0) : 0,
+        },
+        cardRates: {
+          megacredits: 1,
+          heat: 2,
+          titanium: canUseTitaniumForCard ? this.getResourceRate('titanium') : 0,
+        },
+      });
+      return reserve?.units ?? {};
+    },
     getAvailableUnits(unit: SpendableResource): number {
       let amount: number | undefined = undefined;
       const model = this.asModel();
@@ -190,6 +231,7 @@ export const PaymentWidgetMixin = {
           case 'seeds':
           case 'auroraiData':
           case 'kuiperAsteroids':
+          case 'diseases':
             amount = input[unit];
           }
         } else {
@@ -200,6 +242,7 @@ export const PaymentWidgetMixin = {
           case 'seeds':
           case 'graphene':
           case 'kuiperAsteroids':
+          case 'diseases':
           case 'auroraiData':
           case 'spireScience':
             amount = input[unit];
@@ -247,7 +290,8 @@ export const PaymentWidgetMixin = {
           amount = Math.max(amount - 1, 0);
         }
       }
-      return amount;
+      const redsReserve = this.getRedsReserveForCard()[unit] ?? 0;
+      return Math.max(amount - redsReserve, 0);
     },
     availableHeat(): number {
       const model = this.asModel();
@@ -275,6 +319,7 @@ export const PaymentWidgetMixin = {
         lunaArchivesScience: 'Science',
         microbes: 'Microbes',
         plants: 'Plants',
+        diseases: 'Diseases',
       };
     },
   },

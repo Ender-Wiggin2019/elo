@@ -15,7 +15,8 @@ export class FloralBloomSurge extends Card implements IProjectCard {
       name: CardName.FLORAL_BLOOM_SURGE,
       tags: [Tag.PLANT],
       requirements: {tag: Tag.PLANT, count: 2},
-      cost: 10,
+      cost: 15,
+      victoryPoints: 1,
 
       metadata: {
         cardNumber: 'XB54',
@@ -33,7 +34,7 @@ export class FloralBloomSurge extends Card implements IProjectCard {
   public onCardPlayed(player: IPlayer, card: IProjectCard) {
     for (const tag of card.tags) {
       if (tag === Tag.PLANT) {
-        player.production.add(Resource.PLANTS, 1);
+        player.production.add(Resource.PLANTS, 1, {log: true, from: {card: this.name}});
       }
     }
   }

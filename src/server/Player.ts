@@ -9,6 +9,7 @@ import {ICorporationCard} from './cards/corporation/ICorporationCard';
 import {IGame} from './IGame';
 import {Game} from './Game';
 import {Payment, PaymentOptions, DEFAULT_PAYMENT_VALUES} from '../common/inputs/Payment';
+import {findRedsPaymentReserve} from '../common/inputs/RedsPayment';
 import {SpendableResource, SPENDABLE_RESOURCES, SpendableCardResource, CARD_FOR_SPENDABLE_RESOURCE} from '../common/inputs/Spendable';
 import {IAward} from './awards/IAward';
 import {ICard, isIActionCard, IActionCard} from './cards/ICard';
@@ -806,6 +807,7 @@ export class Player implements IPlayer {
   private paymentOptionsForCard(card: IProjectCard): PaymentOptions {
     return {
       heat: this.canUseHeatAsMegaCredits,
+      geothermalSmelterHeat: card.tags.includes(Tag.BUILDING) && this.playedCards.has(CardName.GEOTHERMAL_SMELTER),
       steel: this.lastCardPlayed === CardName.LAST_RESORT_INGENUITY || card.tags.includes(Tag.BUILDING),
       plants: card.tags.includes(Tag.BUILDING) && this.playedCards.has(CardName.MARTIAN_LUMBER_CORP),
       titanium: this.lastCardPlayed === CardName.LAST_RESORT_INGENUITY || card.tags.includes(Tag.SPACE),
@@ -818,6 +820,7 @@ export class Player implements IPlayer {
       auroraiData: card.type === CardType.STANDARD_PROJECT,
       graphene: card.tags.includes(Tag.CITY) || card.tags.includes(Tag.SPACE),
       kuiperAsteroids: card.name === CardName.AQUIFER_STANDARD_PROJECT || card.name === CardName.ASTEROID_STANDARD_PROJECT,
+      diseases: (card.tags.includes(Tag.JOVIAN) || card.tags.includes(Tag.MARS)) && this.playedCards.has(CardName.MYCELIAL_SPREAD),
     };
   }
 
@@ -828,6 +831,14 @@ export class Player implements IPlayer {
 
     if (!this.canSpend(payment, reserved)) {
       throw new Error('You do not have that many resources to spend');
+    }
+
+    // Geothermal Smelter lets heat pay for the card at 2 M€, while a Reds
+    // policy surcharge raised by the card is paid at the normal rates after
+    // the card is played.  Reject a payment that would consume the resources
+    // needed for that surcharge before changing the player's state.
+    if (!this.canPayRedsCostAfterPayment(selectedCard, payment, reserved)) {
+      throw new Error('Payment leaves insufficient resources for Reds policy cost');
     }
 
     if (payment.floaters > 0) {
@@ -855,6 +866,28 @@ export class Player implements IPlayer {
       throw new Error('Did not spend enough to pay for card');
     }
     return this.playCard(selectedCard, payment, cardAction);
+  }
+
+  private canPayRedsCostAfterPayment(selectedCard: IProjectCard, payment: Payment, reserveUnits: Units): boolean {
+    const options = this.affordOptionsForCard(selectedCard);
+    if (options.geothermalSmelterHeat !== true) {
+      return true;
+    }
+
+    const redsCost = TurmoilHandler.computeTerraformRatingBump(this, options.tr) * REDS_RULING_POLICY_COST;
+    if (redsCost === 0) {
+      return true;
+    }
+
+    const remaining = this.maxSpendable(reserveUnits);
+    for (const key of SPENDABLE_RESOURCES) {
+      remaining[key] -= payment[key];
+    }
+    // SelectPaymentDeferred uses the normal payment rates for Reds. In
+    // particular, Helion heat and Luna Trade Federation titanium are the only
+    // substitutions available here; Geothermal's 2 M€ heat rate does not
+    // apply to the surcharge.
+    return this.redsPaymentReserve(remaining, redsCost, options) !== undefined;
   }
 
   public resourcesOnCard(name: CardName): number {
@@ -900,6 +933,7 @@ export class Player implements IPlayer {
     removeResourcesOnCard(CardName.SOYLENT_SEEDLING_SYSTEMS, payment.seeds);
     removeResourcesOnCard(CardName.AURORAI, payment.auroraiData);
     removeResourcesOnCard(CardName.KUIPER_COOPERATIVE, payment.kuiperAsteroids);
+    removeResourcesOnCard(CardName.MYCELIAL_SPREAD, payment.diseases);
 
     if (payment.megacredits > 0 || payment.steel > 0 || payment.titanium > 0) {
       PathfindersExpansion.addToSolBank(this);
@@ -1410,7 +1444,27 @@ export class Player implements IPlayer {
       auroraiData: this.getSpendable('auroraiData'),
       graphene: this.getSpendable('graphene'),
       kuiperAsteroids: this.getSpendable('kuiperAsteroids'),
+      diseases: this.getSpendable('diseases'),
     };
+  }
+
+  private redsPaymentReserve(available: Payment, redsCost: number, options: Partial<PaymentOptions>) {
+    const titaniumValue = this.getTitaniumValue();
+    return findRedsPaymentReserve({
+      redsCost,
+      available,
+      redsRates: {
+        megacredits: DEFAULT_PAYMENT_VALUES.megacredits,
+        heat: this.canUseHeatAsMegaCredits ? DEFAULT_PAYMENT_VALUES.heat : 0,
+        titanium: this.canUseTitaniumAsMegacredits ? Math.max(titaniumValue - 1, 0) : 0,
+      },
+      cardRates: {
+        megacredits: DEFAULT_PAYMENT_VALUES.megacredits,
+        heat: options.geothermalSmelterHeat === true ? 2 : options.heat === true ? DEFAULT_PAYMENT_VALUES.heat : 0,
+        titanium: options.titanium === true ? titaniumValue :
+          this.canUseTitaniumAsMegacredits ? Math.max(titaniumValue - 1, 0) : 0,
+      },
+    });
   }
 
   public canSpend(payment: Payment, reserveUnits?: Units): boolean {
@@ -1441,7 +1495,7 @@ export class Player implements IPlayer {
       megacredits: true,
       steel: options?.steel ?? false,
       titanium: options?.titanium ?? false,
-      heat: this.canUseHeatAsMegaCredits,
+      heat: this.canUseHeatAsMegaCredits || options?.geothermalSmelterHeat === true,
       plants: options?.plants ?? false,
       microbes: options?.microbes ?? false,
       floaters: options?.floaters ?? false,
@@ -1451,7 +1505,12 @@ export class Player implements IPlayer {
       auroraiData: options?.auroraiData ?? false,
       graphene: options?.graphene ?? false,
       kuiperAsteroids: options?.kuiperAsteroids ?? false,
+      diseases: options?.diseases ?? false,
     };
+
+    if (options?.geothermalSmelterHeat === true) {
+      multiplier.heat = 2;
+    }
 
     // HOOK: Luna Trade Federation
     if (usable.titanium === false && payment.titanium > 0 && this.canUseTitaniumAsMegacredits) {
@@ -1504,9 +1563,28 @@ export class Player implements IPlayer {
       }
     }
 
-    const usable = this.payingAmount(maxPayable, options);
+    // Geothermal Smelter can double the value of heat for a building card,
+    // while the Reds policy still charges heat at its normal Helion rate.
+    // Reserve the policy cost before valuing the card so the same heat cannot
+    // be counted twice by canPlay().
+    let maxPayableForCard = maxPayable;
+    const reservesRedsBeforeGeothermalCard = redsCost > 0 && options.geothermalSmelterHeat === true;
+    if (reservesRedsBeforeGeothermalCard) {
+      const reservedForReds = this.redsPaymentReserve(maxPayable, redsCost, options);
+      if (reservedForReds === undefined) {
+        return Player.CANNOT_AFFORD;
+      }
 
-    const canAfford = options.cost + redsCost <= usable;
+      maxPayableForCard = {
+        ...maxPayable,
+        megacredits: maxPayable.megacredits - reservedForReds.units.megacredits,
+        heat: maxPayable.heat - reservedForReds.units.heat,
+        titanium: maxPayable.titanium - reservedForReds.units.titanium,
+      };
+    }
+    const usable = this.payingAmount(maxPayableForCard, options);
+
+    const canAfford = (reservesRedsBeforeGeothermalCard ? options.cost : options.cost + redsCost) <= usable;
     return {canAfford, redsCost};
   }
 
@@ -1536,12 +1614,18 @@ export class Player implements IPlayer {
         title: 'Standard projects',
         buttonLabel: 'Confirm',
       }).andThen((card) => {
-      if (!(isvip > 0 && player.megaCredits > 100)) return undefined;
-      if (card.name !== CardName.BUFFER_GAS_STANDARD_PROJECT) return undefined;
+      if (!(isvip > 0 && player.megaCredits > 100)) {
+        return undefined;
+      }
+      if (card.name !== CardName.BUFFER_GAS_STANDARD_PROJECT) {
+        return undefined;
+      }
       const cost = card.getAdjustedCost(player);
       const redsCost = TurmoilHandler.computeTerraformRatingBump(player, {tr: 1}) * REDS_RULING_POLICY_COST;
       const max = Math.min(Math.floor(player.megaCredits / (cost + redsCost)), 100);
-      if (max <= 0) return undefined;
+      if (max <= 0) {
+        return undefined;
+      }
 
       player.defer(() =>
         new SelectAmount(
@@ -1551,7 +1635,9 @@ export class Player implements IPlayer {
           max,
         ).andThen((amount: number) => {
           for (let i = 0; i < amount; i++) {
-            if (!card.canAct(player)) break;
+            if (!card.canAct(player)) {
+              break;
+            }
             card.payAndExecute(player, {...Payment.EMPTY, megacredits: cost});
           }
           return undefined;
@@ -2237,7 +2323,6 @@ export class Player implements IPlayer {
   public getUserRank(): UserRank | undefined {
     return GameLoader.getUserRankByPlayer(this);
   }
-
 
 
   public runWhenEmpty(cb: () => void): () => void {

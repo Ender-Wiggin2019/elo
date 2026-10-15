@@ -16,7 +16,7 @@ export class VeinShield extends Card implements IProjectCard, IActionCard {
       name: CardName.VEIN_SHIELD,
       type: CardType.ACTIVE,
       tags: [Tag.PLANT],
-      cost: 8,
+      cost: 5,
 
       metadata: {
         cardNumber: 'XB73',

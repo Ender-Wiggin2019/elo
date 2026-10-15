@@ -11,7 +11,7 @@ import {OrOptions} from '../../../src/server/inputs/OrOptions';
 import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
 import {testGame} from '../../TestGame';
 import {TestPlayer} from '../../TestPlayer';
-import {cast, runAllActions, setRulingParty} from '../../TestingUtils';
+import {cast, formatMessage, runAllActions, setRulingParty} from '../../TestingUtils';
 
 describe('MeteoriteLakeside', () => {
   let card: MeteoriteLakeside;
@@ -24,7 +24,7 @@ describe('MeteoriteLakeside', () => {
     [game, player, player2] = testGame(2, {skipInitialShuffling: true});
     player.playCorporationCard(card);
     runAllActions(game);
-    player.megaCredits = 42;
+    player.megaCredits = 40;
   });
 
   function addOceanForOtherPlayer(): void {
@@ -66,8 +66,8 @@ describe('MeteoriteLakeside', () => {
     return land;
   }
 
-  it('starts with 42 M€ and its first action places an ocean on land', () => {
-    expect(card.startingMegaCredits).to.eq(42);
+  it('starts with 40 M€ and its first action places an ocean on land', () => {
+    expect(card.startingMegaCredits).to.eq(40);
     const initialOceanCount = game.board.getOceanSpaces().length;
 
     player.defer(card.initialAction(player));
@@ -87,33 +87,54 @@ describe('MeteoriteLakeside', () => {
     skipOceanBonus(cast(oceanBonus, OrOptions));
   });
 
-  it('offers the ocean bonus for an ocean placed by any player, payable with M€ or steel', () => {
-    player.megaCredits = 4;
+  it('offers the ocean bonus for an ocean placed by any player, payable with M€ or titanium', () => {
+    player.megaCredits = 5;
     const initialTR = player.getTerraformRating();
     addOceanForOtherPlayer();
 
     const moneyChoice = cast(player.popWaitingFor(), OrOptions);
     expect(moneyChoice.options).to.have.length(2);
-    const moneyOption = moneyChoice.options.find((option) => option.title.toString().includes('4 M€'));
+    const moneyOption = moneyChoice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
+    game.gameLog.length = 0;
     moneyOption!.cb();
     runAllActions(game);
 
     expect(player.megaCredits).to.eq(0);
     expect(player.getTerraformRating()).to.eq(initialTR + 1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue gained 1 TR from 🌸星陨湖畔🌸')).to.have.length(1);
 
-    player.steel = 2;
+    player.titanium = 2;
     const secondInitialTR = player.getTerraformRating();
     addOceanForOtherPlayer();
-    const steelChoice = cast(player.popWaitingFor(), OrOptions);
-    expect(steelChoice.options).to.have.length(2);
-    const steelOption = steelChoice.options.find((option) => option.title.toString().includes('2钢铁'));
-    expect(steelOption).to.exist;
-    steelOption!.cb();
+    const titaniumChoice = cast(player.popWaitingFor(), OrOptions);
+    expect(titaniumChoice.options).to.have.length(2);
+    const titaniumOption = titaniumChoice.options.find((option) => option.title.toString().includes('2钛'));
+    expect(titaniumOption).to.exist;
+    game.gameLog.length = 0;
+    titaniumOption!.cb();
     runAllActions(game);
 
-    expect(player.steel).to.eq(0);
+    expect(player.titanium).to.eq(0);
     expect(player.getTerraformRating()).to.eq(secondInitialTR + 1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue gained 1 TR from 🌸星陨湖畔🌸')).to.have.length(1);
+  });
+
+  it('triggers for a Wetlands tile as an uncovered ocean', () => {
+    player.megaCredits = 0;
+    player.titanium = 2;
+    const land = game.board.getAvailableSpacesOnLand(player2)[0];
+
+    game.addTile(player2, land, {tileType: TileType.WETLANDS});
+    runAllActions(game);
+
+    const choice = cast(player.popWaitingFor(), OrOptions);
+    const titaniumOption = choice.options.find((option) => option.title.toString().includes('2钛'));
+    expect(titaniumOption).to.exist;
+    titaniumOption!.cb();
+    runAllActions(game);
+
+    expect(player.titanium).to.eq(0);
   });
 
   it('offers one adjacency draw even when the placed tile touches two oceans', () => {
@@ -171,14 +192,14 @@ describe('MeteoriteLakeside', () => {
   it('rechecks adjacency affordability after paying the ocean reward', () => {
     const land = prepareAdjacentOceans(1);
     player.oceanBonus = 0;
-    player.megaCredits = 4;
+    player.megaCredits = 5;
     const initialTR = player.getTerraformRating();
 
     game.addOcean(player, land);
     runAllActions(game);
 
     const oceanChoice = cast(player.popWaitingFor(), OrOptions);
-    const moneyOption = oceanChoice.options.find((option) => option.title.toString().includes('4 M€'));
+    const moneyOption = oceanChoice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
     expect(oceanChoice.options.some((option) => option.title.toString().includes('跳过星陨湖畔效果'))).to.be.true;
     moneyOption!.cb();
@@ -192,7 +213,7 @@ describe('MeteoriteLakeside', () => {
   it('allows both rewards when the owner can pay for both', () => {
     const land = prepareAdjacentOceans(1);
     player.oceanBonus = 0;
-    player.megaCredits = 6;
+    player.megaCredits = 7;
     const initialHandSize = player.cardsInHand.length;
     const initialTR = player.getTerraformRating();
 
@@ -200,7 +221,7 @@ describe('MeteoriteLakeside', () => {
     runAllActions(game);
 
     const oceanChoice = cast(player.popWaitingFor(), OrOptions);
-    const moneyOption = oceanChoice.options.find((option) => option.title.toString().includes('4 M€'));
+    const moneyOption = oceanChoice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
     moneyOption!.cb();
     runAllActions(game);
@@ -217,7 +238,7 @@ describe('MeteoriteLakeside', () => {
     expect(player.getTerraformRating()).to.eq(initialTR + 2);
   });
 
-  it('resolves the steel ocean reward and adjacency draw with the Reds costs', () => {
+  it('resolves the titanium ocean reward and adjacency draw with the Reds costs', () => {
     card = new MeteoriteLakeside();
     [game, player, player2] = testGame(2, {
       skipInitialShuffling: true,
@@ -230,7 +251,7 @@ describe('MeteoriteLakeside', () => {
     const land = prepareAdjacentOceans(1);
     player.oceanBonus = 0;
     player.megaCredits = 8;
-    player.steel = 2;
+    player.titanium = 2;
     const initialHandSize = player.cardsInHand.length;
     const initialTR = player.getTerraformRating();
 
@@ -238,10 +259,10 @@ describe('MeteoriteLakeside', () => {
     runAllActions(game);
 
     const oceanChoice = cast(player.popWaitingFor(), OrOptions);
-    const steelOption = oceanChoice.options.find((option) => option.title.toString().includes('2钢铁'));
-    expect(steelOption).to.exist;
-    expect(oceanChoice.options.some((option) => option.title.toString().includes('4 M€'))).to.be.false;
-    steelOption!.cb();
+    const titaniumOption = oceanChoice.options.find((option) => option.title.toString().includes('2钛'));
+    expect(titaniumOption).to.exist;
+    expect(oceanChoice.options.some((option) => option.title.toString().includes('5 M€'))).to.be.false;
+    titaniumOption!.cb();
     runAllActions(game);
 
     const adjacencyChoice = cast(player.popWaitingFor(), OrOptions);
@@ -250,7 +271,7 @@ describe('MeteoriteLakeside', () => {
     drawOption!.cb();
     runAllActions(game);
 
-    expect(player.steel).to.eq(0);
+    expect(player.titanium).to.eq(0);
     expect(player.megaCredits).to.eq(0);
     expect(player.cardsInHand).to.have.length(initialHandSize + 1);
     expect(player.getTerraformRating()).to.eq(initialTR + 2);
@@ -290,12 +311,12 @@ describe('MeteoriteLakeside', () => {
     player.playCorporationCard(card);
     runAllActions(game);
     setRulingParty(game, PartyName.REDS, 'rp01');
-    player.megaCredits = 7;
+    player.megaCredits = 8;
     const initialTR = player.getTerraformRating();
 
     addOceanForOtherPlayer();
     const choice = cast(player.popWaitingFor(), OrOptions);
-    const moneyOption = choice.options.find((option) => option.title.toString().includes('4 M€'));
+    const moneyOption = choice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
     moneyOption!.cb();
     runAllActions(game);

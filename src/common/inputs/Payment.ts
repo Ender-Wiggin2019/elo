@@ -39,6 +39,7 @@ export const DEFAULT_PAYMENT_VALUES = {
   auroraiData: DATA_VALUE,
   graphene: GRAPHENE_VALUE,
   kuiperAsteroids: 1,
+  diseases: 4,
 } satisfies Record<SpendableResource, number>;
 
 export namespace Payment {
@@ -56,6 +57,7 @@ export namespace Payment {
     auroraiData: 0,
     graphene: 0,
     kuiperAsteroids: 0,
+    diseases: 0,
   } as const;
 
   export function of(payment: Partial<Payment>) : Payment {
@@ -73,6 +75,7 @@ export namespace Payment {
       titanium: payment.titanium ?? 0,
       graphene: payment.graphene ?? 0,
       kuiperAsteroids: payment.kuiperAsteroids ?? 0,
+      diseases: payment.diseases ?? 0,
       plants: payment.plants ?? 0,
     };
   }
@@ -81,7 +84,7 @@ export namespace Payment {
 /**
  * See PaymentOptions.
  */
-type WaysToPay = Exclude<SpendableResource, 'megacredits'> | 'lunaTradeFederationTitanium';
+type WaysToPay = Exclude<SpendableResource, 'megacredits'> | 'lunaTradeFederationTitanium' | 'geothermalSmelterHeat';
 
 /**
  * PaymentOptions describes the ways you can pay for something.

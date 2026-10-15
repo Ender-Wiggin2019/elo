@@ -91,6 +91,79 @@ describe('SelectProjectCardToPlay', () => {
     expect(saveResponse.payment).deep.eq(Payment.of({heat: 3, megacredits: 7}));
   });
 
+  it('Geothermal Smelter heat is valued at 2 M€ for building cards', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.MINE, 10,
+      {heat: 2, megacredits: 6},
+      {paymentOptions: {geothermalSmelterHeat: true}});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectIsAvailable('heat');
+    tester.expectPayment({heat: 2, megacredits: 6});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({heat: 2, megacredits: 6}));
+  });
+
+  it('reserves the Reds surcharge before default Geothermal payment', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.MINE, 6,
+      {heat: 3, megacredits: 3},
+      {paymentOptions: {heat: true, geothermalSmelterHeat: true}},
+      {additionalProjectCosts: {redsCost: 3}});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectPayment({heat: 3});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({heat: 3}));
+  });
+
+  it('keeps a mixed Geothermal heat and plant payment exact', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.MINE, 5,
+      {heat: 2, plants: 1, megacredits: 0},
+      {paymentOptions: {geothermalSmelterHeat: true, plants: true}});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectPayment({heat: 1, plants: 1});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({heat: 1, plants: 1}));
+  });
+
+  it('diseases pay for Jovian cards at 4 M€ each', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.JOVIAN_EMBASSY, 8,
+      {megacredits: 0},
+      {diseases: 2, paymentOptions: {diseases: true}});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectIsAvailable('diseases');
+    tester.expectPayment({diseases: 2});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({diseases: 2}));
+  });
+
+  it('diseases cover a cost remainder without underpaying', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.JOVIAN_EMBASSY, 7,
+      {megacredits: 0},
+      {diseases: 2, paymentOptions: {diseases: true}});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectPayment({diseases: 2});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({diseases: 2}));
+  });
+
   it('max heat', async () => {
     const wrapper = setupCardForPurchase(
       CardName.BIRDS, 10,
@@ -676,7 +749,11 @@ describe('SelectProjectCardToPlay', () => {
     cardCost: number,
     playerFields: Partial<PublicPlayerModel>,
     playerInputFields: Partial<SelectProjectCardToPlayModel>,
-    options?: {reserveUnits?: Units, canPayWith?: CardModel['standardProjectCanPayWith']}) {
+    options?: {
+      reserveUnits?: Units,
+      canPayWith?: CardModel['standardProjectCanPayWith'],
+      additionalProjectCosts?: CardModel['additionalProjectCosts'],
+    }) {
     const thisPlayer: Partial<PublicPlayerModel> = Object.assign({
       cards: [{name: cardName, calculatedCost: cardCost}],
       steel: 0,
@@ -698,6 +775,7 @@ describe('SelectProjectCardToPlay', () => {
         name: cardName,
         resources: undefined,
         calculatedCost: cardCost,
+        additionalProjectCosts: options?.additionalProjectCosts,
       }],
       paymentOptions: {},
       floaters: 0,

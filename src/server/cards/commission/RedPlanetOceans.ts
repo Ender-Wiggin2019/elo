@@ -17,8 +17,8 @@ import {PlaceOceanTile} from '../../deferredActions/PlaceOceanTile';
 import {TITLES} from '../../inputs/titles';
 import {Size} from '../../../common/cards/render/Size';
 
-const MEGACREDIT_COST = 14;
-const HEAT_COST = 9;
+const MEGACREDIT_COST = 15;
+const HEAT_COST = 10;
 
 export class RedPlanetOceans extends Card implements IProjectCard, IActionCard {
   constructor() {
@@ -34,7 +34,7 @@ export class RedPlanetOceans extends Card implements IProjectCard, IActionCard {
           b.effect('When the oceans are full, your attempted ocean placement gains 1 TR.', (eb) => {
             eb.oceans(1).text('(9)', Size.SMALL, true).startEffect.tr(1);
           }).br;
-          b.action('Spend 14 M€ or 9 heat to place an ocean tile.', (eb) => {
+          b.action(`Spend ${MEGACREDIT_COST} M€ or ${HEAT_COST} heat to place an ocean tile.`, (eb) => {
             eb.megacredits(MEGACREDIT_COST).slash().heat(HEAT_COST).startAction.oceans(1);
           });
         }),
@@ -88,11 +88,11 @@ export class RedPlanetOceans extends Card implements IProjectCard, IActionCard {
   public action(player: IPlayer): PlayerInput | undefined {
     const options: Array<SelectOption> = [];
     if (this.canPayMegacredits(player)) {
-      options.push(new SelectOption('Spend 14 M€ to place an ocean tile', 'Spend M€')
+      options.push(new SelectOption(`Spend ${MEGACREDIT_COST} M€ to place an ocean tile`, 'Spend M€')
         .andThen(() => this.placeOceanWithMegacredits(player)));
     }
     if (this.canPayHeat(player)) {
-      options.push(new SelectOption('Spend 9 heat to place an ocean tile', 'Spend heat')
+      options.push(new SelectOption(`Spend ${HEAT_COST} heat to place an ocean tile`, 'Spend heat')
         .andThen(() => this.placeOceanWithHeat(player)));
     }
 

@@ -33,8 +33,8 @@ describe('RedPlanetOceans', () => {
     expect(card.tags).to.deep.eq([Tag.SPACE]);
   });
 
-  it('spends 14 M€ and places an ocean', () => {
-    player.megaCredits = 14;
+  it('spends 15 M€ and places an ocean', () => {
+    player.megaCredits = 15;
     const initialTerraformRating = player.terraformRating;
 
     cast(card.action(player), undefined);
@@ -48,8 +48,8 @@ describe('RedPlanetOceans', () => {
     expect(player.terraformRating).to.eq(initialTerraformRating + 1);
   });
 
-  it('spends 9 heat and places an ocean', () => {
-    player.heat = 9;
+  it('spends 10 heat and places an ocean', () => {
+    player.heat = 10;
     const initialTerraformRating = player.terraformRating;
 
     cast(card.action(player), undefined);
@@ -149,7 +149,7 @@ describe('RedPlanetOceans', () => {
     card = new RedPlanetOceans();
     player.playedCards.push(card);
     maxOutOceans(player);
-    testRedsCosts(() => card.canAct(player), player, 14, 3);
+    testRedsCosts(() => card.canAct(player), player, 15, 3);
   });
 
   it('applies the converted TR Reds surcharge to other ocean sources', () => {

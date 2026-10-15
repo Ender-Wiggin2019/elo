@@ -20,24 +20,24 @@ describe('ShadowCabinet', () => {
   });
 
   it('has the expected properties', () => {
-    expect(card.cost).to.eq(5);
+    expect(card.cost).to.eq(4);
     expect(card.type).to.eq(CardType.ACTIVE);
     expect(card.tags).to.deep.eq([Tag.EARTH]);
     expect(card.victoryPoints).to.eq(-1);
   });
 
-  it('gains 3 M€ for itself and each played negative VP card', () => {
-    player.playCard(card, Payment.of({megacredits: 5}));
+  it('gains 4 M€ for itself and each played negative VP card', () => {
+    player.playCard(card, Payment.of({megacredits: 4}));
     runAllActions(player.game);
-    expect(player.megaCredits).to.eq(98); // 100 - 5 + 3 for Shadow Cabinet itself.
+    expect(player.megaCredits).to.eq(100); // 100 - 4 + 4 for Shadow Cabinet itself.
 
     player.playCard(new IndenturedWorkers());
     runAllActions(player.game);
-    expect(player.megaCredits).to.eq(101);
+    expect(player.megaCredits).to.eq(104);
   });
 
   it('does not trigger for a card without a negative static VP value', () => {
-    player.playCard(card, Payment.of({megacredits: 5}));
+    player.playCard(card, Payment.of({megacredits: 4}));
     runAllActions(player.game);
     const before = player.megaCredits;
 

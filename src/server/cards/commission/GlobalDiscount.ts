@@ -11,7 +11,7 @@ export class GlobalDiscount extends ActionCard implements IProjectCard {
     super({
       name: CardName.GLOBAL_DISCOUNT,
       type: CardType.ACTIVE,
-      tags: [Tag.EARTH],
+      tags: [Tag.EARTH, Tag.EARTH],
       cost: 13,
       victoryPoints: {tag: Tag.EARTH, each: 1, per: 3},
 

@@ -25,8 +25,8 @@ export class TerraformingRobots extends Card implements IProjectCard, IActionCar
       name: CardName.TERRAFORMING_ROBOTS_COMMISSION,
       type: CardType.ACTIVE,
       tags: [Tag.POWER, Tag.BUILDING],
-      cost: 7,
-      requirements: {tag: Tag.POWER, count: 1},
+      cost: 12,
+      requirements: {tag: Tag.POWER, count: 2},
 
       metadata: {
         cardNumber: 'XB72',
@@ -40,7 +40,7 @@ export class TerraformingRobots extends Card implements IProjectCard, IActionCar
               .temperature(1, {size: Size.SMALL}).or(Size.SMALL).oxygen(1, {size: Size.SMALL});
           });
         }),
-        description: 'Requires 1 power tag.',
+        description: 'Requires 2 power tags.',
       },
     });
   }
@@ -85,7 +85,7 @@ export class TerraformingRobots extends Card implements IProjectCard, IActionCar
   }
 
   private payEnergyAndRaise(player: IPlayer, parameter: 'temperature' | 'oxygen'): undefined {
-    player.stock.deduct(Resource.ENERGY, ENERGY_COST);
+    player.stock.deduct(Resource.ENERGY, ENERGY_COST, {log: true, from: {card: this.name}});
     return this.raise(player, parameter);
   }
 

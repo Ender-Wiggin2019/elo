@@ -64,9 +64,12 @@ export abstract class SelectCardToPlay<T extends IProjectCard | IStandardProject
       floaters: player.getSpendable('floaters'),
       paymentOptions: {
         heat: player.canUseHeatAsMegaCredits,
+        geothermalSmelterHeat: player.playedCards.has(CardName.GEOTHERMAL_SMELTER),
         lunaTradeFederationTitanium: player.canUseTitaniumAsMegacredits,
         plants: player.canUsePlantsAsMegacredits,
+        diseases: player.playedCards.has(CardName.MYCELIAL_SPREAD),
       },
+      diseases: player.getSpendable('diseases'),
       lunaArchivesScience: player.getSpendable('lunaArchivesScience'),
       seeds: player.getSpendable('seeds'),
       graphene: player.getSpendable('graphene'),

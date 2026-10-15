@@ -85,6 +85,7 @@ export default defineComponent({
         'heat',
         'plants',
         'microbes',
+        'diseases',
         'floaters',
         'lunaArchivesScience',
         'seeds',
@@ -194,7 +195,8 @@ export default defineComponent({
         case 'spireScience':
           return true;
         case 'heat':
-          return this.playerinput.paymentOptions.heat === true;
+          return this.playerinput.paymentOptions.heat === true ||
+            (this.tags.includes(Tag.BUILDING) && this.playerinput.paymentOptions.geothermalSmelterHeat === true);
         case 'steel':
           return canPayWith.steel === true;
         case 'titanium':
@@ -210,6 +212,8 @@ export default defineComponent({
         case 'lunaArchivesScience':
         case 'graphene':
           return false;
+        case 'diseases':
+          return false;
         default: throw new Error('Unknown unit ' + unit);
         }
       } else {
@@ -218,7 +222,8 @@ export default defineComponent({
         case 'megacredits':
           return true;
         case 'heat':
-          return this.playerinput.paymentOptions.heat === true;
+          return this.playerinput.paymentOptions.heat === true ||
+            (this.tags.includes(Tag.BUILDING) && this.playerinput.paymentOptions.geothermalSmelterHeat === true);
         case 'steel':
           return this.tags.includes(Tag.BUILDING) ||
           this.playerView.thisPlayer.lastCardPlayed === CardName.LAST_RESORT_INGENUITY;
@@ -238,6 +243,9 @@ export default defineComponent({
         case 'graphene':
           return this.tags.includes(Tag.SPACE) ||
             this.tags.includes(Tag.CITY);
+        case 'diseases':
+          return (this.tags.includes(Tag.JOVIAN) || this.tags.includes(Tag.MARS)) &&
+            this.playerinput.paymentOptions.diseases === true;
         case 'kuiperAsteroids':
         case 'auroraiData':
         case 'spireScience':

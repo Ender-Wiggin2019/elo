@@ -1677,7 +1677,7 @@ export class Game implements IGame, Logger {
       }
       if (this.venusScaleLevel < constants.VENUS_LEVEL_FOR_TR_BONUS &&
         this.venusScaleLevel + steps * 2 >= constants.VENUS_LEVEL_FOR_TR_BONUS) {
-        player.increaseTerraformRating();
+        player.increaseTerraformRating(1, {log: true});
       }
       const foundCard = player.playedCards.get(CardName.VENUS_UNIVERSITY);
       if (foundCard !== undefined) {
@@ -1703,7 +1703,7 @@ export class Game implements IGame, Logger {
       }
       TurmoilHandler.onGlobalParameterIncrease(player, GlobalParameter.VENUS, steps);
       player.onGlobalParameterIncrease(GlobalParameter.VENUS, steps);
-      player.increaseTerraformRating(steps);
+      player.increaseTerraformRating(steps, {log: true});
     };
 
     if (this.phase !== Phase.SOLAR) {
@@ -1771,7 +1771,7 @@ export class Game implements IGame, Logger {
       }
       player.onGlobalParameterIncrease(GlobalParameter.TEMPERATURE, steps);
       TurmoilHandler.onGlobalParameterIncrease(player, GlobalParameter.TEMPERATURE, steps);
-      player.increaseTerraformRating(steps);
+      player.increaseTerraformRating(steps, {log: true});
     };
 
     if (this.phase !== Phase.SOLAR) {
@@ -2058,7 +2058,7 @@ export class Game implements IGame, Logger {
     }
 
     if (player.playedCards.has(CardName.PROWLER) && this.oxygenLevel >= constants.MAX_OXYGEN_LEVEL) {
-      player.increaseTerraformRating(1);
+      player.increaseTerraformRating(1, {log: true, from: {card: CardName.PROWLER}});
     }
 
     if (shouldRaiseOxygen) {
@@ -2099,7 +2099,7 @@ export class Game implements IGame, Logger {
 
     if (this.phase !== Phase.SOLAR && this.phase !== Phase.INTERGENERATION &&
         player.playedCards.has(CardName.RED_PLANET_OCEANS)) {
-      player.increaseTerraformRating();
+      player.increaseTerraformRating(1, {log: true, from: {card: CardName.RED_PLANET_OCEANS}});
     }
   }
 
@@ -2122,13 +2122,13 @@ export class Game implements IGame, Logger {
     if (this.phase !== Phase.SOLAR && this.phase !== Phase.INTERGENERATION) {
       TurmoilHandler.onGlobalParameterIncrease(player, GlobalParameter.OCEANS);
       player.onGlobalParameterIncrease(GlobalParameter.OCEANS, 1);
-      player.increaseTerraformRating();
+      player.increaseTerraformRating(1, {log: true});
     }
 
     // wg hook
     if (this.phase === Phase.SOLAR && this.wgPartnershipOwner) {
       TurmoilHandler.onGlobalParameterIncrease(this.wgPartnershipOwner, GlobalParameter.OCEANS);
-      this.wgPartnershipOwner.increaseTerraformRating();
+      this.wgPartnershipOwner.increaseTerraformRating(1, {log: true});
     }
     AresHandler.ifAres(this, (aresData) => {
       AresHandler.onOceanPlaced(aresData, player);

@@ -80,6 +80,7 @@ export default defineComponent({
         'auroraiData',
         'kuiperAsteroids',
         'spireScience',
+        'diseases',
         'megacredits',
       ];
     },

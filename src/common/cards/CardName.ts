@@ -676,6 +676,8 @@ export enum CardName {
   GLOBAL_DISCOUNT = '🌸环球贴现🌸',
   RED_PLANET_OCEANS = '🌸赤星之海🌸',
   ORBITAL_MISSILES = '🌸轨道导弹🌸',
+  GEOTHERMAL_SMELTER = '🌸Geothermal Smelter🌸',
+  MYCELIAL_SPREAD = '🌸Mycelial Spread🌸',
 
     PLANETARY_METEOR_HARVESTERS = '星际碎屑',
     UNIQUE_ITEM_BOUNTY = '奇物丰收',

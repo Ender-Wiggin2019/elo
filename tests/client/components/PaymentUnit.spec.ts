@@ -17,6 +17,18 @@ describe('PaymentUnit', () => {
     expect(input.element.value).to.eq('5');
   });
 
+  it('uses the disease resource icon for disease payments', () => {
+    const wrapper = shallowMount(PaymentUnit, {
+      ...globalConfig,
+      props: {
+        modelValue: 1,
+        unit: 'diseases',
+        description: 'Diseases',
+      },
+    });
+    expect(wrapper.find('i.resource_icon').classes()).includes('resource_icon--disease');
+  });
+
   it('emits update:modelValue on input change', async () => {
     const wrapper = shallowMount(PaymentUnit, {
       ...globalConfig,

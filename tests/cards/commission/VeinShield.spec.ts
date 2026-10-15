@@ -27,7 +27,7 @@ describe('VeinShield', () => {
   });
 
   it('has the expected properties', () => {
-    expect(card.cost).to.eq(8);
+    expect(card.cost).to.eq(5);
     expect(card.type).to.eq(CardType.ACTIVE);
     expect(card.tags).to.deep.eq([Tag.PLANT]);
   });

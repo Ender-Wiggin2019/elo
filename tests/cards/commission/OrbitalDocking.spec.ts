@@ -9,6 +9,10 @@ import {runAllActions} from '../../TestingUtils';
 import {testGame} from '../../TestGame';
 
 describe('OrbitalDocking', () => {
+  it('costs 16 M€', () => {
+    expect(new OrbitalDocking().cost).to.eq(16);
+  });
+
   it('adds one colony bonus after the colony multiplicity for 1, 2, or 3 colonies', () => {
     for (const colonyCount of [1, 2, 3]) {
       const [game, player, trader] = testGame(2, {coloniesExtension: true});

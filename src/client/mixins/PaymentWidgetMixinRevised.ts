@@ -8,9 +8,11 @@ import {Units} from '@/common/Units';
 import {CardResource} from '@/common/CardResource';
 import {getCard} from '@/client/cards/ClientCardManifest';
 import {DEFAULT_PAYMENT_VALUES, Payment} from '@/common/inputs/Payment';
+import {findRedsPaymentReserve} from '@/common/inputs/RedsPayment';
 import {SpendableResource} from '@/common/inputs/Spendable';
 import {Ledger, newDefaultLedger} from '../components/PaymentLedger';
 import {ALL_RESOURCES} from '@/common/Resource';
+import {Tag} from '@/common/cards/Tag';
 
 export type DataModel = {
   cost: number,
@@ -73,6 +75,12 @@ export const PaymentWidgetMixin = defineComponent({
         return this.playerView.thisPlayer.steelValue;
       case 'titanium':
         return this.getTitaniumResourceRate();
+      case 'heat':
+        if (this.playerinput.paymentOptions.geothermalSmelterHeat === true &&
+            this.card !== undefined && getCard(this.card.name)?.tags.includes(Tag.BUILDING) === true) {
+          return 2;
+        }
+        return DEFAULT_PAYMENT_VALUES[unit];
       default:
         return DEFAULT_PAYMENT_VALUES[unit];
       }
@@ -85,6 +93,36 @@ export const PaymentWidgetMixin = defineComponent({
         return titaniumValue - 1;
       }
       return titaniumValue;
+    },
+    getRedsReserveForCard(): Partial<Payment> {
+      const redsCost = this.card?.additionalProjectCosts?.redsCost ?? 0;
+      if (redsCost <= 0 || this.playerinput.paymentOptions.geothermalSmelterHeat !== true ||
+          this.card === undefined || getCard(this.card.name)?.tags.includes(Tag.BUILDING) !== true) {
+        return {};
+      }
+
+      const thisPlayer = this.playerView.thisPlayer;
+      const titaniumValue = thisPlayer.titaniumValue ?? DEFAULT_PAYMENT_VALUES.titanium;
+      const canUseTitaniumForCard = this.playerinput.paymentOptions.titanium === true || this.playerinput.paymentOptions.lunaTradeFederationTitanium === true;
+      const reserve = findRedsPaymentReserve({
+        redsCost,
+        available: {
+          megacredits: Math.max((thisPlayer.megacredits ?? 0) - this.reserveUnits.megacredits, 0),
+          heat: Math.max(this.availableHeat() - this.reserveUnits.heat, 0),
+          titanium: Math.max((thisPlayer.titanium ?? 0) - this.reserveUnits.titanium, 0),
+        },
+        redsRates: {
+          megacredits: 1,
+          heat: this.playerinput.paymentOptions.heat === true ? 1 : 0,
+          titanium: this.playerinput.paymentOptions.lunaTradeFederationTitanium === true ? Math.max(titaniumValue - 1, 0) : 0,
+        },
+        cardRates: {
+          megacredits: 1,
+          heat: 2,
+          titanium: canUseTitaniumForCard ? this.getResourceRate('titanium') : 0,
+        },
+      });
+      return reserve?.units ?? {};
     },
     getAvailableUnits(): Record<SpendableResource, number> {
       const thisPlayer = this.playerView.thisPlayer;
@@ -102,6 +140,7 @@ export const PaymentWidgetMixin = defineComponent({
         auroraiData: this.playerinput.auroraiData,
         graphene: this.playerinput.graphene,
         kuiperAsteroids: this.playerinput.kuiperAsteroids,
+        diseases: this.playerinput.diseases ?? 0,
       };
 
       // Stratospheric Birds requires discarding one floater from any card.
@@ -139,6 +178,10 @@ export const PaymentWidgetMixin = defineComponent({
         })) {
           units.microbes = Math.max(units.microbes - 1, 0);
         }
+      }
+      const redsReserve = this.getRedsReserveForCard();
+      for (const unit of Object.keys(redsReserve) as Array<SpendableResource>) {
+        units[unit] = Math.max(units[unit] - (redsReserve[unit] ?? 0), 0);
       }
       return units;
     },

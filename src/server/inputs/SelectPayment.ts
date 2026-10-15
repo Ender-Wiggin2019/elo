@@ -30,6 +30,7 @@ export class SelectPayment extends BasePlayerInput<Payment> {
         lunaTradeFederationTitanium: player.canUseTitaniumAsMegacredits,
         ...this.paymentOptions,
       },
+      diseases: player.getSpendable('diseases'),
       seeds: player.getSpendable('seeds'),
       auroraiData: player.getSpendable('auroraiData'),
       kuiperAsteroids: player.getSpendable('kuiperAsteroids'),

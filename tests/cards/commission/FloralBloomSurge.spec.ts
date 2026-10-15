@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {FloralBloomSurge} from '../../../src/server/cards/commission/FloralBloomSurge';
 import {testGame} from '../../TestGame';
 import {TestPlayer} from '../../TestPlayer';
-import {runAllActions} from '../../TestingUtils';
+import {formatMessage, runAllActions} from '../../TestingUtils';
 import {Resource} from '../../../src/common/Resource';
 import {IGame} from '../../../src/server/IGame';
 import {AdaptedLichen} from '../../../src/server/cards/base/AdaptedLichen';
@@ -23,6 +23,11 @@ describe('FloralBloomSurge', () => {
     player.megaCredits = 100;
   });
 
+  it('costs 15 M€ and provides 1 VP', () => {
+    expect(card.cost).to.equal(15);
+    expect(card.getVictoryPoints(player)).to.equal(1);
+  });
+
   it('should not be played if not enough plant tags', () => {
     // 只打出1张植物tag卡
     player.playCard(new AdaptedLichen());
@@ -37,9 +42,11 @@ describe('FloralBloomSurge', () => {
     player.playCard(new ProtectedValley());
     runAllActions(game);
     expect(card.canPlay && card.canPlay(player)).to.be.true;
+    game.gameLog.length = 0;
     player.playCard(card);
     runAllActions(game);
     expect(player.production.get(Resource.PLANTS)).to.equal(1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue gained 1 plant production because of 🌸卉植繁茂🌸')).to.have.length(1);
 
     // 再打出一张植物tag卡
     const plantCard = new ArcticAlgae();

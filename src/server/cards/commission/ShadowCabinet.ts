@@ -14,14 +14,14 @@ export class ShadowCabinet extends Card implements IProjectCard {
       name: CardName.SHADOW_CABINET,
       type: CardType.ACTIVE,
       tags: [Tag.EARTH],
-      cost: 5,
+      cost: 4,
       victoryPoints: -1,
 
       metadata: {
         cardNumber: 'XB70',
         renderData: CardRenderer.builder((b) => {
-          b.effect('When you play a card with negative VP, including this, gain 3 M€.', (eb) => {
-            eb.minus().vpIcon().asterix().startEffect.megacredits(3);
+          b.effect('When you play a card with negative VP, including this, gain 4 M€.', (eb) => {
+            eb.minus().vpIcon().asterix().startEffect.megacredits(4);
           });
         }),
       },
@@ -47,6 +47,6 @@ export class ShadowCabinet extends Card implements IProjectCard {
       return;
     }
 
-    player.stock.add(Resource.MEGACREDITS, 3, {log: true, from: {card: this}});
+    player.stock.add(Resource.MEGACREDITS, 4, {log: true, from: {card: this}});
   }
 }

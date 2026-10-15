@@ -110,6 +110,7 @@ export default defineComponent({
         'heat',
         'plants',
         'microbes',
+        'diseases',
         'floaters',
         'lunaArchivesScience',
         'seeds',
@@ -235,17 +236,21 @@ export default defineComponent({
       // Prioritize special resource types that are only ever used for buying cards.
       // Of course this runs the risk of a player not having special resources for some award,
       // milestone, or requirement.
-      for (const unit of ['seeds', 'lunaArchivesScience', 'graphene', 'auroraiData', 'spireScience', 'kuiperAsteroids'] as const) {
+      for (const unit of ['seeds', 'lunaArchivesScience', 'graphene', 'auroraiData', 'spireScience', 'kuiperAsteroids', 'diseases'] as const) {
         if (megacreditBalance > 0 && this.canUse(unit)) {
-          this.payment[unit] = deductUnits(this.getAvailableUnits(unit), this.getResourceRate(unit), false);
+          // Diseases are worth 4 M€ each and can legitimately overpay a card
+          // whose cost is not divisible by 4. Keep the legacy no-overpay
+          // behavior for the other special resources.
+          this.payment[unit] = deductUnits(this.getAvailableUnits(unit), this.getResourceRate(unit), unit === 'diseases');
         }
       }
 
       // Set MC payment after knowning how much of other resources are consumed
-      this.payment.megacredits = Math.max(0, Math.min(this.thisPlayer.megacredits, megacreditBalance));
+      const availableMegacredits = this.getAvailableUnits('megacredits');
+      this.payment.megacredits = Math.max(0, Math.min(availableMegacredits, megacreditBalance));
 
       // Use as much MC as possible.
-      megacreditBalance = Math.max(megacreditBalance - this.thisPlayer.megacredits, 0);
+      megacreditBalance = Math.max(megacreditBalance - availableMegacredits, 0);
 
       for (const unit of ['microbes', 'floaters'] as const) {
         if (megacreditBalance > 0 && this.canUse(unit)) {
@@ -264,28 +269,28 @@ export default defineComponent({
       // NOTE: if Luna Trade Federation is having trouble here with default values,
       // this might be the place that needs adjusting.
       if (megacreditBalance > 0 && this.canUse('titanium')) {
-        this.payment.titanium = deductUnits(this.available.titanium, this.getResourceRate('titanium'), true);
+        this.payment.titanium = deductUnits(this.getAvailableUnits('titanium'), this.getResourceRate('titanium'), true);
       }
 
       this.available.heat = Math.max(this.availableHeat() - this.reserveUnits.heat, 0);
       if (megacreditBalance > 0 && this.canUse('heat')) {
-        this.payment.heat = deductUnits(this.available.heat, this.getResourceRate('heat'));
+        this.payment.heat = deductUnits(this.getAvailableUnits('heat'), this.getResourceRate('heat'));
       }
 
       this.available.plants = Math.max(this.thisPlayer.plants - this.reserveUnits.plants, 0);
       if (megacreditBalance > 0 && this.canUse('plants')) {
-        this.payment.plants = deductUnits(this.available.plants, this.getResourceRate('plants'));
+        this.payment.plants = deductUnits(this.getAvailableUnits('plants'), this.getResourceRate('plants'));
       }
 
       // If we are overspending
       if (megacreditBalance < 0) {
         // Try to spend less resource if possible, in the reverse order of the payment (also from high to low)
-        // We need not try to save heat since heat is paid last at value 1. We will never overspend in heat.
-        // We do not need to save Ti either because Ti is paid last before heat. If we overspend, it is because of Ti.
-        // We cannot reduce the amount of Ti and still pay enough.
+        // Heat is included here because Geothermal Smelter can value it at 2 M€;
+        // the old rate of 1 M€ could never create an overspend at that step.
         for (const key of [
           'steel',
           'plants',
+          'heat',
           'floaters',
           'microbes',
           'seeds',
@@ -321,7 +326,8 @@ export default defineComponent({
         case 'spireScience':
           return true;
         case 'heat':
-          return this.playerinput.paymentOptions.heat === true;
+          return this.playerinput.paymentOptions.heat === true ||
+            (this.tags.includes(Tag.BUILDING) && this.playerinput.paymentOptions.geothermalSmelterHeat === true);
         case 'steel':
           return canPayWith.steel === true;
         case 'titanium':
@@ -337,6 +343,8 @@ export default defineComponent({
         case 'lunaArchivesScience':
         case 'graphene':
           return false;
+        case 'diseases':
+          return false;
         default: throw new Error('Unknown unit ' + unit);
         }
       }
@@ -345,7 +353,8 @@ export default defineComponent({
       case 'megacredits':
         return true;
       case 'heat':
-        return this.playerinput.paymentOptions.heat === true;
+        return this.playerinput.paymentOptions.heat === true ||
+          (this.tags.includes(Tag.BUILDING) && this.playerinput.paymentOptions.geothermalSmelterHeat === true);
       case 'steel':
         return this.tags.includes(Tag.BUILDING) ||
           this.thisPlayer.lastCardPlayed === CardName.LAST_RESORT_INGENUITY;
@@ -365,6 +374,9 @@ export default defineComponent({
       case 'graphene':
         return this.tags.includes(Tag.SPACE) ||
             this.tags.includes(Tag.CITY);
+      case 'diseases':
+        return (this.tags.includes(Tag.JOVIAN) || this.tags.includes(Tag.MARS)) &&
+          this.playerinput.paymentOptions.diseases === true;
       case 'kuiperAsteroids':
       case 'auroraiData':
       case 'spireScience':

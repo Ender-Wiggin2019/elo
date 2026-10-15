@@ -47,6 +47,7 @@ export type SelectProjectCardToPlayModel = BaseInputModel & {
   type: 'projectCard';
   cards: ReadonlyArray<CardModel>;
   paymentOptions: Partial<PaymentOptions>,
+  diseases?: number;
   microbes: number;
   floaters: number;
   lunaArchivesScience: number;
@@ -86,6 +87,7 @@ export type SelectPaymentModel = BaseInputModel & {
   floaters: 0,
   microbes: 0,
   graphene: 0,
+  diseases?: number,
 }
 
 export type SelectPlayerModel = BaseInputModel & {

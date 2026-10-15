@@ -203,7 +203,7 @@ describe('AtmosphericOrbit', () => {
 
   it('offers one choice for each temperature step', () => {
     const initialTemperature = game.getTemperature();
-    card.resourceCount = 3;
+    card.resourceCount = 4;
     setVenusScaleLevel(game, 0);
     player.megaCredits = 100;
 
@@ -216,11 +216,11 @@ describe('AtmosphericOrbit', () => {
     firstChoice.options[0].cb();
     runAllActions(game);
     const secondChoice = cast(player.popWaitingFor(), OrOptions);
-    expect(secondChoice.options).to.have.length(2);
+    expect(secondChoice.options).to.have.length(3);
     secondChoice.options[0].cb();
     runAllActions(game);
 
-    expect(card.resourceCount).to.eq(5);
+    expect(card.resourceCount).to.eq(6);
     expect(player.getWaitingFor()).to.be.undefined;
   });
 
@@ -244,8 +244,8 @@ describe('AtmosphericOrbit', () => {
     expect(player.getWaitingFor()).to.be.undefined;
   });
 
-  it('at three data, offers Venus as an alternative to storing data', () => {
-    card.resourceCount = 3;
+  it('at four data, offers Venus as an alternative to storing data', () => {
+    card.resourceCount = 4;
     setVenusScaleLevel(game, 0);
     player.megaCredits = 10;
 

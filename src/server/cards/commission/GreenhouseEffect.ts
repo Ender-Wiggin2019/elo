@@ -20,8 +20,8 @@ export class GreenhouseEffect extends Card implements IProjectCard {
       metadata: {
         cardNumber: 'XB69',
         renderData: CardRenderer.builder((b) => {
-          b.effect('When you place a city tile, gain 4 heat.', (eb) => {
-            eb.city().startEffect.heat(4);
+          b.effect('When you place a city tile, gain 3 heat.', (eb) => {
+            eb.city().startEffect.heat(3);
           });
         }),
       },
@@ -30,7 +30,7 @@ export class GreenhouseEffect extends Card implements IProjectCard {
 
   public onTilePlaced(cardOwner: IPlayer, activePlayer: IPlayer, space: Space) {
     if (cardOwner.id === activePlayer.id && Board.isCitySpace(space)) {
-      cardOwner.stock.add(Resource.HEAT, 4, {log: true, from: {card: this}});
+      cardOwner.stock.add(Resource.HEAT, 3, {log: true, from: {card: this}});
     }
   }
 }
