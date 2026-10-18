@@ -42,7 +42,7 @@ export class VoltaicMetallurgy extends Card implements IProjectCard, IActionCard
       message('Select up to ${0} steel to convert to titanium', (b) => b.number(max)),
       'Convert Steel', 1, max, false)
       .andThen((amount) => {
-        player.stock.deduct(Resource.STEEL, amount);
+        player.stock.spend(Resource.STEEL, amount);
         player.stock.add(Resource.TITANIUM, amount);
         player.game.log('${0} converted ${1} units of steel to titanium.', (b) => b.player(player).number(amount));
         return undefined;

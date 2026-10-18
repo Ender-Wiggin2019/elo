@@ -3,6 +3,7 @@ import {PartyName} from '../../../src/common/turmoil/PartyName';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {TileType} from '../../../src/common/TileType';
 import {MeteoriteLakeside} from '../../../src/server/cards/commission/MeteoriteLakeside';
+import {MiningProfitChain} from '../../../src/server/cards/commission/MiningProfitChain';
 import {MarsNomads} from '../../../src/server/cards/promo/MarsNomads';
 import {IGame} from '../../../src/server/IGame';
 import {Board} from '../../../src/server/boards/Board';
@@ -24,7 +25,7 @@ describe('MeteoriteLakeside', () => {
     [game, player, player2] = testGame(2, {skipInitialShuffling: true});
     player.playCorporationCard(card);
     runAllActions(game);
-    player.megaCredits = 40;
+    player.megaCredits = 45;
   });
 
   function addOceanForOtherPlayer(): void {
@@ -66,8 +67,8 @@ describe('MeteoriteLakeside', () => {
     return land;
   }
 
-  it('starts with 40 M€ and its first action places an ocean on land', () => {
-    expect(card.startingMegaCredits).to.eq(40);
+  it('starts with 45 M€ and its first action places an ocean on land', () => {
+    expect(card.startingMegaCredits).to.eq(45);
     const initialOceanCount = game.board.getOceanSpaces().length;
 
     player.defer(card.initialAction(player));
@@ -87,7 +88,7 @@ describe('MeteoriteLakeside', () => {
     skipOceanBonus(cast(oceanBonus, OrOptions));
   });
 
-  it('offers the ocean bonus for an ocean placed by any player, payable with M€ or titanium', () => {
+  it('offers the ocean bonus for an ocean placed by any player, payable with M€ or steel', () => {
     player.megaCredits = 5;
     const initialTR = player.getTerraformRating();
     addOceanForOtherPlayer();
@@ -104,37 +105,70 @@ describe('MeteoriteLakeside', () => {
     expect(player.getTerraformRating()).to.eq(initialTR + 1);
     expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue gained 1 TR from 🌸星陨湖畔🌸')).to.have.length(1);
 
-    player.titanium = 2;
+    player.steel = 3;
     const secondInitialTR = player.getTerraformRating();
     addOceanForOtherPlayer();
-    const titaniumChoice = cast(player.popWaitingFor(), OrOptions);
-    expect(titaniumChoice.options).to.have.length(2);
-    const titaniumOption = titaniumChoice.options.find((option) => option.title.toString().includes('2钛'));
-    expect(titaniumOption).to.exist;
+    const steelChoice = cast(player.popWaitingFor(), OrOptions);
+    expect(steelChoice.options).to.have.length(2);
+    expect(steelChoice.options.some((option) => option.title.toString().includes('钛'))).to.be.false;
+    const steelOption = steelChoice.options.find((option) => option.title.toString().includes('3钢铁'));
+    expect(steelOption).to.exist;
     game.gameLog.length = 0;
-    titaniumOption!.cb();
+    steelOption!.cb();
     runAllActions(game);
 
-    expect(player.titanium).to.eq(0);
+    expect(player.steel).to.eq(0);
     expect(player.getTerraformRating()).to.eq(secondInitialTR + 1);
     expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue gained 1 TR from 🌸星陨湖畔🌸')).to.have.length(1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 3 steel because of 🌸星陨湖畔🌸')).to.have.length(1);
+  });
+
+  it('does not offer the ocean bonus with titanium or insufficient steel', () => {
+    player.megaCredits = 0;
+    player.titanium = 2;
+    player.steel = 2;
+
+    addOceanForOtherPlayer();
+
+    expect(player.getWaitingFor()).to.be.undefined;
+  });
+
+  it('triggers Mining Profit Chain when paying steel for the ocean bonus', () => {
+    player.playedCards.push(new MiningProfitChain());
+    player.megaCredits = 0;
+    player.steel = 3;
+    const initialTR = player.getTerraformRating();
+
+    addOceanForOtherPlayer();
+
+    const choice = cast(player.popWaitingFor(), OrOptions);
+    const steelOption = choice.options.find((option) => option.title.toString().includes('3钢铁'));
+    expect(steelOption).to.exist;
+    game.gameLog.length = 0;
+    steelOption!.cb();
+    runAllActions(game);
+
+    expect(player.megaCredits).to.eq(1);
+    expect(player.steel).to.eq(0);
+    expect(player.getTerraformRating()).to.eq(initialTR + 1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue gained 1 M€ because of 🌸矿业利润链🌸')).to.have.length(1);
   });
 
   it('triggers for a Wetlands tile as an uncovered ocean', () => {
     player.megaCredits = 0;
-    player.titanium = 2;
+    player.steel = 3;
     const land = game.board.getAvailableSpacesOnLand(player2)[0];
 
     game.addTile(player2, land, {tileType: TileType.WETLANDS});
     runAllActions(game);
 
     const choice = cast(player.popWaitingFor(), OrOptions);
-    const titaniumOption = choice.options.find((option) => option.title.toString().includes('2钛'));
-    expect(titaniumOption).to.exist;
-    titaniumOption!.cb();
+    const steelOption = choice.options.find((option) => option.title.toString().includes('3钢铁'));
+    expect(steelOption).to.exist;
+    steelOption!.cb();
     runAllActions(game);
 
-    expect(player.titanium).to.eq(0);
+    expect(player.steel).to.eq(0);
   });
 
   it('offers one adjacency draw even when the placed tile touches two oceans', () => {
@@ -238,7 +272,7 @@ describe('MeteoriteLakeside', () => {
     expect(player.getTerraformRating()).to.eq(initialTR + 2);
   });
 
-  it('resolves the titanium ocean reward and adjacency draw with the Reds costs', () => {
+  it('resolves the steel ocean reward and adjacency draw with the Reds costs', () => {
     card = new MeteoriteLakeside();
     [game, player, player2] = testGame(2, {
       skipInitialShuffling: true,
@@ -251,7 +285,7 @@ describe('MeteoriteLakeside', () => {
     const land = prepareAdjacentOceans(1);
     player.oceanBonus = 0;
     player.megaCredits = 8;
-    player.titanium = 2;
+    player.steel = 3;
     const initialHandSize = player.cardsInHand.length;
     const initialTR = player.getTerraformRating();
 
@@ -259,10 +293,10 @@ describe('MeteoriteLakeside', () => {
     runAllActions(game);
 
     const oceanChoice = cast(player.popWaitingFor(), OrOptions);
-    const titaniumOption = oceanChoice.options.find((option) => option.title.toString().includes('2钛'));
-    expect(titaniumOption).to.exist;
+    const steelOption = oceanChoice.options.find((option) => option.title.toString().includes('3钢铁'));
+    expect(steelOption).to.exist;
     expect(oceanChoice.options.some((option) => option.title.toString().includes('5 M€'))).to.be.false;
-    titaniumOption!.cb();
+    steelOption!.cb();
     runAllActions(game);
 
     const adjacencyChoice = cast(player.popWaitingFor(), OrOptions);
@@ -271,7 +305,7 @@ describe('MeteoriteLakeside', () => {
     drawOption!.cb();
     runAllActions(game);
 
-    expect(player.titanium).to.eq(0);
+    expect(player.steel).to.eq(0);
     expect(player.megaCredits).to.eq(0);
     expect(player.cardsInHand).to.have.length(initialHandSize + 1);
     expect(player.getTerraformRating()).to.eq(initialTR + 2);

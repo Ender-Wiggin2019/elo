@@ -77,9 +77,11 @@ export abstract class StandardProjectCard extends Card implements IStandardProje
   }
 
   public payAndExecute(player: IPlayer, payment: Payment): void {
-    player.pay(payment);
-    this.projectPlayed(player);
-    this.actionEssence(player);
+    player.stock.spendTogether(() => {
+      player.pay(payment);
+      this.projectPlayed(player);
+      this.actionEssence(player);
+    });
   }
 
   protected projectPlayed(player: IPlayer) {

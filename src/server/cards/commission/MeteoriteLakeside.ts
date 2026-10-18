@@ -14,9 +14,9 @@ import {SelectOption} from '../../inputs/SelectOption';
 import {CorporationCard} from '../corporation/CorporationCard';
 import {CardRenderer} from '../render/CardRenderer';
 
-const STARTING_MEGA_CREDITS = 40;
+const STARTING_MEGA_CREDITS = 45;
 const OCEAN_BONUS_MEGA_CREDITS = 5;
-const OCEAN_BONUS_TITANIUM = 2;
+const OCEAN_BONUS_STEEL = 3;
 
 export class MeteoriteLakeside extends CorporationCard {
   constructor() {
@@ -32,7 +32,7 @@ export class MeteoriteLakeside extends CorporationCard {
           b.megacredits(STARTING_MEGA_CREDITS).oceans(1).asterix();
           b.corpBox('effect', (ce) => {
             ce.vSpace();
-            ce.effect(`每当有任意海洋被放置时，可花${OCEAN_BONUS_MEGA_CREDITS} M€或${OCEAN_BONUS_TITANIUM}钛提升1 TR。`, (eb) => {
+            ce.effect(`每当有任意海洋被放置时，可花${OCEAN_BONUS_MEGA_CREDITS} M€或${OCEAN_BONUS_STEEL}钢铁提升1 TR。`, (eb) => {
               eb.oceans(1, {all: true, size: Size.SMALL}).startEffect.tr(1, {size: Size.SMALL}).asterix();
             });
             ce.effect('你邻海放板块时，可花2 M€摸1张牌（每次放板块最多1次）。', (eb) => {
@@ -80,9 +80,9 @@ export class MeteoriteLakeside extends CorporationCard {
         return undefined;
       }));
     }
-    if (player.titanium >= OCEAN_BONUS_TITANIUM && player.canAfford({cost: 0, tr: {tr: 1}})) {
-      options.options.push(new SelectOption(`花费${OCEAN_BONUS_TITANIUM}钛，提升1 TR`).andThen(() => {
-        player.stock.deduct(Resource.TITANIUM, OCEAN_BONUS_TITANIUM, {log: true});
+    if (player.steel >= OCEAN_BONUS_STEEL && player.canAfford({cost: 0, tr: {tr: 1}})) {
+      options.options.push(new SelectOption(`花费${OCEAN_BONUS_STEEL}钢铁，提升1 TR`).andThen(() => {
+        player.stock.spend(Resource.STEEL, OCEAN_BONUS_STEEL, {log: true, from: {card: this}});
         player.increaseTerraformRating(1, {log: true, from: {card: this.name}});
         return undefined;
       }));

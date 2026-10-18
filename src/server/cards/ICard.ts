@@ -101,6 +101,8 @@ export interface ICard {
   onCardsDrawn?(player: IPlayer): void;
   /** Called for the victim after another player actually removes their plants. Amount is the actual loss. */
   onPlantRemoved?(player: IPlayer, amount: number): void;
+  /** Called once per standard-resource payment, excluding resource loss or theft. */
+  onResourcesSpent?(player: IPlayer, spent: Readonly<Units>): void;
 
   /**
    * Optional callback when a resource is added to this card.

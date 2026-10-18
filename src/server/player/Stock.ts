@@ -4,12 +4,62 @@ import {Resource, StandardResource} from '../../common/Resource';
 import {CrashSiteCleanup} from '../cards/promo/CrashSiteCleanup';
 import {CardName} from '../../common/cards/CardName';
 import {Phase} from '../../common/Phase';
+import {Units} from '../../common/Units';
 import {EnergyStation} from '../cards/eros/EnergyStation';
 import {MoltenReserve} from '../cards/commission/MoltenReserve';
 import {From, isFromPlayer} from '../logs/From';
 import {BaseStock} from './StockBase';
+import {ICard} from '../cards/ICard';
 
 export class Stock extends BaseStock {
+  private spending?: {units: Units, cards: Array<ICard>};
+
+  /** Combines the price and printed resource costs of one card or standard project. */
+  public spendTogether<T>(pay: () => T): T {
+    if (this.spending !== undefined) {
+      return pay();
+    }
+    // Capture the existing tableau so a newly played card cannot reward its own payment.
+    const spending = {units: Units.of({}), cards: [...this.player.tableau]};
+    this.spending = spending;
+    try {
+      return pay();
+    } finally {
+      this.spending = undefined;
+      this.notifySpent(spending.units, spending.cards);
+    }
+  }
+
+  /** Pays one resource cost, distinct from resources lost or stolen. */
+  public spend(resource: Resource | StandardResource, amount: number, options?: {log?: boolean, from?: From}) {
+    this.spendUnits(Units.of({[resource]: amount}), options);
+  }
+
+  /** Pays a cost as one event, even when it contains several resource types. */
+  public spendUnits(units: Units, options?: {log?: boolean, from?: From}) {
+    const before = this.asUnits();
+    this.adjust(Units.negative(units), options);
+    const spent = Units.of({});
+    for (const key of Units.keys) {
+      spent[key] = Math.max(0, before[key] - this[key]);
+    }
+    if (this.spending !== undefined) {
+      for (const key of Units.keys) {
+        this.spending.units[key] += spent[key];
+      }
+    } else {
+      this.notifySpent(spent, this.player.tableau);
+    }
+  }
+
+  private notifySpent(spent: Units, cards: Iterable<ICard>) {
+    if (!Units.isEmpty(spent)) {
+      for (const card of cards) {
+        card.onResourcesSpent?.(this.player, spent);
+      }
+    }
+  }
+
   public add(
     resource: Resource | StandardResource,
     amount : number,

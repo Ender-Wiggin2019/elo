@@ -92,7 +92,7 @@ export abstract class MarketCard extends Card implements IActionCard {
     ).andThen((unitsSold: number) => {
       const cashEarned = unitsSold * terms.to;
       player.stock.add(Resource.MEGACREDITS, cashEarned);
-      player.stock.deduct(this.tradeResource, unitsSold);
+      player.stock.spend(this.tradeResource, unitsSold);
       PathfindersExpansion.addToSolBank(player);
 
       player.game.log('${0} sold ${1} ${2}', (b) => b.player(player).number(unitsSold).string(this.tradeResource));

@@ -907,7 +907,7 @@ export class Player implements IPlayer {
       plants: payment.plants,
     });
 
-    this.stock.deductUnits(standardUnits);
+    this.stock.spendUnits(standardUnits);
 
     if (payment.heat > 0) {
       this.defer(this.spendHeat(payment.heat));
@@ -941,6 +941,10 @@ export class Player implements IPlayer {
   }
 
   public playCard(selectedCard: IProjectCard, payment?: Payment, cardAction: CardAction = 'add'): void {
+    this.stock.spendTogether(() => this.playCardWithPayment(selectedCard, payment, cardAction));
+  }
+
+  private playCardWithPayment(selectedCard: IProjectCard, payment: Payment | undefined, cardAction: CardAction): void {
     if (payment !== undefined) {
       this.pay(payment);
 

@@ -678,6 +678,9 @@ export enum CardName {
   ORBITAL_MISSILES = '🌸轨道导弹🌸',
   GEOTHERMAL_SMELTER = '🌸Geothermal Smelter🌸',
   MYCELIAL_SPREAD = '🌸Mycelial Spread🌸',
+  MINING_PROFIT_CHAIN = '🌸矿业利润链🌸',
+  HEATWAVE_ASSAULT = '🌸热浪侵袭🌸',
+  STARLIGHT_ALCHEMY_TITANIUM = '🌸星火点钛🌸',
 
     PLANETARY_METEOR_HARVESTERS = '星际碎屑',
     UNIQUE_ITEM_BOUNTY = '奇物丰收',

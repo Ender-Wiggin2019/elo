@@ -60,6 +60,9 @@ import {RedPlanetOceans} from './RedPlanetOceans';
 import {OrbitalMissiles} from './OrbitalMissiles';
 import {GeothermalSmelter} from './GeothermalSmelter';
 import {MycelialSpread} from './MycelialSpread';
+import {MiningProfitChain} from './MiningProfitChain';
+import {HeatwaveAssault} from './HeatwaveAssault';
+import {StarlightAlchemyTitanium} from './StarlightAlchemyTitanium';
 
 export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
   module: 'commission',
@@ -121,6 +124,9 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.ORBITAL_MISSILES]: {Factory: OrbitalMissiles}, // XB76
     [CardName.GEOTHERMAL_SMELTER]: {Factory: GeothermalSmelter, compatibility: 'turmoil'}, // XB77
     [CardName.MYCELIAL_SPREAD]: {Factory: MycelialSpread}, // XB78
+    [CardName.MINING_PROFIT_CHAIN]: {Factory: MiningProfitChain}, // XB79
+    [CardName.HEATWAVE_ASSAULT]: {Factory: HeatwaveAssault}, // XB80
+    [CardName.STARLIGHT_ALCHEMY_TITANIUM]: {Factory: StarlightAlchemyTitanium}, // XB81
   },
   globalEvents: {
   },

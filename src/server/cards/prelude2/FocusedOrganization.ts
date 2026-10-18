@@ -42,7 +42,7 @@ export class FocusedOrganization extends PreludeCard implements IActionCard {
     return new AndOptions(
       new SelectResource('Select resource to discard', discardableStandardResources)
         .andThen((type) => {
-          player.stock.deduct(type, 1, {log: true});
+          player.stock.spend(type, 1, {log: true});
           if (type === 'megacredits' || type === 'steel' || type === 'titanium') {
             PathfindersExpansion.addToSolBank(player);
           }
