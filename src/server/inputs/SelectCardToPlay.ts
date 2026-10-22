@@ -70,6 +70,7 @@ export abstract class SelectCardToPlay<T extends IProjectCard | IStandardProject
         diseases: player.playedCards.has(CardName.MYCELIAL_SPREAD),
       },
       diseases: player.getSpendable('diseases'),
+      meteoricAsteroids: player.getSpendable('meteoricAsteroids'),
       lunaArchivesScience: player.getSpendable('lunaArchivesScience'),
       seeds: player.getSpendable('seeds'),
       graphene: player.getSpendable('graphene'),

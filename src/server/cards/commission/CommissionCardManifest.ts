@@ -63,6 +63,15 @@ import {MycelialSpread} from './MycelialSpread';
 import {MiningProfitChain} from './MiningProfitChain';
 import {HeatwaveAssault} from './HeatwaveAssault';
 import {StarlightAlchemyTitanium} from './StarlightAlchemyTitanium';
+import {SymbioticEcosystem} from './SymbioticEcosystem';
+import {BiotechBlueprintInnovation} from './BiotechBlueprintInnovation';
+import {SpeciesPropagation} from './SpeciesPropagation';
+import {MeteoricAggregates} from './MeteoricAggregates';
+import {PoliticalLobbying} from './PoliticalLobbying';
+import {ScienceCountercurrent} from './ScienceCountercurrent';
+import {TechnologicalReserves} from './TechnologicalReserves';
+import {MeteoriteArc} from './MeteoriteArc';
+import {TechnologicalSeedlings} from './TechnologicalSeedlings';
 
 export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
   module: 'commission',
@@ -92,6 +101,7 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.DUAL_ORBIT_LEAP]: {Factory: DualOrbitLeap}, // XB24
     [CardName.ATMOSPHERIC_ORBIT]: {Factory: AtmosphericOrbit, compatibility: ['venus', 'colonies']}, // XB25
     [CardName.METEORITE_LAKESIDE]: {Factory: MeteoriteLakeside}, // XB26
+    [CardName.METEORIC_AGGREGATES]: {Factory: MeteoricAggregates}, // XB85
   },
   preludeCards: {
   },
@@ -124,9 +134,17 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.ORBITAL_MISSILES]: {Factory: OrbitalMissiles}, // XB76
     [CardName.GEOTHERMAL_SMELTER]: {Factory: GeothermalSmelter, compatibility: 'turmoil'}, // XB77
     [CardName.MYCELIAL_SPREAD]: {Factory: MycelialSpread}, // XB78
-    [CardName.MINING_PROFIT_CHAIN]: {Factory: MiningProfitChain}, // XB79
+    [CardName.MINING_PROFIT_CHAIN]: {Factory: MiningProfitChain, compatibility: 'turmoil'}, // XB79
     [CardName.HEATWAVE_ASSAULT]: {Factory: HeatwaveAssault}, // XB80
     [CardName.STARLIGHT_ALCHEMY_TITANIUM]: {Factory: StarlightAlchemyTitanium}, // XB81
+    [CardName.SYMBIOTIC_ECOSYSTEM]: {Factory: SymbioticEcosystem, compatibility: 'turmoil'}, // XB82
+    [CardName.BIOTECH_BLUEPRINT_INNOVATION]: {Factory: BiotechBlueprintInnovation}, // XB83
+    [CardName.SPECIES_PROPAGATION]: {Factory: SpeciesPropagation}, // XB84
+    [CardName.POLITICAL_LOBBYING]: {Factory: PoliticalLobbying, compatibility: 'turmoil'}, // XB86
+    [CardName.SCIENCE_COUNTERCURRENT]: {Factory: ScienceCountercurrent, compatibility: 'turmoil'}, // XB87
+    [CardName.TECHNOLOGICAL_RESERVES]: {Factory: TechnologicalReserves}, // XB88
+    [CardName.METEORITE_ARC]: {Factory: MeteoriteArc}, // XB89
+    [CardName.TECHNOLOGICAL_SEEDLINGS]: {Factory: TechnologicalSeedlings}, // XB90
   },
   globalEvents: {
   },

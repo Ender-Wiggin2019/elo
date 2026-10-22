@@ -1,3 +1,4 @@
+import {isProductionProject} from '../cards/ProductionProject';
 import {CardModel} from '../../common/models/CardModel';
 import {ColonyModel} from '../../common/models/ColonyModel';
 import {Color} from '../../common/Color';
@@ -52,6 +53,9 @@ export function cardsToModel(
       cloneTag: isICloneTagCard(card) ? card.cloneTag : undefined,
       data: card.data,
     };
+    if (player.playedCards.has(CardName.METEORIC_AGGREGATES) && isProductionProject(card)) {
+      model.canPayWithMeteoricAsteroids = true;
+    }
     if (isIStandardProjectCard(card)) {
       model.standardProjectCanPayWith = card.canPayWith(player);
     }

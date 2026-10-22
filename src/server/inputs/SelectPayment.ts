@@ -31,6 +31,7 @@ export class SelectPayment extends BasePlayerInput<Payment> {
         ...this.paymentOptions,
       },
       diseases: player.getSpendable('diseases'),
+      meteoricAsteroids: player.getSpendable('meteoricAsteroids'),
       seeds: player.getSpendable('seeds'),
       auroraiData: player.getSpendable('auroraiData'),
       kuiperAsteroids: player.getSpendable('kuiperAsteroids'),
@@ -55,6 +56,9 @@ export class SelectPayment extends BasePlayerInput<Payment> {
     // There's no reason for both.
     if (!player.canSpend(payment, this.reserveUnits)) {
       throw new InputError('You do not have that many resources');
+    }
+    if (payment.meteoricAsteroids > 0 && this.paymentOptions.meteoricAsteroids !== true) {
+      throw new InputError('Meteoric Aggregates asteroids cannot pay this cost');
     }
     const amountPaid = player.payingAmount(payment, this.paymentOptions);
     if (amountPaid < this.amount) {

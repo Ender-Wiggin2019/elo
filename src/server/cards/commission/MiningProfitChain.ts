@@ -2,6 +2,7 @@ import {CardName} from '../../../common/cards/CardName';
 import {CardType} from '../../../common/cards/CardType';
 import {Tag} from '../../../common/cards/Tag';
 import {Resource} from '../../../common/Resource';
+import {PartyName} from '../../../common/turmoil/PartyName';
 import {Units} from '../../../common/Units';
 import {IPlayer} from '../../IPlayer';
 import {Priority} from '../../deferredActions/Priority';
@@ -16,12 +17,12 @@ export class MiningProfitChain extends Card implements IProjectCard {
       type: CardType.ACTIVE,
       cost: 9,
       tags: [Tag.BUILDING],
-      requirements: {tag: Tag.BUILDING, count: 2},
+      requirements: {party: PartyName.UNITY},
       victoryPoints: 1,
 
       metadata: {
         cardNumber: 'XB79',
-        description: '需要2个建筑标记。',
+        description: '需要联合党执政或你在联合党拥有至少2名代表。',
         renderData: CardRenderer.builder((b) => {
           b.effect('每次花费钢铁或钛时，获得1 M€（每次支付只触发1次，不按资源数量计算）。', (eb) => {
             eb.minus().steel(1).slash().titanium(1).startEffect.megacredits(1);

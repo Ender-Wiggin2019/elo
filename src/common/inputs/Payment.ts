@@ -40,6 +40,7 @@ export const DEFAULT_PAYMENT_VALUES = {
   graphene: GRAPHENE_VALUE,
   kuiperAsteroids: 1,
   diseases: 4,
+  meteoricAsteroids: 3,
 } satisfies Record<SpendableResource, number>;
 
 export namespace Payment {
@@ -58,6 +59,7 @@ export namespace Payment {
     graphene: 0,
     kuiperAsteroids: 0,
     diseases: 0,
+    meteoricAsteroids: 0,
   } as const;
 
   export function of(payment: Partial<Payment>) : Payment {
@@ -76,6 +78,7 @@ export namespace Payment {
       graphene: payment.graphene ?? 0,
       kuiperAsteroids: payment.kuiperAsteroids ?? 0,
       diseases: payment.diseases ?? 0,
+      meteoricAsteroids: payment.meteoricAsteroids ?? 0,
       plants: payment.plants ?? 0,
     };
   }

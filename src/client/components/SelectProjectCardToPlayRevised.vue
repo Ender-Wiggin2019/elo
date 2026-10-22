@@ -86,6 +86,7 @@ export default defineComponent({
         'plants',
         'microbes',
         'diseases',
+        'meteoricAsteroids',
         'floaters',
         'lunaArchivesScience',
         'seeds',
@@ -213,6 +214,7 @@ export default defineComponent({
         case 'graphene':
           return false;
         case 'diseases':
+        case 'meteoricAsteroids':
           return false;
         default: throw new Error('Unknown unit ' + unit);
         }
@@ -243,6 +245,8 @@ export default defineComponent({
         case 'graphene':
           return this.tags.includes(Tag.SPACE) ||
             this.tags.includes(Tag.CITY);
+        case 'meteoricAsteroids':
+          return this.card.canPayWithMeteoricAsteroids === true;
         case 'diseases':
           return (this.tags.includes(Tag.JOVIAN) || this.tags.includes(Tag.MARS)) &&
             this.playerinput.paymentOptions.diseases === true;

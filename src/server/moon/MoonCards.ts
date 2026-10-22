@@ -10,5 +10,6 @@ export class MoonCards {
     CardName.APPLIED_SCIENCE,
     CardName.SPIRE,
     CardName.RAINCAT_SCIENTIFIC_PROBE,
+    CardName.SCIENCE_COUNTERCURRENT,
   ]);
 }

@@ -68,6 +68,7 @@ const DESCRIPTIONS: Record<SpendableResource, string> = {
   microbes: 'Microbes',
   plants: 'Plants',
   diseases: 'Diseases',
+  meteoricAsteroids: 'Asteroids',
 };
 
 type DataModel = {

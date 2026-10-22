@@ -39,6 +39,8 @@ export const SPENDABLE_CARD_RESOURCES = [
   'kuiperAsteroids',
   // Mycelial Spread disease resources can pay for cards with Jovian or Mars tags.
   'diseases',
+  // Meteoric Aggregates asteroids pay for project cards with production.
+  'meteoricAsteroids',
 ] as const;
 
 export const SPENDABLE_RESOURCES = [...SPENDABLE_STANDARD_RESOURCES, ...SPENDABLE_CARD_RESOURCES] as const;
@@ -60,4 +62,5 @@ export const CARD_FOR_SPENDABLE_RESOURCE = {
   graphene: CardName.CARBON_NANOSYSTEMS,
   kuiperAsteroids: CardName.KUIPER_COOPERATIVE,
   diseases: CardName.MYCELIAL_SPREAD,
+  meteoricAsteroids: CardName.METEORIC_AGGREGATES,
 } satisfies Record<SpendableCardResource, CardName>;

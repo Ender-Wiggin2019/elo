@@ -709,6 +709,9 @@
       <template v-else-if="title === CardName.METEORITE_LAKESIDE">
         <div class="card-project-workshop-logo">星陨湖畔</div>
       </template>
+      <template v-else-if="title === CardName.METEORIC_AGGREGATES">
+        <div class="card-project-workshop-logo">星岩建材</div>
+      </template>
     </template>
     <template v-else>
       <div :class="logoClass">{{capsTitle}}</div>
@@ -845,6 +848,7 @@ const logos: Partial<Record<CardName, 'image' | 'css' | 'bespoke'>> = {
   [CardName.GREENRING]: 'bespoke',
   [CardName.ATMOSPHERIC_ORBIT]: 'bespoke',
   [CardName.METEORITE_LAKESIDE]: 'bespoke',
+  [CardName.METEORIC_AGGREGATES]: 'bespoke',
 };
 
 export default defineComponent({

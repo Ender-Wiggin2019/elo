@@ -111,6 +111,7 @@ export default defineComponent({
         'plants',
         'microbes',
         'diseases',
+        'meteoricAsteroids',
         'floaters',
         'lunaArchivesScience',
         'seeds',
@@ -236,12 +237,11 @@ export default defineComponent({
       // Prioritize special resource types that are only ever used for buying cards.
       // Of course this runs the risk of a player not having special resources for some award,
       // milestone, or requirement.
-      for (const unit of ['seeds', 'lunaArchivesScience', 'graphene', 'auroraiData', 'spireScience', 'kuiperAsteroids', 'diseases'] as const) {
+      for (const unit of ['seeds', 'lunaArchivesScience', 'graphene', 'auroraiData', 'spireScience', 'kuiperAsteroids', 'diseases', 'meteoricAsteroids'] as const) {
         if (megacreditBalance > 0 && this.canUse(unit)) {
-          // Diseases are worth 4 M€ each and can legitimately overpay a card
-          // whose cost is not divisible by 4. Keep the legacy no-overpay
-          // behavior for the other special resources.
-          this.payment[unit] = deductUnits(this.getAvailableUnits(unit), this.getResourceRate(unit), unit === 'diseases');
+          // Diseases and Meteoric asteroids can cover a remainder by overpaying
+          // with one whole resource. Preserve the existing defaults for other resources.
+          this.payment[unit] = deductUnits(this.getAvailableUnits(unit), this.getResourceRate(unit), unit === 'diseases' || unit === 'meteoricAsteroids');
         }
       }
 
@@ -299,6 +299,7 @@ export default defineComponent({
           'auroraiData',
           'spireScience',
           'kuiperAsteroids',
+          'meteoricAsteroids',
           'megacredits'] as const) {
           this.payment[key] -= saveOverspendingUnits(this.payment[key], this.getResourceRate(key));
         }
@@ -344,6 +345,7 @@ export default defineComponent({
         case 'graphene':
           return false;
         case 'diseases':
+        case 'meteoricAsteroids':
           return false;
         default: throw new Error('Unknown unit ' + unit);
         }
@@ -374,6 +376,8 @@ export default defineComponent({
       case 'graphene':
         return this.tags.includes(Tag.SPACE) ||
             this.tags.includes(Tag.CITY);
+      case 'meteoricAsteroids':
+        return this.card.canPayWithMeteoricAsteroids === true;
       case 'diseases':
         return (this.tags.includes(Tag.JOVIAN) || this.tags.includes(Tag.MARS)) &&
           this.playerinput.paymentOptions.diseases === true;

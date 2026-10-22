@@ -232,6 +232,7 @@ export const PaymentWidgetMixin = {
           case 'auroraiData':
           case 'kuiperAsteroids':
           case 'diseases':
+          case 'meteoricAsteroids':
             amount = input[unit];
           }
         } else {
@@ -243,6 +244,7 @@ export const PaymentWidgetMixin = {
           case 'graphene':
           case 'kuiperAsteroids':
           case 'diseases':
+          case 'meteoricAsteroids':
           case 'auroraiData':
           case 'spireScience':
             amount = input[unit];
@@ -320,6 +322,7 @@ export const PaymentWidgetMixin = {
         microbes: 'Microbes',
         plants: 'Plants',
         diseases: 'Diseases',
+        meteoricAsteroids: 'Asteroids',
       };
     },
   },

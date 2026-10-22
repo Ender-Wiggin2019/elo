@@ -29,6 +29,18 @@ describe('PaymentUnit', () => {
     expect(wrapper.find('i.resource_icon').classes()).includes('resource_icon--disease');
   });
 
+  it('uses the asteroid resource icon for meteoric asteroid payments', () => {
+    const wrapper = shallowMount(PaymentUnit, {
+      ...globalConfig,
+      props: {
+        modelValue: 1,
+        unit: 'meteoricAsteroids',
+        description: 'Meteoric Asteroids',
+      },
+    });
+    expect(wrapper.find('i.resource_icon').classes()).includes('resource_icon--asteroid');
+  });
+
   it('emits update:modelValue on input change', async () => {
     const wrapper = shallowMount(PaymentUnit, {
       ...globalConfig,

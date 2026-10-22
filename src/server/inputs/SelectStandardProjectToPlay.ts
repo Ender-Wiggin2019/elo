@@ -24,6 +24,9 @@ export class SelectStandardProjectToPlay extends SelectCardToPlay<IStandardProje
   }
 
   public validate(card: IStandardProjectCard, input: SelectProjectCardToPlayResponse, details: PlayCardMetadata) {
+    if (input.payment.meteoricAsteroids > 0) {
+      throw new InputError('Meteoric Aggregates asteroids cannot pay for standard projects');
+    }
     const canPayWith = card.canPayWith(this.player);
     const paymentOptions: Partial<PaymentOptions> = {
       heat: this.player.canUseHeatAsMegaCredits,

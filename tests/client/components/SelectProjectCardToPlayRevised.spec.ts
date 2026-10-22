@@ -165,6 +165,77 @@ describe('SelectProjectCardToPlayRevised', () => {
     expect(saveResponse.payment).deep.eq(Payment.of({diseases: 2}));
   });
 
+  it('uses meteoric asteroids at 3 M€ each', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.BIRDS, 6,
+      {megacredits: 0},
+      {meteoricAsteroids: 2},
+      {canPayWithMeteoricAsteroids: true});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectIsAvailable('meteoricAsteroids');
+    tester.expectPayment({meteoricAsteroids: 2});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({meteoricAsteroids: 2}));
+  });
+
+  it('rounds up a meteoric asteroid remainder', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.BIRDS, 7,
+      {megacredits: 0},
+      {meteoricAsteroids: 3},
+      {canPayWithMeteoricAsteroids: true});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectPayment({meteoricAsteroids: 3});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({meteoricAsteroids: 3}));
+  });
+
+  it('mixes meteoric asteroids with M€', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.BIRDS, 8,
+      {megacredits: 2},
+      {meteoricAsteroids: 2},
+      {canPayWithMeteoricAsteroids: true});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectPayment({meteoricAsteroids: 2, megacredits: 2});
+
+    await tester.clickSave();
+    expect(saveResponse.payment).deep.eq(Payment.of({meteoricAsteroids: 2, megacredits: 2}));
+  });
+
+  it('does not show meteoric asteroids without the eligible flag', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.BIRDS, 6,
+      {megacredits: 0},
+      {meteoricAsteroids: 2});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectIsNotAvailable('meteoricAsteroids');
+    tester.expectPayment({});
+  });
+
+  it('does not show meteoric asteroids for standard projects', async () => {
+    const wrapper = setupCardForPurchase(
+      CardName.ASTEROID_STANDARD_PROJECT, 6,
+      {megacredits: 0},
+      {meteoricAsteroids: 2},
+      {canPayWith: {}, canPayWithMeteoricAsteroids: true});
+
+    const tester = new PaymentTester(wrapper);
+    await tester.nextTick();
+    tester.expectIsNotAvailable('meteoricAsteroids');
+    tester.expectPayment({});
+  });
+
   it('max heat', async () => {
     const wrapper = setupCardForPurchase(
       CardName.BIRDS, 10,
@@ -840,6 +911,7 @@ describe('SelectProjectCardToPlayRevised', () => {
     options?: {
       reserveUnits?: Units,
       canPayWith?: CardModel['standardProjectCanPayWith'],
+      canPayWithMeteoricAsteroids?: boolean,
       additionalProjectCosts?: CardModel['additionalProjectCosts'],
     }) {
     const thisPlayer: Partial<PublicPlayerModel> = Object.assign({
@@ -879,6 +951,7 @@ describe('SelectProjectCardToPlayRevised', () => {
     if (options !== undefined) {
       playerInput.cards![0].reserveUnits = options.reserveUnits;
       playerInput.cards![0].standardProjectCanPayWith = options.canPayWith;
+      playerInput.cards![0].canPayWithMeteoricAsteroids = options.canPayWithMeteoricAsteroids;
     }
 
     return mount(SelectProjectCardToPlay, {

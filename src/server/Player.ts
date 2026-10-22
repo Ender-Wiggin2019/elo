@@ -8,6 +8,7 @@ import {Color} from '../common/Color';
 import {ICorporationCard} from './cards/corporation/ICorporationCard';
 import {IGame} from './IGame';
 import {Game} from './Game';
+import {isProductionProject} from './cards/ProductionProject';
 import {Payment, PaymentOptions, DEFAULT_PAYMENT_VALUES} from '../common/inputs/Payment';
 import {findRedsPaymentReserve} from '../common/inputs/RedsPayment';
 import {SpendableResource, SPENDABLE_RESOURCES, SpendableCardResource, CARD_FOR_SPENDABLE_RESOURCE} from '../common/inputs/Spendable';
@@ -820,6 +821,7 @@ export class Player implements IPlayer {
       auroraiData: card.type === CardType.STANDARD_PROJECT,
       graphene: card.tags.includes(Tag.CITY) || card.tags.includes(Tag.SPACE),
       kuiperAsteroids: card.name === CardName.AQUIFER_STANDARD_PROJECT || card.name === CardName.ASTEROID_STANDARD_PROJECT,
+      meteoricAsteroids: this.playedCards.has(CardName.METEORIC_AGGREGATES) && isProductionProject(card),
       diseases: (card.tags.includes(Tag.JOVIAN) || card.tags.includes(Tag.MARS)) && this.playedCards.has(CardName.MYCELIAL_SPREAD),
     };
   }
@@ -860,7 +862,11 @@ export class Player implements IPlayer {
     }
 
     // TODO(kberg): Move this.paymentOptionsForCard to a parameter.
-    const totalToPay = this.payingAmount(payment, this.paymentOptionsForCard(selectedCard));
+    const paymentOptions = this.paymentOptionsForCard(selectedCard);
+    if (payment.meteoricAsteroids > 0 && !paymentOptions.meteoricAsteroids) {
+      throw new Error('Meteoric Aggregates asteroids require a project card with production');
+    }
+    const totalToPay = this.payingAmount(payment, paymentOptions);
 
     if (totalToPay < cardCost) {
       throw new Error('Did not spend enough to pay for card');
@@ -934,6 +940,7 @@ export class Player implements IPlayer {
     removeResourcesOnCard(CardName.AURORAI, payment.auroraiData);
     removeResourcesOnCard(CardName.KUIPER_COOPERATIVE, payment.kuiperAsteroids);
     removeResourcesOnCard(CardName.MYCELIAL_SPREAD, payment.diseases);
+    removeResourcesOnCard(CardName.METEORIC_AGGREGATES, payment.meteoricAsteroids);
 
     if (payment.megacredits > 0 || payment.steel > 0 || payment.titanium > 0) {
       PathfindersExpansion.addToSolBank(this);
@@ -1449,6 +1456,7 @@ export class Player implements IPlayer {
       graphene: this.getSpendable('graphene'),
       kuiperAsteroids: this.getSpendable('kuiperAsteroids'),
       diseases: this.getSpendable('diseases'),
+      meteoricAsteroids: this.getSpendable('meteoricAsteroids'),
     };
   }
 
@@ -1510,6 +1518,7 @@ export class Player implements IPlayer {
       graphene: options?.graphene ?? false,
       kuiperAsteroids: options?.kuiperAsteroids ?? false,
       diseases: options?.diseases ?? false,
+      meteoricAsteroids: options?.meteoricAsteroids ?? false,
     };
 
     if (options?.geothermalSmelterHeat === true) {

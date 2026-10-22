@@ -45,6 +45,7 @@ export default defineComponent({
   computed: {
     iconClass(): string {
       switch (this.unit) {
+      case 'meteoricAsteroids':
       case 'kuiperAsteroids': return 'resource_icon--asteroid';
       case 'lunaArchivesScience': return 'resource_icon--science';
       case 'spireScience': return 'resource_icon--science';

@@ -2,6 +2,7 @@ import {expect} from 'chai';
 import {CardName} from '../../../src/common/cards/CardName';
 import {CardType} from '../../../src/common/cards/CardType';
 import {Tag} from '../../../src/common/cards/Tag';
+import {PartyName} from '../../../src/common/turmoil/PartyName';
 import {Payment} from '../../../src/common/inputs/Payment';
 import {Resource} from '../../../src/common/Resource';
 import {Mine} from '../../../src/server/cards/base/Mine';
@@ -21,7 +22,7 @@ import {SellSteel} from '../../../src/server/moon/SellSteel';
 import {TradeWithSteel, TradeWithTitanium} from '../../../src/server/player/Colonies';
 import {IGame} from '../../../src/server/IGame';
 import {TestPlayer} from '../../TestPlayer';
-import {cast, fakeCard, formatMessage, runAllActions, testGame} from '../../TestingUtils';
+import {cast, formatMessage, runAllActions, setRulingParty, testGame} from '../../TestingUtils';
 
 describe('MiningProfitChain', () => {
   let card: MiningProfitChain;
@@ -43,17 +44,22 @@ describe('MiningProfitChain', () => {
       entry === 'blue gained 1 M€ because of 🌸矿业利润链🌸');
   }
 
-  it('requires two building tags before it can be played', () => {
+  it('requires Unity ruling or two Unity delegates before it can be played', () => {
     expect(card.type).eq(CardType.ACTIVE);
     expect(card.cost).eq(9);
     expect(card.tags).deep.eq([Tag.BUILDING]);
     expect(card.getVictoryPoints(player)).eq(1);
-    expect(card.canPlay(player)).is.false;
 
-    player.playedCards.push(fakeCard({tags: [Tag.BUILDING]}));
-    expect(card.canPlay(player)).is.false;
-    player.playedCards.push(fakeCard({tags: [Tag.BUILDING]}));
-    expect(card.canPlay(player)).is.true;
+    const [turmoilGame, turmoilPlayer] = testGame(1, {turmoilExtension: true, skipInitialShuffling: true});
+    const turmoilCard = new MiningProfitChain();
+    expect(turmoilCard.canPlay(turmoilPlayer)).is.false;
+    setRulingParty(turmoilGame, PartyName.UNITY);
+    expect(turmoilCard.canPlay(turmoilPlayer)).is.true;
+
+    const [delegateGame, delegatePlayer] = testGame(1, {turmoilExtension: true, skipInitialShuffling: true});
+    const unity = delegateGame.turmoil!.getPartyByName(PartyName.UNITY);
+    unity.delegates.add(delegatePlayer, 2);
+    expect(new MiningProfitChain().canPlay(delegatePlayer)).is.true;
   });
 
   for (const payment of [
@@ -137,7 +143,9 @@ describe('MiningProfitChain', () => {
   });
 
   it('does not reward paying for Mining Profit Chain itself', () => {
-    player.playedCards.push(fakeCard({tags: [Tag.BUILDING, Tag.BUILDING]}));
+    [game, player, otherPlayer] = testGame(2, {turmoilExtension: true, skipInitialShuffling: true});
+    setRulingParty(game, PartyName.UNITY);
+    card = new MiningProfitChain();
     player.cardsInHand = [card];
     player.steel = 4;
     player.megaCredits = 1;
