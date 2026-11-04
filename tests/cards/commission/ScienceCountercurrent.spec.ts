@@ -21,7 +21,7 @@ describe('ScienceCountercurrent', () => {
 
     expect(card.type).to.eq(CardType.ACTIVE);
     expect(card.name).to.eq(CardName.SCIENCE_COUNTERCURRENT);
-    expect(card.cost).to.eq(11);
+    expect(card.cost).to.eq(15);
     expect(card.tags).to.deep.eq([Tag.SCIENCE]);
     expect(card.resourceType).to.eq(CardResource.SCIENCE);
     expect(card.victoryPoints).to.eq(1);
@@ -188,14 +188,15 @@ describe('ScienceCountercurrent', () => {
     expect(card.resourceCount).to.eq(0);
   });
 
-  it('spends one Science and keeps one of two drawn cards', () => {
+  it('spends one Science and keeps one of three drawn cards', () => {
     const card = new ScienceCountercurrent();
     const [game, player] = testGame(1, {skipInitialShuffling: true});
     player.playedCards.push(card);
     card.resourceCount = 1;
     const first = new Research();
     const second = new Mine();
-    game.projectDeck.drawPile = [first, second];
+    const third = new Mine();
+    game.projectDeck.drawPile = [first, second, third];
     game.projectDeck.discardPile = [];
     game.gameLog.length = 0;
 
@@ -206,11 +207,11 @@ describe('ScienceCountercurrent', () => {
 
     runAllActions(game);
     const selection = cast(player.popWaitingFor(), SelectCard);
-    expect(selection.cards).to.have.length(2);
+    expect(selection.cards).to.have.length(3);
     selection.cb([selection.cards[0]]);
 
     expect(player.cardsInHand).to.have.length(1);
-    expect(game.projectDeck.discardPile).to.have.length(1);
+    expect(game.projectDeck.discardPile).to.have.length(2);
   });
 
   it('can draw and keep the only remaining project card', () => {

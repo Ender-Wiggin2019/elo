@@ -19,13 +19,12 @@ export class IntegratedMicroorganisms extends CorporationCard {
       tags: [Tag.MICROBE],
       startingMegaCredits: 50,
 
-      initialActionText: 'Draw 2 cards with a microbe tag',
       metadata: {
         cardNumber: 'XB07',
-        description: 'You start with 50 M€. As your first action, draw 2 cards with a microbe tag.',
+        description: 'You start with 50 M€.',
         renderData: CardRenderer.builder((b) => {
           b.br.br.br;
-          b.megacredits(50).cards(2, {secondaryTag: Tag.MICROBE});
+          b.megacredits(50);
           b.corpBox('effect', (ce) => {
             ce.effect('When you play a Microbe tag, including this, you draw 1 card.', (eb) => {
               eb.tag(Tag.MICROBE).startEffect.cards(1);
@@ -34,12 +33,6 @@ export class IntegratedMicroorganisms extends CorporationCard {
         }),
       },
     });
-  }
-
-
-  public override initialAction(player: IPlayer) {
-    player.drawCard(2, {tag: Tag.MICROBE});
-    return undefined;
   }
 
   private effectResolve(player: IPlayer, card: ICard) {

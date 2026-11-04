@@ -72,6 +72,14 @@ import {ScienceCountercurrent} from './ScienceCountercurrent';
 import {TechnologicalReserves} from './TechnologicalReserves';
 import {MeteoriteArc} from './MeteoriteArc';
 import {TechnologicalSeedlings} from './TechnologicalSeedlings';
+import {AntarcticLanternfish} from './AntarcticLanternfish';
+import {OmniHorizon} from './OmniHorizon';
+import {SparkfireEcology} from './SparkfireEcology';
+import {QuantumLeap} from './QuantumLeap';
+import {GalileoMatrix} from './GalileoMatrix';
+import {CloudHorizonPolitics} from './CloudHorizonPolitics';
+import {GreenEarthSurvey} from './GreenEarthSurvey';
+import {GeomagneticSymbiosis} from './GeomagneticSymbiosis';
 
 export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
   module: 'commission',
@@ -102,6 +110,10 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.ATMOSPHERIC_ORBIT]: {Factory: AtmosphericOrbit, compatibility: ['venus', 'colonies']}, // XB25
     [CardName.METEORITE_LAKESIDE]: {Factory: MeteoriteLakeside}, // XB26
     [CardName.METEORIC_AGGREGATES]: {Factory: MeteoricAggregates}, // XB85
+    [CardName.OMNI_HORIZON]: {Factory: OmniHorizon}, // XB92
+    [CardName.SPARKFIRE_ECOLOGY]: {Factory: SparkfireEcology}, // XB93
+    [CardName.QUANTUM_LEAP]: {Factory: QuantumLeap}, // XB94
+    [CardName.GEOMAGNETIC_SYMBIOSIS]: {Factory: GeomagneticSymbiosis, compatibility: 'ares'}, // XB98
   },
   preludeCards: {
   },
@@ -145,6 +157,10 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.TECHNOLOGICAL_RESERVES]: {Factory: TechnologicalReserves}, // XB88
     [CardName.METEORITE_ARC]: {Factory: MeteoriteArc}, // XB89
     [CardName.TECHNOLOGICAL_SEEDLINGS]: {Factory: TechnologicalSeedlings}, // XB90
+    [CardName.ANTARCTIC_LANTERNFISH]: {Factory: AntarcticLanternfish}, // XB91
+    [CardName.GALILEO_MATRIX]: {Factory: GalileoMatrix}, // XB95
+    [CardName.CLOUD_HORIZON_POLITICS]: {Factory: CloudHorizonPolitics, compatibility: ['venus', 'turmoil']}, // XB96
+    [CardName.GREEN_EARTH_SURVEY]: {Factory: GreenEarthSurvey}, // XB97
   },
   globalEvents: {
   },

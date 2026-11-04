@@ -952,6 +952,7 @@ export class Player implements IPlayer {
   }
 
   private playCardWithPayment(selectedCard: IProjectCard, payment: Payment | undefined, cardAction: CardAction): void {
+    const playedFromHand = cardAction === 'add' && this.cardsInHand.includes(selectedCard);
     if (payment !== undefined) {
       this.pay(payment);
 
@@ -1038,6 +1039,12 @@ export class Player implements IPlayer {
     // See DeclareCloneTag for why this skips cards with clone tags.
     if (!selectedCard.tags.includes(Tag.CLONE) && cardAction !== 'double-down') {
       this.onCardPlayed(selectedCard);
+    }
+
+    if (playedFromHand) {
+      for (const effectCard of this.tableau) {
+        this.defer(effectCard.onCardPlayedFromHand?.(this, selectedCard));
+      }
     }
 
     return undefined;

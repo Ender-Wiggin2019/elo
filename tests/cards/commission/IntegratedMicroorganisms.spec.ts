@@ -3,7 +3,6 @@ import {IntegratedMicroorganisms} from '../../../src/server/cards/commission/Int
 import {testGame} from '../../TestGame';
 import {TestPlayer} from '../../TestPlayer';
 import {runAllActions} from '../../TestingUtils';
-import {Tag} from '../../../src/common/cards/Tag';
 import {IGame} from '../../../src/server/IGame';
 import {Ants} from '../../../src/server/cards/base/Ants';
 import {Worms} from '../../../src/server/cards/base/Worms';
@@ -20,16 +19,12 @@ describe('IntegratedMicroorganisms', () => {
     [game, player, player2] = testGame(2, {skipInitialShuffling: true});
   });
 
-  it('should start with 50 M€ and draw 2 microbe cards', () => {
+  it('should start with 50 M€ without drawing initial microbe cards', () => {
     player.playCorporationCard(card);
     expect(player.cardsInHand.length).to.eq(1);
-
-    player.defer(card.initialAction(player));
     runAllActions(game);
     expect(card.startingMegaCredits).to.equal(50);
-    expect(player.cardsInHand.length).to.eq(3);
-    expect(player.cardsInHand[1].tags).to.include(Tag.MICROBE);
-    expect(player.cardsInHand[2].tags).to.include(Tag.MICROBE);
+    expect(player.cardsInHand.length).to.eq(1);
   });
 
   it('should draw 1 card for each microbe tag when playing a card', () => {

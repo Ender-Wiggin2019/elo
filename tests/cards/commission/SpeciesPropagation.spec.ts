@@ -36,16 +36,16 @@ describe('SpeciesPropagation', () => {
     expect(card.tags).to.deep.eq([Tag.ANIMAL]);
     expect(card.resourceType).to.eq(CardResource.ANIMAL);
     expect(card.victoryPoints).to.deep.eq({resourcesHere: {}});
-    expect(card.requirements).to.deep.eq([{oxygen: 8, count: 8}]);
+    expect(card.requirements).to.deep.eq([{oxygen: 10, count: 10}]);
     expect(card.metadata.cardNumber).to.eq('XB84');
   });
 
-  it('requires 8% oxygen', () => {
+  it('requires 10% oxygen', () => {
     player.megaCredits = card.cost;
-    setOxygenLevel(game, 7);
+    setOxygenLevel(game, 9);
     expect(card.canPlay(player)).to.be.false;
 
-    setOxygenLevel(game, 8);
+    setOxygenLevel(game, 10);
     expect(card.canPlay(player)).to.be.true;
   });
 

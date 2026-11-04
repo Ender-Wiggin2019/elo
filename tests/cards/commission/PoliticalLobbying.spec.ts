@@ -25,17 +25,17 @@ describe('PoliticalLobbying', () => {
   it('has the expected commissioned active card properties', () => {
     expect(card.cost).to.eq(6);
     expect(card.type).to.eq(CardType.ACTIVE);
-    expect(card.tags).to.deep.eq([Tag.MARS]);
+    expect(card.tags).to.deep.eq([Tag.VENUS]);
     expect(card.metadata.cardNumber).to.eq('XB86');
     expect(card.name).to.eq(CardName.POLITICAL_LOBBYING);
   });
 
-  it('requires one Mars tag to play', () => {
+  it('requires one Venus tag to play', () => {
     player.cardsInHand = [card];
     player.megaCredits = card.cost;
     expect(player.getPlayableCards()).does.not.include(card);
 
-    player.playedCards.push(fakeCard({tags: [Tag.MARS]}));
+    player.playedCards.push(fakeCard({tags: [Tag.VENUS]}));
     expect(player.getPlayableCards()).includes(card);
   });
 

@@ -1,6 +1,7 @@
 import {expect} from 'chai';
 import {MAX_TEMPERATURE} from '../../../src/common/constants';
 import {Tag} from '../../../src/common/cards/Tag';
+import {CardResource} from '../../../src/common/CardResource';
 import {AtmosphericOrbit} from '../../../src/server/cards/commission/AtmosphericOrbit';
 import {StrategicRetrieval} from '../../../src/server/cards/commission/StrategicRetrieval';
 import {AccumulatedKnowledge} from '../../../src/server/cards/community/AccumulatedKnowledge';
@@ -46,9 +47,10 @@ describe('AtmosphericOrbit', () => {
     return cast(player.popWaitingFor(), OrOptions);
   }
 
-  it('starts with 47 M€ and 5 heat, and its first action draws one card and offers one data', () => {
-    expect(card.startingMegaCredits).to.eq(47);
+  it('starts with 43 M€ and 5 heat, and its first action draws one card and offers one orbital', () => {
+    expect(card.startingMegaCredits).to.eq(43);
     expect(player.heat).to.eq(5);
+    expect(card.resourceType).to.eq(CardResource.ORBITAL);
 
     const initialHandSize = player.cardsInHand.length;
     player.defer(card.initialAction(player));
@@ -244,7 +246,7 @@ describe('AtmosphericOrbit', () => {
     expect(player.getWaitingFor()).to.be.undefined;
   });
 
-  it('at four data, offers Venus as an alternative to storing data', () => {
+  it('at four orbitals, offers Venus as an alternative to storing orbitals', () => {
     card.resourceCount = 4;
     setVenusScaleLevel(game, 0);
     player.megaCredits = 10;
@@ -261,7 +263,7 @@ describe('AtmosphericOrbit', () => {
     expect(game.getVenusScaleLevel()).to.eq(2);
   });
 
-  it('at five data, offers the three-way choice and can build a colony', () => {
+  it('at five orbitals, offers the three-way choice and can build a colony', () => {
     card.resourceCount = 5;
     const playableColonies = player.colonies.getPlayableColonies();
     expect(playableColonies).to.not.be.empty;

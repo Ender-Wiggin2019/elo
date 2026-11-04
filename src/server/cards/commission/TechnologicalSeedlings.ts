@@ -14,7 +14,8 @@ export class TechnologicalSeedlings extends Card implements IProjectCard {
       type: CardType.AUTOMATED,
       name: CardName.TECHNOLOGICAL_SEEDLINGS,
       tags: [Tag.SCIENCE, Tag.PLANT],
-      cost: 11,
+      cost: 15,
+      requirements: {oxygen: 8, max: true},
 
       metadata: {
         cardNumber: 'XB90',

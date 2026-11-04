@@ -4,7 +4,7 @@ import {Tag} from '../../../src/common/cards/Tag';
 import {TechnologicalSeedlings} from '../../../src/server/cards/commission/TechnologicalSeedlings';
 import {IGame} from '../../../src/server/IGame';
 import {TestPlayer} from '../../TestPlayer';
-import {fakeCard, formatMessage} from '../../TestingUtils';
+import {fakeCard, formatMessage, setOxygenLevel} from '../../TestingUtils';
 import {testGame} from '../../TestGame';
 
 describe('TechnologicalSeedlings', () => {
@@ -25,11 +25,21 @@ describe('TechnologicalSeedlings', () => {
       entry === 'blue gained 3 plants because of 🌸科技育苗🌸');
   }
 
-  it('is an automated science and plant card that costs 11 M€', () => {
+  it('is an automated science and plant card that costs 15 M€ and requires oxygen at most 8%', () => {
     expect(card.type).to.eq(CardType.AUTOMATED);
-    expect(card.cost).to.eq(11);
+    expect(card.cost).to.eq(15);
     expect(card.tags).to.deep.eq([Tag.SCIENCE, Tag.PLANT]);
+    expect(card.requirements).to.deep.eq([{oxygen: 8, count: 8, max: true}]);
     expect(card.metadata.cardNumber).to.eq('XB90');
+  });
+
+  it('cannot be played above 8% oxygen', () => {
+    player.megaCredits = card.cost;
+    setOxygenLevel(game, 9);
+    expect(card.canPlay(player)).to.be.false;
+
+    setOxygenLevel(game, 8);
+    expect(card.canPlay(player)).to.be.true;
   });
 
   it('gains plants for its own science tag when played', () => {

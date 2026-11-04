@@ -15,9 +15,9 @@ describe('TechnologicalReserves', () => {
     [, player, otherPlayer] = testGame(2, {skipInitialShuffling: true});
   });
 
-  it('is an automated card with no tags and costs 15 M€', () => {
-    expect(card.type).to.eq(CardType.AUTOMATED);
-    expect(card.cost).to.eq(15);
+  it('is an active card with no tags and costs 9 M€', () => {
+    expect(card.type).to.eq(CardType.ACTIVE);
+    expect(card.cost).to.eq(9);
     expect(card.tags).to.deep.eq([]);
     expect(card.metadata.cardNumber).to.eq('XB88');
   });

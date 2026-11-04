@@ -13,14 +13,14 @@ export class Tyrell extends CorporationCard {
     super({
       name: CardName.TYRELL,
       tags: [Tag.SCIENCE],
-      startingMegaCredits: 57,
+      startingMegaCredits: 50,
 
       metadata: {
         cardNumber: 'XB03',
-        description: 'You start with 57 M€.',
+        description: 'You start with 50 M€.',
         renderData: CardRenderer.builder((b) => {
           b.br.br.br;
-          b.megacredits(57);
+          b.megacredits(50);
           b.corpBox('action', (ce) => {
             ce.action('use a non resource card action from other opponents.', (eb) => {
               eb.empty().startAction.text('Action').cards(1, {all});

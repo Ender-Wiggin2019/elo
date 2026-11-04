@@ -25,13 +25,13 @@ export class SpeciesPropagation extends Card implements IProjectCard {
       cost: 11,
       resourceType: CardResource.ANIMAL,
       victoryPoints: {resourcesHere: {}},
-      requirements: {oxygen: 8},
+      requirements: {oxygen: 10},
 
       metadata: {
         cardNumber: 'XB84',
         renderData: CardRenderer.builder((b) => {
           b.effect('任意玩家打出动物或植物标签的卡（包括此卡）时，你可支付3 M€，在此卡上增加1个动物资源。', (eb) => {
-            eb.tag(Tag.ANIMAL, {all}).slash().tag(Tag.PLANT, {all}).startEffect.megacredits(ANIMAL_PAYMENT).resource(CardResource.ANIMAL);
+            eb.tag(Tag.ANIMAL, {all}).slash().tag(Tag.PLANT, {all}).startEffect.megacredits(ANIMAL_PAYMENT).arrow().resource(CardResource.ANIMAL);
           }).br;
           b.vpText('此卡上的每个动物资源计1 VP。');
         }),

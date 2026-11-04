@@ -19,7 +19,7 @@ export class SolarPlant extends CorporationCard {
     super({
       name: CardName.SOLARPLANT,
       tags: [Tag.POWER],
-      startingMegaCredits: 45,
+      startingMegaCredits: 40,
 
       behavior: {
         production: {energy: 2},
@@ -28,10 +28,10 @@ export class SolarPlant extends CorporationCard {
 
       metadata: {
         cardNumber: 'XB14',
-        description: 'You start with 45 M€..',
+        description: 'You start with 40 M€.',
         renderData: CardRenderer.builder((b) => {
           b.br;
-          b.production((pb) => pb.energy(2)).nbsp.megacredits(45).energy(3, {digit});
+          b.production((pb) => pb.energy(2)).nbsp.megacredits(40).energy(3, {digit});
           b.corpBox('action', (ce) => {
             ce.vSpace();
             ce.action('Decrease your heat production any number of steps and increase your energy production the same number of steps.', (eb) => {

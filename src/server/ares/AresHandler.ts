@@ -17,6 +17,7 @@ import {AresHazards} from './AresHazards';
 import {CrashlandingBonus} from '../pathfinders/CrashlandingBonus';
 import {Board} from '../boards/Board';
 import {PartyHooks} from '../turmoil/parties/PartyHooks';
+import {Resource} from '../../common/Resource';
 
 export class AresHandler {
   private constructor() {}
@@ -129,6 +130,10 @@ export class AresHandler {
 
       adjacentPlayer.megaCredits += ownerBonus;
       player.game.log('${0} gains ${1} M€ for a tile placed next to ${2}', (b) => b.player(adjacentPlayer).number(ownerBonus).string(tileText));
+
+      if (adjacentPlayer.tableau.has(CardName.GEOMAGNETIC_SYMBIOSIS)) {
+        adjacentPlayer.stock.add(Resource.STEEL, 1, {log: true, from: {card: CardName.GEOMAGNETIC_SYMBIOSIS}});
+      }
     }
   }
 

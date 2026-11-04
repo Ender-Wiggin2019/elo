@@ -30,7 +30,7 @@ export class EnergySavingEcology extends CorporationCard {
     super({
       name: CardName.ENERGY_SAVING_ECOLOGY,
       tags: [Tag.SPACE],
-      startingMegaCredits: 47,
+      startingMegaCredits: 41,
       resourceType: CardResource.ASTEROID,
 
       behavior: {
@@ -40,9 +40,9 @@ export class EnergySavingEcology extends CorporationCard {
 
       metadata: {
         cardNumber: 'XB20',
-        description: 'You start with 2 heat production and 47 M€.',
+        description: 'You start with 2 heat production and 41 M€.',
         renderData: CardRenderer.builder((b) => {
-          b.production((pb) => pb.heat(2)).nbsp.megacredits(47).br;
+          b.production((pb) => pb.heat(2)).nbsp.megacredits(41).br;
           b.minus().megacredits(10).slash().production((pb) => pb.heat(1)).colon().resource(CardResource.ASTEROID, 1).or().br; // asteroids
           b.effect(undefined, (eb) => {
             eb.minus().resource(CardResource.ASTEROID, {amount: PLACE_OCEAN_COUNT, digit}).startAction.oceans(1).or();

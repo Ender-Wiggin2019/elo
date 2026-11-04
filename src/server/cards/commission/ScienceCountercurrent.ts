@@ -20,7 +20,7 @@ export class ScienceCountercurrent extends Card implements IProjectCard, IAction
       name: CardName.SCIENCE_COUNTERCURRENT,
       type: CardType.ACTIVE,
       tags: [Tag.SCIENCE],
-      cost: 11,
+      cost: 15,
       resourceType: CardResource.SCIENCE,
       requirements: {party: PartyName.REDS},
       victoryPoints: 1,
@@ -31,8 +31,8 @@ export class ScienceCountercurrent extends Card implements IProjectCard, IAction
           b.effect('每次提升TR，可降低1级M€产量并在本牌增加1个科学资源（多格也仅触发一次）。', (eb) => {
             eb.tr(1).startEffect.production((pb) => pb.megacredits(-1)).resource(CardResource.SCIENCE);
           }).br;
-          b.action('消耗1科学，抽2留1弃1。', (eb) => {
-            eb.resource(CardResource.SCIENCE, {size: Size.SMALL}).startAction.cards(2, {size: Size.SMALL});
+          b.action('消耗1科学，抽3留1弃2。', (eb) => {
+            eb.resource(CardResource.SCIENCE, {size: Size.SMALL}).startAction.cards(3, {size: Size.SMALL}).asterix();
           });
         }),
       },
@@ -66,7 +66,7 @@ export class ScienceCountercurrent extends Card implements IProjectCard, IAction
 
   public action(player: IPlayer): undefined {
     player.removeResourceFrom(this, 1, {log: true});
-    player.drawCardKeepSome(2, {keepMax: 1});
+    player.drawCardKeepSome(3, {keepMax: 1});
     return undefined;
   }
 }

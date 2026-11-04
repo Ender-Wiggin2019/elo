@@ -24,10 +24,10 @@ describe('EnergySavingEcology', () => {
     player.megaCredits = 100;
   });
 
-  it('should start with 47 M€ and 2 heat production', () => {
+  it('should start with 41 M€ and 2 heat production', () => {
     player.playCorporationCard(card);
     runAllActions(game);
-    expect(card.startingMegaCredits).to.equal(47);
+    expect(card.startingMegaCredits).to.equal(41);
     expect(player.production.get(Resource.HEAT)).to.equal(2);
     expect(card.resourceCount).to.equal(1);
   });

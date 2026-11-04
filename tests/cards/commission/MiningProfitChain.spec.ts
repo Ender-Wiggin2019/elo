@@ -46,7 +46,7 @@ describe('MiningProfitChain', () => {
 
   it('requires Unity ruling or two Unity delegates before it can be played', () => {
     expect(card.type).eq(CardType.ACTIVE);
-    expect(card.cost).eq(9);
+    expect(card.cost).eq(12);
     expect(card.tags).deep.eq([Tag.BUILDING]);
     expect(card.getVictoryPoints(player)).eq(1);
 
@@ -148,9 +148,9 @@ describe('MiningProfitChain', () => {
     card = new MiningProfitChain();
     player.cardsInHand = [card];
     player.steel = 4;
-    player.megaCredits = 1;
+    player.megaCredits = 8;
 
-    player.checkPaymentAndPlayCard(card, Payment.of({steel: 4, megacredits: 1}));
+    player.checkPaymentAndPlayCard(card, Payment.of({steel: 4, megacredits: 8}));
     runAllActions(game);
 
     expect(player.playedCards.has(card.name)).is.true;

@@ -10,9 +10,9 @@ export class PoliticalLobbying extends ActionCard implements IProjectCard {
     super({
       name: CardName.POLITICAL_LOBBYING,
       type: CardType.ACTIVE,
-      tags: [Tag.MARS],
+      tags: [Tag.VENUS],
       cost: 6,
-      requirements: {tag: Tag.MARS, count: 1},
+      requirements: {tag: Tag.VENUS, count: 1},
 
       action: {
         turmoil: {
@@ -28,7 +28,7 @@ export class PoliticalLobbying extends ActionCard implements IProjectCard {
             (eb) => eb.empty().startAction.delegates(1),
           );
         }),
-        description: '需要1个火星标签。将你的1个议员从大厅派到任意政党。',
+        description: '需要1个金星标签。将你的1个议员从大厅派到任意政党。',
       },
     });
   }

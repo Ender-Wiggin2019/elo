@@ -18,7 +18,7 @@ describe('SolarPlant', () => {
     player.megaCredits = 100;
   });
 
-  it('初始资金为45 M€，并有初始行动获得能源产量与资源', () => {
+  it('初始资金为40 M€，并有初始行动获得能源产量与资源', () => {
     // 记录初始产量
     const initialEnergyProduction = player.production.energy;
     const initialEnergy = player.energy;

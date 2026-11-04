@@ -9,10 +9,10 @@ import {questionmark} from '../render/DynamicVictoryPoints';
 export class TechnologicalReserves extends Card implements IProjectCard {
   constructor() {
     super({
-      type: CardType.AUTOMATED,
+      type: CardType.ACTIVE,
       name: CardName.TECHNOLOGICAL_RESERVES,
       tags: [],
-      cost: 15,
+      cost: 9,
       victoryPoints: 'special',
 
       metadata: {

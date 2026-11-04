@@ -30,6 +30,10 @@ describe('Tyrell', () => {
     expect(card.canAct(player)).to.be.false;
   });
 
+  it('starts with 50 M€', () => {
+    expect(card.startingMegaCredits).to.eq(50);
+  });
+
   it('可以使用其他玩家的非资源行动卡', () => {
     addCity(player);
     const industrialCenter = new IndustrialCenter();

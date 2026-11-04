@@ -82,21 +82,21 @@ describe('OumuamuaTypeObjectSurvey', () => {
     const atmosphericOrbit = new AtmosphericOrbit();
     player.playCorporationCard(atmosphericOrbit);
     runAllActions(game);
-    const initialData = atmosphericOrbit.resourceCount;
+    const initialOrbitals = atmosphericOrbit.resourceCount;
     projectDeck.drawPile = [slug, earthTag, noTags];
 
     card.play(player);
     runAllActions(game);
 
     expect(player.cardsInHand).to.have.length(2);
-    expect(atmosphericOrbit.resourceCount).to.eq(initialData + 3); // 2 data from Oumuamua and 1 draw trigger.
+    expect(atmosphericOrbit.resourceCount).to.eq(initialOrbitals + 1); // Oumuamua's data does not target this orbital card; keep the draw trigger.
   });
 
   it('triggers Atmospheric Orbit once when one card is played and one is kept', () => {
     const atmosphericOrbit = new AtmosphericOrbit();
     player.playCorporationCard(atmosphericOrbit);
     runAllActions(game);
-    const initialData = atmosphericOrbit.resourceCount;
+    const initialOrbitals = atmosphericOrbit.resourceCount;
     projectDeck.drawPile = [slug, noTags, scienceTag];
 
     card.play(player);
@@ -104,7 +104,7 @@ describe('OumuamuaTypeObjectSurvey', () => {
 
     expect(player.cardsInHand).to.have.length(1);
     expect(player.playedCards.asArray()).to.include(scienceTag);
-    expect(atmosphericOrbit.resourceCount).to.eq(initialData + 3); // 2 data from Oumuamua and 1 draw trigger.
+    expect(atmosphericOrbit.resourceCount).to.eq(initialOrbitals + 1); // Oumuamua's data does not target this orbital card; keep the draw trigger.
   });
 
   it('Card has a space tag', () => {

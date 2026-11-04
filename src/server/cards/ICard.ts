@@ -82,6 +82,8 @@ export interface ICard {
   getInfluenceBonus?: (player: IPlayer) => number;
   /** Called when cards are played. Corps have a different callback */
   onCardPlayed?(player: IPlayer, card: ICard): PlayerInput | undefined | void;
+  /** Called after a project card is played from the owner's hand into their tableau. */
+  onCardPlayedFromHand?(player: IPlayer, card: IProjectCard): PlayerInput | undefined | void;
   onCardPlayedByAnyPlayer?(thisCardOwner: IPlayer, card: ICard, activePlayer: IPlayer): PlayerInput | undefined | void;
   onCardPlayedFromAnyPlayer?: never;
   onStandardProject?(player: IPlayer, project: IStandardProjectCard): void;

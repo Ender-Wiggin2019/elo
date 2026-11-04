@@ -15,13 +15,13 @@ export class MeteoricAggregates extends CorporationCard implements IActionCard {
     super({
       name: CardName.METEORIC_AGGREGATES,
       tags: [Tag.EARTH, Tag.SPACE],
-      startingMegaCredits: 48,
+      startingMegaCredits: 40,
       resourceType: CardResource.ASTEROID,
       metadata: {
         cardNumber: 'XB85',
-        description: '初始获得48 M€、1钢铁和1钛。',
+        description: '初始获得40 M€、1钢铁和1钛。',
         renderData: CardRenderer.builder((b) => {
-          b.megacredits(48).steel(1).titanium(1).br;
+          b.megacredits(40).steel(1).titanium(1).br;
           b.action('在你的任意一张卡上增加1个陨石，或在本牌上增加2个陨石。', (ab) => {
             ab.empty().startAction.resource(CardResource.ASTEROID).asterix().or().resource(CardResource.ASTEROID, 2);
           }).br;

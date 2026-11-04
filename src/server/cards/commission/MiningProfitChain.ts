@@ -15,7 +15,7 @@ export class MiningProfitChain extends Card implements IProjectCard {
     super({
       name: CardName.MINING_PROFIT_CHAIN,
       type: CardType.ACTIVE,
-      cost: 9,
+      cost: 12,
       tags: [Tag.BUILDING],
       requirements: {party: PartyName.UNITY},
       victoryPoints: 1,
