@@ -10,18 +10,20 @@ import {OrOptions} from '../../inputs/OrOptions';
 import {SelectOption} from '../../inputs/SelectOption';
 import {SelectCard} from '../../inputs/SelectCard';
 
+const STARTING_MEGA_CREDITS = 42;
+
 export class MeteoricAggregates extends CorporationCard implements IActionCard {
   constructor() {
     super({
       name: CardName.METEORIC_AGGREGATES,
       tags: [Tag.EARTH, Tag.SPACE],
-      startingMegaCredits: 40,
+      startingMegaCredits: STARTING_MEGA_CREDITS,
       resourceType: CardResource.ASTEROID,
       metadata: {
         cardNumber: 'XB85',
-        description: '初始获得40 M€、1钢铁和1钛。',
+        description: `初始获得${STARTING_MEGA_CREDITS} M€、1钢铁和1钛。`,
         renderData: CardRenderer.builder((b) => {
-          b.megacredits(40).steel(1).titanium(1).br;
+          b.megacredits(STARTING_MEGA_CREDITS).steel(1).titanium(1).br;
           b.action('在你的任意一张卡上增加1个陨石，或在本牌上增加2个陨石。', (ab) => {
             ab.empty().startAction.resource(CardResource.ASTEROID).asterix().or().resource(CardResource.ASTEROID, 2);
           }).br;

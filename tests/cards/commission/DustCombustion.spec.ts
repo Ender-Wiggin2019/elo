@@ -25,7 +25,19 @@ describe('DustCombustion', () => {
     expect(card.cost).to.eq(9);
     expect(card.tags).to.deep.eq([Tag.VENUS, Tag.SPACE]);
     expect(card.victoryPoints).to.eq(-1);
-    expect(card.requirements[0].oxygen).to.eq(8);
+    expect(card.requirements[0].oxygen).to.eq(4);
+  });
+
+  it('requires at least 4% oxygen', () => {
+    const floaterCard = fakeCard({resourceType: CardResource.FLOATER, resourceCount: 1});
+    player.playedCards.push(floaterCard);
+    player.megaCredits = card.cost;
+
+    setOxygenLevel(game, 3);
+    expect(player.canPlay(card)).to.be.false;
+
+    setOxygenLevel(game, 4);
+    expect(player.canPlay(card)).to.be.true;
   });
 
   it('requires a floater and applies both global changes when played', () => {

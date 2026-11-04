@@ -2,14 +2,20 @@ import {expect} from 'chai';
 import {PartyName} from '../../../src/common/turmoil/PartyName';
 import {SpaceType} from '../../../src/common/boards/SpaceType';
 import {TileType} from '../../../src/common/TileType';
+import {Payment} from '../../../src/common/inputs/Payment';
 import {MeteoriteLakeside} from '../../../src/server/cards/commission/MeteoriteLakeside';
 import {MiningProfitChain} from '../../../src/server/cards/commission/MiningProfitChain';
 import {MarsNomads} from '../../../src/server/cards/promo/MarsNomads';
+import {Helion} from '../../../src/server/cards/corporation/Helion';
+import {StormCraftIncorporated} from '../../../src/server/cards/colonies/StormCraftIncorporated';
 import {IGame} from '../../../src/server/IGame';
 import {Board} from '../../../src/server/boards/Board';
 import {Space} from '../../../src/server/boards/Space';
 import {OrOptions} from '../../../src/server/inputs/OrOptions';
 import {SelectSpace} from '../../../src/server/inputs/SelectSpace';
+import {SelectPayment} from '../../../src/server/inputs/SelectPayment';
+import {AndOptions} from '../../../src/server/inputs/AndOptions';
+import {SelectAmount} from '../../../src/server/inputs/SelectAmount';
 import {testGame} from '../../TestGame';
 import {TestPlayer} from '../../TestPlayer';
 import {cast, formatMessage, runAllActions, setRulingParty} from '../../TestingUtils';
@@ -38,6 +44,13 @@ describe('MeteoriteLakeside', () => {
     const skip = input.options.find((option) => option.title.toString().includes('跳过'));
     expect(skip).to.exist;
     skip!.cb();
+    runAllActions(game);
+  }
+
+  function payOceanBonus(input: OrOptions, payment: Partial<Payment>): void {
+    const option = cast(input.options[0], SelectPayment);
+    expect(option.paymentOptions.steel).is.true;
+    player.defer(option.process({type: 'payment', payment: Payment.of(payment)}, player));
     runAllActions(game);
   }
 
@@ -98,8 +111,7 @@ describe('MeteoriteLakeside', () => {
     const moneyOption = moneyChoice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
     game.gameLog.length = 0;
-    moneyOption!.cb();
-    runAllActions(game);
+    payOceanBonus(moneyChoice, {megacredits: 5});
 
     expect(player.megaCredits).to.eq(0);
     expect(player.getTerraformRating()).to.eq(initialTR + 1);
@@ -111,11 +123,8 @@ describe('MeteoriteLakeside', () => {
     const steelChoice = cast(player.popWaitingFor(), OrOptions);
     expect(steelChoice.options).to.have.length(2);
     expect(steelChoice.options.some((option) => option.title.toString().includes('钛'))).to.be.false;
-    const steelOption = steelChoice.options.find((option) => option.title.toString().includes('3钢铁'));
-    expect(steelOption).to.exist;
     game.gameLog.length = 0;
-    steelOption!.cb();
-    runAllActions(game);
+    payOceanBonus(steelChoice, {steel: 3});
 
     expect(player.steel).to.eq(0);
     expect(player.getTerraformRating()).to.eq(secondInitialTR + 1);
@@ -133,6 +142,103 @@ describe('MeteoriteLakeside', () => {
     expect(player.getWaitingFor()).to.be.undefined;
   });
 
+  for (const [money, steel, steelValue] of [[1, 2, 2], [3, 1, 2], [0, 2, 3]]) {
+    it(`pays the 5 M€ cost with ${money} M€ and ${steel} steel worth ${steelValue} M€ each`, () => {
+      player.megaCredits = money;
+      player.steel = steel;
+      player.steelValue = steelValue;
+      const initialTR = player.getTerraformRating();
+      addOceanForOtherPlayer();
+      const choice = cast(player.popWaitingFor(), OrOptions);
+      const model = cast(choice.options[0], SelectPayment).toModel(player);
+      expect(model.amount).eq(5);
+      expect(model.paymentOptions.steel).is.true;
+      game.gameLog.length = 0;
+      payOceanBonus(choice, {megacredits: money, steel});
+
+      expect(player.megaCredits).eq(0);
+      expect(player.steel).eq(0);
+      expect(player.getTerraformRating()).eq(initialTR + 1);
+      const logs = game.gameLog.map(formatMessage);
+      expect(logs.filter((entry) => entry === `blue lost ${steel} steel because of 🌸星陨湖畔🌸`)).has.length(1);
+      expect(logs.filter((entry) => entry === 'blue gained 1 TR from 🌸星陨湖畔🌸')).has.length(1);
+      if (money > 0) {
+        expect(logs.filter((entry) => entry === `blue lost ${money} M€ because of 🌸星陨湖畔🌸`)).has.length(1);
+      }
+    });
+  }
+
+  it('rejects underpayment before spending resources or increasing TR', () => {
+    player.megaCredits = 1;
+    player.steel = 2;
+    const initialTR = player.getTerraformRating();
+    addOceanForOtherPlayer();
+    const payment = cast(cast(player.popWaitingFor(), OrOptions).options[0], SelectPayment);
+    expect(() => payment.process({type: 'payment', payment: Payment.of({steel: 2})}, player)).to.throw('Did not spend enough');
+    expect(player.megaCredits).eq(1);
+    expect(player.steel).eq(2);
+    expect(player.getTerraformRating()).eq(initialTR);
+  });
+
+  it('keeps Luna titanium substitution at its normal M€ rate', () => {
+    player.canUseTitaniumAsMegacredits = true;
+    player.megaCredits = 1;
+    player.titanium = 2;
+    const initialTR = player.getTerraformRating();
+    addOceanForOtherPlayer();
+    const choice = cast(player.popWaitingFor(), OrOptions);
+    game.gameLog.length = 0;
+    payOceanBonus(choice, {megacredits: 1, titanium: 2});
+    expect(player.megaCredits).eq(0);
+    expect(player.titanium).eq(0);
+    expect(player.getTerraformRating()).eq(initialTR + 1);
+    expect(game.gameLog.map(formatMessage).filter((entry) => entry === 'blue lost 2 titanium because of 🌸星陨湖畔🌸')).has.length(1);
+  });
+
+  it('can decline an affordable mixed payment without spending or gaining TR', () => {
+    player.megaCredits = 1;
+    player.steel = 2;
+    const initialTR = player.getTerraformRating();
+    addOceanForOtherPlayer();
+    game.gameLog.length = 0;
+    skipOceanBonus(cast(player.popWaitingFor(), OrOptions));
+    expect(player.megaCredits).eq(1);
+    expect(player.steel).eq(2);
+    expect(player.getTerraformRating()).eq(initialTR);
+    expect(game.gameLog.map(formatMessage).filter((entry) => entry.includes('because of 🌸星陨湖畔🌸') || entry.includes('TR from 🌸星陨湖畔🌸'))).is.empty;
+  });
+
+  it('waits for Stormcraft heat payment before increasing TR and logging the actual cost', () => {
+    const stormcraft = new StormCraftIncorporated();
+    player.playCorporationCard(new Helion());
+    player.playCorporationCard(stormcraft);
+    runAllActions(game);
+    player.megaCredits = 0;
+    player.steel = 1;
+    player.heat = 1;
+    stormcraft.resourceCount = 1;
+    const initialTR = player.getTerraformRating();
+    addOceanForOtherPlayer();
+    const payment = cast(cast(player.popWaitingFor(), OrOptions).options[0], SelectPayment);
+    game.gameLog.length = 0;
+    const heatPayment = cast(payment.process({type: 'payment', payment: Payment.of({steel: 1, heat: 3})}, player), AndOptions);
+    expect(player.getTerraformRating()).eq(initialTR);
+    expect(game.gameLog.map(formatMessage).filter((entry) => entry.includes('TR from 🌸星陨湖畔🌸'))).is.empty;
+
+    cast(heatPayment.options[0], SelectAmount).cb(1);
+    cast(heatPayment.options[1], SelectAmount).cb(1);
+    heatPayment.cb(undefined);
+    runAllActions(game);
+    expect(player.steel).eq(0);
+    expect(player.heat).eq(0);
+    expect(stormcraft.resourceCount).eq(0);
+    expect(player.getTerraformRating()).eq(initialTR + 1);
+    const logs = game.gameLog.map(formatMessage);
+    expect(logs.filter((entry) => entry === 'blue lost 1 heat because of 🌸星陨湖畔🌸')).has.length(1);
+    expect(logs.filter((entry) => entry === 'blue lost 1 steel because of 🌸星陨湖畔🌸')).has.length(1);
+    expect(logs.filter((entry) => entry === 'blue gained 1 TR from 🌸星陨湖畔🌸')).has.length(1);
+  });
+
   it('triggers Mining Profit Chain when paying steel for the ocean bonus', () => {
     player.playedCards.push(new MiningProfitChain());
     player.megaCredits = 0;
@@ -142,11 +248,8 @@ describe('MeteoriteLakeside', () => {
     addOceanForOtherPlayer();
 
     const choice = cast(player.popWaitingFor(), OrOptions);
-    const steelOption = choice.options.find((option) => option.title.toString().includes('3钢铁'));
-    expect(steelOption).to.exist;
     game.gameLog.length = 0;
-    steelOption!.cb();
-    runAllActions(game);
+    payOceanBonus(choice, {steel: 3});
 
     expect(player.megaCredits).to.eq(1);
     expect(player.steel).to.eq(0);
@@ -163,10 +266,7 @@ describe('MeteoriteLakeside', () => {
     runAllActions(game);
 
     const choice = cast(player.popWaitingFor(), OrOptions);
-    const steelOption = choice.options.find((option) => option.title.toString().includes('3钢铁'));
-    expect(steelOption).to.exist;
-    steelOption!.cb();
-    runAllActions(game);
+    payOceanBonus(choice, {steel: 3});
 
     expect(player.steel).to.eq(0);
   });
@@ -236,8 +336,7 @@ describe('MeteoriteLakeside', () => {
     const moneyOption = oceanChoice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
     expect(oceanChoice.options.some((option) => option.title.toString().includes('跳过星陨湖畔效果'))).to.be.true;
-    moneyOption!.cb();
-    runAllActions(game);
+    payOceanBonus(oceanChoice, {megacredits: 5});
 
     expect(player.megaCredits).to.eq(0);
     expect(player.getTerraformRating()).to.eq(initialTR + 2);
@@ -257,8 +356,7 @@ describe('MeteoriteLakeside', () => {
     const oceanChoice = cast(player.popWaitingFor(), OrOptions);
     const moneyOption = oceanChoice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
-    moneyOption!.cb();
-    runAllActions(game);
+    payOceanBonus(oceanChoice, {megacredits: 5});
 
     const adjacencyChoice = cast(player.popWaitingFor(), OrOptions);
     const drawOption = adjacencyChoice.options.find((option) => option.title.toString().includes('2 M€'));
@@ -293,11 +391,8 @@ describe('MeteoriteLakeside', () => {
     runAllActions(game);
 
     const oceanChoice = cast(player.popWaitingFor(), OrOptions);
-    const steelOption = oceanChoice.options.find((option) => option.title.toString().includes('3钢铁'));
-    expect(steelOption).to.exist;
-    expect(oceanChoice.options.some((option) => option.title.toString().includes('5 M€'))).to.be.false;
-    steelOption!.cb();
-    runAllActions(game);
+    expect(cast(oceanChoice.options[0], SelectPayment).reserveUnits?.megacredits).eq(3);
+    payOceanBonus(oceanChoice, {steel: 3});
 
     const adjacencyChoice = cast(player.popWaitingFor(), OrOptions);
     const drawOption = adjacencyChoice.options.find((option) => option.title.toString().includes('2 M€'));
@@ -352,10 +447,104 @@ describe('MeteoriteLakeside', () => {
     const choice = cast(player.popWaitingFor(), OrOptions);
     const moneyOption = choice.options.find((option) => option.title.toString().includes('5 M€'));
     expect(moneyOption).to.exist;
-    moneyOption!.cb();
-    runAllActions(game);
+    payOceanBonus(choice, {megacredits: 5});
 
     expect(player.megaCredits).to.eq(0);
     expect(player.getTerraformRating()).to.eq(initialTR + 1);
+  });
+
+  it('preserves the Reds surcharge when validating the selected payment', () => {
+    [game, player, player2] = testGame(2, {skipInitialShuffling: true, turmoilExtension: true});
+    player.playCorporationCard(card);
+    runAllActions(game);
+    setRulingParty(game, PartyName.REDS, 'rp01');
+    player.megaCredits = 8;
+    const initialTR = player.getTerraformRating();
+    addOceanForOtherPlayer();
+    const choice = cast(player.popWaitingFor(), OrOptions);
+    const payment = cast(choice.options[0], SelectPayment);
+    expect(payment.reserveUnits?.megacredits).eq(3);
+    expect(() => payment.process({type: 'payment', payment: Payment.of({megacredits: 8})}, player)).to.throw('You do not have that many resources');
+    expect(player.megaCredits).eq(8);
+    expect(player.getTerraformRating()).eq(initialTR);
+    payOceanBonus(choice, {megacredits: 5});
+    expect(player.megaCredits).eq(0);
+    expect(player.getTerraformRating()).eq(initialTR + 1);
+  });
+
+  it('does not count the same indivisible Luna titanium toward both costs under Reds', () => {
+    [game, player, player2] = testGame(2, {skipInitialShuffling: true, turmoilExtension: true});
+    player.playCorporationCard(card);
+    runAllActions(game);
+    setRulingParty(game, PartyName.REDS, 'rp01');
+    player.canUseTitaniumAsMegacredits = true;
+    player.megaCredits = 0;
+    player.titanium = 4;
+    addOceanForOtherPlayer();
+    expect(player.getWaitingFor()).is.undefined;
+    expect(player.titanium).eq(4);
+  });
+
+  it('preserves Reds heat while Stormcraft chooses which resources to spend', () => {
+    [game, player, player2] = testGame(2, {skipInitialShuffling: true, turmoilExtension: true});
+    const stormcraft = new StormCraftIncorporated();
+    player.playCorporationCard(card);
+    player.playCorporationCard(new Helion());
+    player.playCorporationCard(stormcraft);
+    runAllActions(game);
+    setRulingParty(game, PartyName.REDS, 'rp01');
+    player.megaCredits = 0;
+    player.steel = 1;
+    player.heat = 2;
+    stormcraft.resourceCount = 2;
+    const initialTR = player.getTerraformRating();
+    addOceanForOtherPlayer();
+    const payment = cast(cast(player.popWaitingFor(), OrOptions).options[0], SelectPayment);
+    const heatPayment = cast(payment.process({type: 'payment', payment: Payment.of({steel: 1, heat: 3})}, player), AndOptions);
+    expect(cast(heatPayment.options[1], SelectAmount).max).eq(1);
+
+    expect(cast(heatPayment.options[1], SelectAmount).max).eq(1);
+    cast(heatPayment.options[0], SelectAmount).cb(0);
+    cast(heatPayment.options[1], SelectAmount).cb(2);
+    expect(() => heatPayment.cb(undefined)).to.throw('reserved heat');
+    expect(player.heat).eq(2);
+    expect(stormcraft.resourceCount).eq(2);
+    expect(player.getTerraformRating()).eq(initialTR);
+
+    cast(heatPayment.options[0], SelectAmount).cb(1);
+    cast(heatPayment.options[1], SelectAmount).cb(1);
+    heatPayment.cb(undefined);
+    runAllActions(game);
+    const redsPayment = cast(player.popWaitingFor(), SelectPayment);
+    player.defer(redsPayment.process({type: 'payment', payment: Payment.of({heat: 3})}, player));
+    runAllActions(game);
+    const redsHeat = cast(player.popWaitingFor(), AndOptions);
+    cast(redsHeat.options[0], SelectAmount).cb(1);
+    cast(redsHeat.options[1], SelectAmount).cb(1);
+    redsHeat.cb(undefined);
+    runAllActions(game);
+    expect(player.steel).eq(0);
+    expect(player.heat).eq(0);
+    expect(stormcraft.resourceCount).eq(0);
+    expect(player.getTerraformRating()).eq(initialTR + 1);
+    expect(game.gameLog.map(formatMessage).filter((entry) => entry === 'blue gained 1 TR from 🌸星陨湖畔🌸')).has.length(1);
+  });
+
+  it('does not offer a payment when indivisible Stormcraft floaters cannot cover both costs', () => {
+    [game, player, player2] = testGame(2, {skipInitialShuffling: true, turmoilExtension: true});
+    const stormcraft = new StormCraftIncorporated();
+    player.playCorporationCard(card);
+    player.playCorporationCard(new Helion());
+    player.playCorporationCard(stormcraft);
+    runAllActions(game);
+    setRulingParty(game, PartyName.REDS, 'rp01');
+    player.megaCredits = 0;
+    player.steel = 2;
+    player.heat = 0;
+    stormcraft.resourceCount = 2;
+    addOceanForOtherPlayer();
+    expect(player.getWaitingFor()).is.undefined;
+    expect(player.steel).eq(2);
+    expect(stormcraft.resourceCount).eq(2);
   });
 });

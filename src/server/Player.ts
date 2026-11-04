@@ -1201,10 +1201,13 @@ export class Player implements IPlayer {
     return this.heat + (floaters * 2);
   }
 
-  public spendHeat(amount: number, cb: () => (undefined | PlayerInput) = () => undefined) : PlayerInput | undefined {
+  public spendHeat(amount: number, cb: () => (undefined | PlayerInput) = () => undefined, reserveHeat: number = 0) : PlayerInput | undefined {
+    if (reserveHeat > 0 && this.availableHeat() - amount < reserveHeat) {
+      throw new Error('Cannot spend reserved heat');
+    }
     const stormcraft = <StormCraftIncorporated> (this.tableau.get(CardName.STORMCRAFT_INCORPORATED) || this.tableau.get(CardName._STORMCRAFT_INCORPORATED_) );
     if (stormcraft?.resourceCount > 0) {
-      return stormcraft.spendHeat(this, amount, cb);
+      return stormcraft.spendHeat(this, amount, cb, reserveHeat);
     }
     this.stock.deduct(Resource.HEAT, amount);
     return cb();

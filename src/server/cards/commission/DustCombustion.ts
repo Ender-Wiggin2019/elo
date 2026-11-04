@@ -13,7 +13,7 @@ export class DustCombustion extends Card implements IProjectCard {
       type: CardType.AUTOMATED,
       tags: [Tag.VENUS, Tag.SPACE],
       cost: 9,
-      requirements: {oxygen: 8},
+      requirements: {oxygen: 4},
       victoryPoints: -1,
 
       // The oxygen decrease does not remove TR, so keep the positive TR source
@@ -30,7 +30,7 @@ export class DustCombustion extends Card implements IProjectCard {
           b.minus().resource(CardResource.FLOATER).br;
           b.minus().oxygen(1).temperature(2);
         }),
-        description: 'Requires 8% oxygen. Spend 1 floater from one of your cards. Decrease oxygen 1 step and increase temperature 2 steps.',
+        description: 'Requires 4% oxygen. Spend 1 floater from one of your cards. Decrease oxygen 1 step and increase temperature 2 steps.',
       },
     });
   }

@@ -20,7 +20,7 @@ export class SymbioticEcosystem extends Card implements IProjectCard, IActionCar
       type: CardType.ACTIVE,
       name: CardName.SYMBIOTIC_ECOSYSTEM,
       tags: [Tag.MICROBE],
-      cost: 6,
+      cost: 11,
       resourceType: CardResource.MICROBE,
       victoryPoints: {resourcesHere: {}, per: 3},
       requirements: {party: PartyName.GREENS},

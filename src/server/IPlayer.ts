@@ -329,7 +329,8 @@ export interface IPlayer {
   checkPaymentAndPlayCard(selectedCard: IProjectCard, payment: Payment, cardAction?: CardAction): void;
   pay(payment: Payment): void;
   availableHeat(): number;
-  spendHeat(amount: number, cb?: () => (undefined | PlayerInput)) : PlayerInput | undefined;
+  /** Keeps reserveHeat available for a later cost, including floater conversion. */
+  spendHeat(amount: number, cb?: () => (undefined | PlayerInput), reserveHeat?: number) : PlayerInput | undefined;
 
   playCard(selectedCard: IProjectCard, payment?: Payment, cardAction?: CardAction): void;
   onCardPlayed(card: ICard): void;

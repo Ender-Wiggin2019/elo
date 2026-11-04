@@ -27,7 +27,7 @@ describe('MeteoricAggregates', () => {
     const card = new MeteoricAggregates();
     expect(card.type).eq(CardType.CORPORATION);
     expect(card.tags).deep.eq([Tag.EARTH, Tag.SPACE]);
-    expect(card.startingMegaCredits).eq(40);
+    expect(card.startingMegaCredits).eq(42);
     expect(card.resourceType).eq(CardResource.ASTEROID);
     expect(card.metadata.cardNumber).eq('XB85');
     expect(card.canAct()).is.true;

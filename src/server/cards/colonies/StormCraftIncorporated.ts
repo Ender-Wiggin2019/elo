@@ -50,18 +50,19 @@ export class StormCraftIncorporated extends ActiveCorporationCard {
   }
 
   public spendHeat(player: IPlayer, targetAmount: number,
-    cb: () => (undefined | PlayerInput) = () => undefined): AndOptions {
+    cb: () => (undefined | PlayerInput) = () => undefined, reserveHeat: number = 0): AndOptions {
     let heatAmount: number;
     let floaterAmount: number;
+    const spendableHeat = Math.max(0, player.availableHeat() - reserveHeat);
 
     return new AndOptions(
-      new SelectAmount('Heat', 'Spend heat', 0, Math.min(player.heat, targetAmount))
+      new SelectAmount('Heat', 'Spend heat', 0, Math.min(player.heat, targetAmount, spendableHeat))
         .andThen((amount) => {
           heatAmount = amount;
           return undefined;
         }),
       new SelectAmount('Stormcraft Incorporated Floaters (2 heat each)', 'Spend floaters',
-        0, Math.min(this.resourceCount, Math.ceil(targetAmount / 2)))
+        0, Math.min(this.resourceCount, Math.ceil(targetAmount / 2), Math.floor(spendableHeat / 2)))
         .andThen((amount) => {
           floaterAmount = amount;
           return undefined;
@@ -74,6 +75,9 @@ export class StormCraftIncorporated extends ActiveCorporationCard {
       }
       if (floaterAmount > 0 && heatAmount + ((floaterAmount - 1) * 2) >= targetAmount) {
         throw new Error('You cannot overspend floaters');
+      }
+      if (player.availableHeat() - heatAmount - (floaterAmount * 2) < reserveHeat) {
+        throw new Error('Cannot spend reserved heat');
       }
       player.removeResourceFrom(this, floaterAmount);
       player.stock.deduct(Resource.HEAT, heatAmount);

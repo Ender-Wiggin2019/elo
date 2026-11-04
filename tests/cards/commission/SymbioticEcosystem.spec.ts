@@ -18,7 +18,7 @@ describe('SymbioticEcosystem', () => {
 
     expect(card.type).to.eq(CardType.ACTIVE);
     expect(card.name).to.eq(CardName.SYMBIOTIC_ECOSYSTEM);
-    expect(card.cost).to.eq(6);
+    expect(card.cost).to.eq(11);
     expect(card.tags).to.deep.eq([Tag.MICROBE]);
     expect(card.resourceType).to.eq(CardResource.MICROBE);
     expect(card.victoryPoints).to.deep.eq({resourcesHere: {}, per: 3});
