@@ -2,6 +2,7 @@ import {CardName} from '../../../common/cards/CardName';
 import {CardResource} from '../../../common/CardResource';
 import {CardType} from '../../../common/cards/CardType';
 import {Tag} from '../../../common/cards/Tag';
+import {Size} from '../../../common/cards/render/Size';
 import {Resource} from '../../../common/Resource';
 import {IPlayer} from '../../IPlayer';
 import {ICard} from '../ICard';
@@ -29,14 +30,13 @@ export class SparkfireEcology extends CorporationCard {
 
       metadata: {
         cardNumber: 'XB93',
-        description: '你起始拥有45 M€、5钛和5个战斗机资源。每个战斗机使你少2 VP。打出木星、火星或动物标签时，可移除1个战斗机并获得1钛；若没有战斗机，可获得3钛并将本牌翻面，失去所有效果和标签。',
+        description: '你起始拥有45 M€、5钛和5个战斗机资源。',
         renderData: CardRenderer.builder((b) => {
           b.megacredits(45).titanium(5).resource(CardResource.FIGHTER, STARTING_FIGHTERS).br;
           b.vpText('每个战斗机使你少2 VP。').br;
-          b.corpBox('effect', (ce) => {
-            ce.effect('打出木星、火星或动物标签时，可移除1个战斗机获得1钛；若没有战斗机，可获得3钛并翻面，失去所有效果和标签。多标签分别触发。', (eb) => {
-              eb.tag(Tag.JOVIAN).tag(Tag.MARS).tag(Tag.ANIMAL).startEffect.titanium(1);
-            });
+          b.effect('每打出1个木星、火星或动物标，可移除1战斗机获得1钛；若无战斗机，可获得3钛并翻面，失去所有效果和标签。', (eb) => {
+            eb.tag(Tag.JOVIAN, {size: Size.SMALL}).tag(Tag.MARS, {size: Size.SMALL}).tag(Tag.ANIMAL, {size: Size.SMALL})
+              .startEffect.titanium(1, {size: Size.SMALL});
           });
         }),
         victoryPoints: dynamicResourceVictoryPoints(CardResource.FIGHTER, -2, 1),

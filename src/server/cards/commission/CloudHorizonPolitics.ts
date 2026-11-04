@@ -26,7 +26,6 @@ export class CloudHorizonPolitics extends Card implements IProjectCard {
 
       metadata: {
         cardNumber: 'XB96',
-        description: '需要2个金星标签，计1VP。每当你打出带有金星标签的牌（包括本牌）时，可在任意卡牌上增加1个漂浮物。行动：移除本牌2个漂浮物，将1个代表派到任意党派。',
         renderData: CardRenderer.builder((b) => {
           b.effect('每当你打出带有金星标签的牌（包括本牌）时，可在任意卡牌上增加1个漂浮物。', (eb) => {
             eb.tag(Tag.VENUS).startEffect.resource(CardResource.FLOATER).asterix();

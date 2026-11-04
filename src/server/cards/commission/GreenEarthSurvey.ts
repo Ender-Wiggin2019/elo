@@ -2,6 +2,7 @@ import {CardName} from '../../../common/cards/CardName';
 import {CardType} from '../../../common/cards/CardType';
 import {Resource} from '../../../common/Resource';
 import {Tag} from '../../../common/cards/Tag';
+import {Size} from '../../../common/cards/render/Size';
 import {CanAffordOptions, IPlayer} from '../../IPlayer';
 import {Card} from '../Card';
 import {IProjectCard} from '../IProjectCard';
@@ -18,12 +19,12 @@ export class GreenEarthSurvey extends Card implements IProjectCard {
 
       metadata: {
         cardNumber: 'XB97',
-        description: '需要2个地球标签。翻开并弃掉项目牌库顶牌；若有植物标签，获得8个植物；若有地球标签，获得6个钛；若两者均无，获得4M€。',
+        description: '翻开并弃掉牌库顶牌，按其标签获得图示奖励（可叠加）。',
         renderData: CardRenderer.builder((b) => {
-          b.cards(1).asterix().br;
-          b.tag(Tag.PLANT).slash().plants(8).br;
-          b.tag(Tag.EARTH).slash().titanium(6).br;
-          b.noTags().slash().megacredits(4);
+          b.cards(1, {size: Size.SMALL}).asterix().br;
+          b.tag(Tag.PLANT, {size: Size.SMALL}).colon().plants(8, {size: Size.SMALL}).br;
+          b.tag(Tag.EARTH, {size: Size.SMALL}).colon().titanium(6, {size: Size.SMALL}).br;
+          b.text('两者皆无', Size.SMALL).colon().megacredits(4, {size: Size.SMALL});
         }),
       },
     });
