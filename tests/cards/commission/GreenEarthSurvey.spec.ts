@@ -17,8 +17,8 @@ describe('GreenEarthSurvey', () => {
     player.megaCredits = 100;
   });
 
-  function playWithTopCard(tags: Array<Tag>) {
-    const topCard = fakeCard({tags});
+  function playWithTopCard(tags: Array<Tag>, type = CardType.AUTOMATED) {
+    const topCard = fakeCard({tags, type});
     game.projectDeck.drawPile.push(topCard);
     card.play(player);
     expect(game.projectDeck.discardPile).to.include(topCard);
@@ -27,8 +27,8 @@ describe('GreenEarthSurvey', () => {
 
   it('has the expected automated Earth requirement', () => {
     expect(card.type).to.eq(CardType.AUTOMATED);
-    expect(card.cost).to.eq(10);
-    expect(card.tags).to.be.empty;
+    expect(card.cost).to.eq(11);
+    expect(card.tags).to.deep.eq([Tag.SCIENCE, Tag.BUILDING]);
     expect(card.requirements).to.deep.eq([{tag: Tag.EARTH, count: 2}]);
     expect(card.metadata.cardNumber).to.eq('XB97');
   });
@@ -57,12 +57,28 @@ describe('GreenEarthSurvey', () => {
     expect(player.megaCredits).to.eq(100);
   });
 
-  it('gains 4 M€ when the revealed card has neither tag', () => {
+  it('gains 10 energy instead of M€ when the revealed card has no tags', () => {
     playWithTopCard([]);
+    expect(player.energy).to.eq(10);
+    expect(player.production.energy).to.eq(0);
+    expect(player.plants).to.eq(0);
+    expect(player.titanium).to.eq(0);
+    expect(player.megaCredits).to.eq(100);
+    expect(game.gameLog.map(formatMessage)).to.include('blue gained 10 energy because of 🌸绿地勘测🌸');
+  });
+
+  it('gains 4 M€ when the revealed card matches none of the three conditions', () => {
+    playWithTopCard([Tag.SCIENCE]);
     expect(player.plants).to.eq(0);
     expect(player.titanium).to.eq(0);
     expect(player.megaCredits).to.eq(104);
     expect(game.gameLog.map(formatMessage)).to.include('blue gained 4 M€ because of 🌸绿地勘测🌸');
+  });
+
+  it('counts the event tag on an event with no other printed tags', () => {
+    playWithTopCard([], CardType.EVENT);
+    expect(player.energy).to.eq(0);
+    expect(player.megaCredits).to.eq(104);
   });
 
   it('cannot play without a card to reveal', () => {

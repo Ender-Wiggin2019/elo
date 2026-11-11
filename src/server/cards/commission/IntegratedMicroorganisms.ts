@@ -12,19 +12,22 @@ import {CardRenderer} from '../render/CardRenderer';
 import {CorporationCard} from '../corporation/CorporationCard';
 import {ICard} from '../ICard';
 
+const STARTING_MEGACREDITS = 47;
+
 export class IntegratedMicroorganisms extends CorporationCard {
   constructor() {
     super({
       name: CardName.INTEGRATED_MICROORGANISMS,
       tags: [Tag.MICROBE],
-      startingMegaCredits: 50,
+      startingMegaCredits: STARTING_MEGACREDITS,
+      behavior: {drawCard: {count: 1, tag: Tag.MICROBE}},
 
       metadata: {
         cardNumber: 'XB07',
-        description: 'You start with 50 M€.',
+        description: `你起始拥有${STARTING_MEGACREDITS} M€，并抽取1张微生物标志卡牌。`,
         renderData: CardRenderer.builder((b) => {
           b.br.br.br;
-          b.megacredits(50);
+          b.megacredits(STARTING_MEGACREDITS).cards(1, {secondaryTag: Tag.MICROBE});
           b.corpBox('effect', (ce) => {
             ce.effect('When you play a Microbe tag, including this, you draw 1 card.', (eb) => {
               eb.tag(Tag.MICROBE).startEffect.cards(1);

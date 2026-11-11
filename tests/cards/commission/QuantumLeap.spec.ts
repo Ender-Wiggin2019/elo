@@ -9,6 +9,7 @@ import {serializeCorporationCard, deserializeCorporationCard} from '../../../src
 import {IGame} from '../../../src/server/IGame';
 import {Priority} from '../../../src/server/deferredActions/Priority';
 import {SelectCard} from '../../../src/server/inputs/SelectCard';
+import {OrOptions} from '../../../src/server/inputs/OrOptions';
 import {TestPlayer} from '../../TestPlayer';
 import {testGame} from '../../TestGame';
 import {cast, fakeCard, formatMessage, runAllActions} from '../../TestingUtils';
@@ -25,8 +26,14 @@ describe('QuantumLeap', () => {
     player.playedCards.push(card);
   });
 
-  it('starts with 38 M€ and draws one card', () => {
-    expect(card.startingMegaCredits).eq(38);
+  function chooseReward(index: number) {
+    runAllActions(game);
+    cast(player.popWaitingFor(), OrOptions).options[index].cb();
+    runAllActions(game);
+  }
+
+  it('starts with 49 M€ and draws one card', () => {
+    expect(card.startingMegaCredits).eq(49);
     expect(card.tags).is.empty;
     card.play(player);
     runAllActions(game);
@@ -34,13 +41,23 @@ describe('QuantumLeap', () => {
     expect(game.gameLog.map(formatMessage).filter((entry) => entry.includes('drew 1 card'))).has.length(1);
   });
 
+  it('can choose 2 M€ instead of an available action', () => {
+    player.energy = 2;
+    player.playCard(new DevelopmentCenter());
+    chooseReward(0);
+
+    expect(player.megaCredits).eq(2);
+    expect(player.energy).eq(2);
+    expect(player.cardsInHand).is.empty;
+    expect(game.gameLog.map(formatMessage).filter((entry) => entry === 'blue gained 2 M€ because of 🌸量子跃迁🌸')).has.length(1);
+  });
+
   it('takes a paid action immediately and leaves the normal action available', () => {
     const target = new DevelopmentCenter();
     player.energy = 2;
     player.cardsInHand.push(target);
-
     player.playCard(target);
-    runAllActions(game);
+    chooseReward(1);
 
     expect(player.energy).eq(1);
     expect(player.cardsInHand).has.length(1);
@@ -57,9 +74,8 @@ describe('QuantumLeap', () => {
     expect(player.actionsThisGeneration.has(target.name)).is.true;
   });
 
-  it('waits for initial play resources before checking and executing the action', () => {
+  it('waits for initial play resources before checking the action cost', () => {
     const target = new SpaceElevator();
-    // A play effect may grant the resource needed by the action through the queue.
     const originalPlay = target.play.bind(target);
     target.play = (owner) => {
       owner.defer(() => {
@@ -69,9 +85,8 @@ describe('QuantumLeap', () => {
       return originalPlay(owner);
     };
     player.cardsInHand.push(target);
-
     player.playCard(target);
-    runAllActions(game);
+    chooseReward(1);
 
     expect(player.steel).eq(0);
     expect(player.megaCredits).eq(5);
@@ -83,7 +98,7 @@ describe('QuantumLeap', () => {
     player.megaCredits = 3;
     player.cardsInHand.push(target);
     player.playCard(target);
-    runAllActions(game);
+    chooseReward(1);
 
     const input = cast(player.popWaitingFor(), SelectCard);
     expect(input.cards).has.length(1);
@@ -94,59 +109,62 @@ describe('QuantumLeap', () => {
     expect(player.actionsThisGeneration.has(target.name)).is.false;
   });
 
-  it('does not act for a card played outside the hand or by another player', () => {
-    player.energy = 2;
+  it('also triggers for blue cards played outside the hand', () => {
+    player.energy = 1;
     player.playCard(new DevelopmentCenter());
-    otherPlayer.energy = 2;
-    const target = new DevelopmentCenter();
-    otherPlayer.cardsInHand.push(target);
-    otherPlayer.playCard(target);
-    runAllActions(game);
-
-    expect(player.energy).eq(2);
-    expect(otherPlayer.energy).eq(2);
-    expect(card.data.activatedCards).is.empty;
+    chooseReward(1);
+    expect(player.energy).eq(0);
+    expect(player.cardsInHand).has.length(1);
   });
 
-  it('ignores blue cards with no action and cards of other colors', () => {
-    const green = fakeCard({type: CardType.AUTOMATED});
-    const red = fakeCard({type: CardType.EVENT});
-    const blue = new EarthOffice();
-    for (const target of [green, red, blue]) {
-      player.cardsInHand.push(target);
+  it('does not trigger for another player', () => {
+    otherPlayer.energy = 2;
+    otherPlayer.playCard(new DevelopmentCenter());
+    runAllActions(game);
+    expect(otherPlayer.energy).eq(2);
+    expect(player.megaCredits).eq(0);
+    cast(player.popWaitingFor(), undefined);
+    cast(otherPlayer.popWaitingFor(), undefined);
+  });
+
+  it('gains 2 M€ for blue cards without an action and ignores other colors', () => {
+    for (const target of [fakeCard({type: CardType.AUTOMATED}), fakeCard({type: CardType.EVENT}), new EarthOffice()]) {
       player.playCard(target);
     }
     runAllActions(game);
-    expect(card.data.activatedCards).is.empty;
+    expect(player.megaCredits).eq(2);
+    cast(player.popWaitingFor(), undefined);
   });
 
-  it('does not grant a later extra action if its cost cannot be paid on play', () => {
-    const target = new DevelopmentCenter();
-    player.cardsInHand.push(target);
-    player.playCard(target);
+  it('gains 2 M€ when the blue card action cannot be paid', () => {
+    player.playCard(new DevelopmentCenter());
     runAllActions(game);
+    expect(player.megaCredits).eq(2);
     expect(player.cardsInHand).is.empty;
+    cast(player.popWaitingFor(), undefined);
+  });
 
+  it('grants the extra action even if the normal action was already used', () => {
+    const target = new DevelopmentCenter();
     player.energy = 1;
-    card.onCardPlayedFromHand(player, target);
-    runAllActions(game);
-    expect(player.energy).eq(1);
-    expect(player.cardsInHand).is.empty;
+    player.actionsThisGeneration.add(target.name);
+    player.playCard(target);
+    chooseReward(1);
+    expect(player.energy).eq(0);
+    expect(player.cardsInHand).has.length(1);
+    expect(player.actionsThisGeneration.has(target.name)).is.true;
   });
 
-  it('persists once-per-card usage across reloads and generations', () => {
-    const target = new DevelopmentCenter();
-    player.energy = 3;
-    player.cardsInHand.push(target);
-    player.playCard(target);
-    runAllActions(game);
+  it('can trigger on subsequent plays after reload and in later generations', () => {
+    player.energy = 2;
+    player.playCard(new DevelopmentCenter());
+    chooseReward(1);
 
     const restored = cast(deserializeCorporationCard(serializeCorporationCard(card)), QuantumLeap);
-    expect(restored.data.activatedCards).deep.eq([target.name]);
     game.generation++;
-    restored.onCardPlayedFromHand(player, target);
-    runAllActions(game);
-    expect(player.energy).eq(2);
-    expect(player.cardsInHand).has.length(1);
+    restored.onCardPlayed(player, new DevelopmentCenter());
+    chooseReward(1);
+    expect(player.energy).eq(0);
+    expect(player.cardsInHand).has.length(2);
   });
 });

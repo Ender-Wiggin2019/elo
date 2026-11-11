@@ -25,20 +25,20 @@ describe('TechnologicalSeedlings', () => {
       entry === 'blue gained 3 plants because of 🌸科技育苗🌸');
   }
 
-  it('is an automated science and plant card that costs 15 M€ and requires oxygen at most 8%', () => {
+  it('is an automated science and plant card that costs 15 M€ and requires oxygen at most 12%', () => {
     expect(card.type).to.eq(CardType.AUTOMATED);
     expect(card.cost).to.eq(15);
     expect(card.tags).to.deep.eq([Tag.SCIENCE, Tag.PLANT]);
-    expect(card.requirements).to.deep.eq([{oxygen: 8, count: 8, max: true}]);
+    expect(card.requirements).to.deep.eq([{oxygen: 12, count: 12, max: true}]);
     expect(card.metadata.cardNumber).to.eq('XB90');
   });
 
-  it('cannot be played above 8% oxygen', () => {
+  it('cannot be played above 12% oxygen', () => {
     player.megaCredits = card.cost;
-    setOxygenLevel(game, 9);
+    setOxygenLevel(game, 13);
     expect(card.canPlay(player)).to.be.false;
 
-    setOxygenLevel(game, 8);
+    setOxygenLevel(game, 12);
     expect(card.canPlay(player)).to.be.true;
   });
 

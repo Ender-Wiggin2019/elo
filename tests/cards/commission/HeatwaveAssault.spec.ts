@@ -25,7 +25,7 @@ describe('HeatwaveAssault', () => {
     card = new HeatwaveAssault();
     [game, player] = testGame(1, {skipInitialShuffling: true});
     maxOutOceans(player, 6);
-    player.steel = 2;
+    player.steel = 1;
     game.gameLog.length = 0;
   });
 
@@ -38,7 +38,7 @@ describe('HeatwaveAssault', () => {
     expect(card.metadata.cardNumber).to.eq('XB80');
   });
 
-  it('requires six oceans and two steel in addition to its card cost', () => {
+  it('requires six oceans and one steel in addition to its card cost', () => {
     const [requirementsGame, requirementsPlayer] = testGame(1, {skipInitialShuffling: true});
     requirementsPlayer.megaCredits = card.cost;
 
@@ -48,12 +48,12 @@ describe('HeatwaveAssault', () => {
     requirementsPlayer.steel = 0;
     expect(requirementsPlayer.canPlay(card)).to.be.false;
 
-    requirementsPlayer.steel = 2;
+    requirementsPlayer.steel = 1;
     expect(requirementsPlayer.canPlay(card)).to.be.true;
     expect(requirementsGame.getTemperature()).to.eq(-30);
   });
 
-  it('raises temperature and removes two steel as an ordinary resource loss', () => {
+  it('raises temperature and removes one steel as an ordinary resource loss', () => {
     player.megaCredits = card.cost;
     player.cardsInHand = [card];
     expect(player.canPlay(card)).to.be.true;
@@ -69,7 +69,7 @@ describe('HeatwaveAssault', () => {
     expect(game.getTemperature()).to.eq(oldTemperature + 4);
     expect(player.terraformRating).to.eq(before + 2);
     expect(trGainLogs(game)).to.deep.eq(['blue gained 2 TR']);
-    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 2 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 1 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
   });
 
   it('logs only one TR when one temperature step remains', () => {
@@ -85,13 +85,13 @@ describe('HeatwaveAssault', () => {
     expect(game.getTemperature()).to.eq(MAX_TEMPERATURE);
     expect(player.terraformRating).to.eq(before + 1);
     expect(trGainLogs(game)).to.deep.eq(['blue gained 1 TR']);
-    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 2 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 1 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
   });
 
   it('charges Reds for two temperature steps', () => {
     [game, player] = testGame(1, {turmoilExtension: true, skipInitialShuffling: true});
     maxOutOceans(player, 6);
-    player.steel = 2;
+    player.steel = 1;
     setRulingParty(game, PartyName.REDS);
 
     testRedsCosts(() => player.canPlay(card), player, card.cost, 6);
@@ -108,13 +108,13 @@ describe('HeatwaveAssault', () => {
     expect(player.steel).to.eq(0);
     expect(game.getTemperature()).to.eq(MAX_TEMPERATURE);
     expect(trGainLogs(game)).to.be.empty;
-    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 2 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 1 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
   });
 
   it('logs the actual two TR after the Reds surcharge is paid', () => {
     [game, player] = testGame(1, {turmoilExtension: true, skipInitialShuffling: true});
     maxOutOceans(player, 6);
-    player.steel = 2;
+    player.steel = 1;
     player.megaCredits = card.cost + 6;
     player.cardsInHand = [card];
     setRulingParty(game, PartyName.REDS);
@@ -131,7 +131,7 @@ describe('HeatwaveAssault', () => {
     expect(player.megaCredits).to.eq(0);
     expect(player.terraformRating).to.eq(before + 2);
     expect(trGainLogs(game)).to.deep.eq(['blue gained 2 TR']);
-    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 2 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
+    expect(game.gameLog.filter((entry) => formatMessage(entry) === 'blue lost 1 steel because of 🌸热浪侵袭🌸')).to.have.length(1);
   });
 
   it('does not report the steel loss as a metal payment', () => {

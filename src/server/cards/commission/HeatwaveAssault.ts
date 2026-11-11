@@ -7,7 +7,7 @@ import {Card} from '../Card';
 import {IProjectCard} from '../IProjectCard';
 import {CardRenderer} from '../render/CardRenderer';
 
-const STEEL_REMOVAL = 2;
+const STEEL_REMOVAL = 1;
 
 export class HeatwaveAssault extends Card implements IProjectCard {
   constructor() {
@@ -29,7 +29,7 @@ export class HeatwaveAssault extends Card implements IProjectCard {
           b.temperature(2).br;
           b.minus().steel(STEEL_REMOVAL);
         }),
-        description: '需要6片海洋。提升2格温度，并移除你的2个钢铁资源。',
+        description: '需要6片海洋。提升2格温度，并移除你的1个钢铁资源。',
       },
     });
   }

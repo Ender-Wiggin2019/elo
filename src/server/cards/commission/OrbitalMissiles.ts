@@ -16,14 +16,14 @@ export class OrbitalMissiles extends Card implements IProjectCard, IActionCard {
     super({
       name: CardName.ORBITAL_MISSILES,
       type: CardType.ACTIVE,
-      cost: 23,
+      cost: 20,
       tags: [Tag.MARS, Tag.SPACE],
-      requirements: {tag: Tag.EVENT, count: 5},
+      requirements: {tag: Tag.EVENT, count: 4},
       victoryPoints: 1,
       resourceType: CardResource.FIGHTER,
       metadata: {
         cardNumber: 'XB76',
-        description: '需要已打出5张事件卡。',
+        description: '需要已打出4张事件卡。',
         renderData: CardRenderer.builder((b) => {
           b.effect('打出卡牌时（包括此卡），每个非事件标记加1战斗机。', (eb) => {
             eb.wild(1, {size: Size.SMALL}).startEffect.resource(CardResource.FIGHTER, {size: Size.SMALL});

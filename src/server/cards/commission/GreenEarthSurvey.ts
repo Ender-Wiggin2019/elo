@@ -13,18 +13,19 @@ export class GreenEarthSurvey extends Card implements IProjectCard {
     super({
       type: CardType.AUTOMATED,
       name: CardName.GREEN_EARTH_SURVEY,
-      tags: [],
-      cost: 10,
+      tags: [Tag.SCIENCE, Tag.BUILDING],
+      cost: 11,
       requirements: {tag: Tag.EARTH, count: 2},
 
       metadata: {
         cardNumber: 'XB97',
-        description: '翻开并弃掉牌库顶牌，按其标签获得图示奖励（可叠加）。',
+        description: '翻开并弃掉牌库顶牌，按其标签获得图示奖励（不按标签数量叠加）。',
         renderData: CardRenderer.builder((b) => {
           b.cards(1, {size: Size.SMALL}).asterix().br;
-          b.tag(Tag.PLANT, {size: Size.SMALL}).colon().plants(8, {size: Size.SMALL}).br;
-          b.tag(Tag.EARTH, {size: Size.SMALL}).colon().titanium(6, {size: Size.SMALL}).br;
-          b.text('两者皆无', Size.SMALL).colon().megacredits(4, {size: Size.SMALL});
+          b.tag(Tag.PLANT, {size: Size.SMALL}).colon().plants(8, {size: Size.SMALL})
+            .nbsp.nbsp.tag(Tag.EARTH, {size: Size.SMALL}).colon().titanium(6, {size: Size.SMALL}).br;
+          b.noTags({size: Size.SMALL}).colon().energy(10, {size: Size.SMALL}).br;
+          b.text('三者皆无', Size.SMALL).colon().megacredits(4, {size: Size.SMALL});
         }),
       },
     });
@@ -40,13 +41,17 @@ export class GreenEarthSurvey extends Card implements IProjectCard {
 
     const hasPlantTag = card.tags.includes(Tag.PLANT);
     const hasEarthTag = card.tags.includes(Tag.EARTH);
+    const hasNoTags = card.tags.length === 0 && card.type !== CardType.EVENT;
     if (hasPlantTag) {
       player.stock.add(Resource.PLANTS, 8, {log: true, from: {card: this}});
     }
     if (hasEarthTag) {
       player.stock.add(Resource.TITANIUM, 6, {log: true, from: {card: this}});
     }
-    if (!hasPlantTag && !hasEarthTag) {
+    if (hasNoTags) {
+      player.stock.add(Resource.ENERGY, 10, {log: true, from: {card: this}});
+    }
+    if (!hasPlantTag && !hasEarthTag && !hasNoTags) {
       player.stock.add(Resource.MEGACREDITS, 4, {log: true, from: {card: this}});
     }
 

@@ -698,6 +698,7 @@ export enum CardName {
   CLOUD_HORIZON_POLITICS = '🌸云际议政🌸',
   GREEN_EARTH_SURVEY = '🌸绿地勘测🌸',
   GEOMAGNETIC_SYMBIOSIS = '🌸地磁共生🌸',
+  GEOPULSE_ENERGY = '🌸地脉能源🌸',
 
     PLANETARY_METEOR_HARVESTERS = '星际碎屑',
     UNIQUE_ITEM_BOUNTY = '奇物丰收',

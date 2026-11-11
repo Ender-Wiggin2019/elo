@@ -22,13 +22,13 @@ describe('OrbitalMissiles', () => {
     const card = new OrbitalMissiles();
 
     expect(card.type).to.eq(CardType.ACTIVE);
-    expect(card.cost).to.eq(23);
+    expect(card.cost).to.eq(20);
     expect(card.tags).to.deep.eq([Tag.MARS, Tag.SPACE]);
     expect(card.victoryPoints).to.eq(1);
     expect(card.resourceType).to.eq(CardResource.FIGHTER);
   });
 
-  it('requires five actual event cards, even with a wild tag', () => {
+  it('requires four actual event cards, even with a wild tag', () => {
     const card = new OrbitalMissiles();
     const [/* game */, player] = testGame(1);
     player.megaCredits = 100;
@@ -45,12 +45,12 @@ describe('OrbitalMissiles', () => {
     expect(player.getPlayedEventsCount()).to.eq(0);
     expect(card.canPlay(player)).to.be.false;
 
-    player.playedCards.push(...events.slice(0, 4));
-    expect(player.getPlayedEventsCount()).to.eq(4);
+    player.playedCards.push(...events.slice(0, 3));
+    expect(player.getPlayedEventsCount()).to.eq(3);
     expect(card.canPlay(player)).to.be.false;
 
-    player.playedCards.push(events[4]);
-    expect(player.getPlayedEventsCount()).to.eq(5);
+    player.playedCards.push(events[3]);
+    expect(player.getPlayedEventsCount()).to.eq(4);
     expect(card.canPlay(player)).to.be.true;
   });
 

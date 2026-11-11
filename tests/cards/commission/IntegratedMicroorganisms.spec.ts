@@ -7,6 +7,8 @@ import {IGame} from '../../../src/server/IGame';
 import {Ants} from '../../../src/server/cards/base/Ants';
 import {Worms} from '../../../src/server/cards/base/Worms';
 import {Mine} from '../../../src/server/cards/base/Mine';
+import {Tag} from '../../../src/common/cards/Tag';
+import {Psychrophiles} from '../../../src/server/cards/prelude/Psychrophiles';
 
 describe('IntegratedMicroorganisms', () => {
   let card: IntegratedMicroorganisms;
@@ -17,14 +19,18 @@ describe('IntegratedMicroorganisms', () => {
   beforeEach(() => {
     card = new IntegratedMicroorganisms();
     [game, player, player2] = testGame(2, {skipInitialShuffling: true});
+    game.projectDeck.drawPile.push(new Psychrophiles(), new Mine());
   });
 
-  it('should start with 50 M€ without drawing initial microbe cards', () => {
+  it('should start with 47 M€ and draw one microbe card plus its own tag reward', () => {
+    const microbeCard = new Ants();
+    game.projectDeck.drawPile.push(microbeCard, new Mine());
     player.playCorporationCard(card);
-    expect(player.cardsInHand.length).to.eq(1);
+    expect(player.cardsInHand.length).to.eq(2);
     runAllActions(game);
-    expect(card.startingMegaCredits).to.equal(50);
-    expect(player.cardsInHand.length).to.eq(1);
+    expect(card.startingMegaCredits).to.equal(47);
+    expect(player.cardsInHand.length).to.eq(2);
+    expect(player.cardsInHand.filter((drawn) => drawn.tags.includes(Tag.MICROBE))).to.include(microbeCard);
   });
 
   it('should draw 1 card for each microbe tag when playing a card', () => {

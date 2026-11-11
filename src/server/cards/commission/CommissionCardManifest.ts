@@ -80,6 +80,7 @@ import {GalileoMatrix} from './GalileoMatrix';
 import {CloudHorizonPolitics} from './CloudHorizonPolitics';
 import {GreenEarthSurvey} from './GreenEarthSurvey';
 import {GeomagneticSymbiosis} from './GeomagneticSymbiosis';
+import {GeoPulseEnergy} from './GeoPulseEnergy';
 
 export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
   module: 'commission',
@@ -114,6 +115,7 @@ export const COMMISSION_CARD_MANIFEST = new ModuleManifest({
     [CardName.SPARKFIRE_ECOLOGY]: {Factory: SparkfireEcology}, // XB93
     [CardName.QUANTUM_LEAP]: {Factory: QuantumLeap}, // XB94
     [CardName.GEOMAGNETIC_SYMBIOSIS]: {Factory: GeomagneticSymbiosis, compatibility: 'ares'}, // XB98
+    [CardName.GEOPULSE_ENERGY]: {Factory: GeoPulseEnergy}, // XB99
   },
   preludeCards: {
   },

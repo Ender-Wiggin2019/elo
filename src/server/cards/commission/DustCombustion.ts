@@ -12,9 +12,8 @@ export class DustCombustion extends Card implements IProjectCard {
       name: CardName.DUST_COMBUSTION,
       type: CardType.AUTOMATED,
       tags: [Tag.VENUS, Tag.SPACE],
-      cost: 9,
+      cost: 11,
       requirements: {oxygen: 4},
-      victoryPoints: -1,
 
       // The oxygen decrease does not remove TR, so keep the positive TR source
       // explicit for Reds' ruling policy cost calculation.

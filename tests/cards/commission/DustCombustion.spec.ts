@@ -22,9 +22,10 @@ describe('DustCombustion', () => {
 
   it('has the commissioned card properties', () => {
     expect(card.type).to.eq(CardType.AUTOMATED);
-    expect(card.cost).to.eq(9);
+    expect(card.cost).to.eq(11);
     expect(card.tags).to.deep.eq([Tag.VENUS, Tag.SPACE]);
-    expect(card.victoryPoints).to.eq(-1);
+    expect(card.victoryPoints).to.be.undefined;
+    expect(card.getVictoryPoints(player)).to.eq(0);
     expect(card.requirements[0].oxygen).to.eq(4);
   });
 

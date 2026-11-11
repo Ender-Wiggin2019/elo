@@ -17,8 +17,13 @@ describe('Protogen', () => {
     [game, player, player2] = testGame(2, {skipInitialShuffling: true});
   });
 
-  it('初始资金为52', () => {
-    expect(card.startingMegaCredits).to.eq(52);
+  it('初始资金为48，并抽取1张微生物标志卡牌', () => {
+    const microbeCard = new Psychrophiles();
+    game.projectDeck.drawPile.push(microbeCard);
+    player.playCorporationCard(card);
+    runAllActions(game);
+    expect(card.startingMegaCredits).to.eq(48);
+    expect(player.cardsInHand).to.deep.eq([microbeCard]);
   });
 
   // it('初始行动应抽取2张带微生物标志的牌', () => {
